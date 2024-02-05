@@ -24,5 +24,3 @@ export interface IGenerateStealthAddress {
 }
 
 export type Hex = Uint8Array | string;
-
-export PrivateKey = privkey
