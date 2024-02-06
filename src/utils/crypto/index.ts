@@ -1,0 +1,1 @@
+export { generateStealthAddress } from "./generateStealthAddress";
