@@ -19,4 +19,9 @@ export interface IGenerateStealthAddress {
   ephemeralPrivateKey?: Uint8Array;
 }
 
-export type Hex = Uint8Array | string;
+export type Hex = Uint8Array | HexString;
+
+export interface IParseSpendAndViewKeysReturnType {
+  spendingPublicKey: Hex;
+  viewingPublicKey: Hex;
+}

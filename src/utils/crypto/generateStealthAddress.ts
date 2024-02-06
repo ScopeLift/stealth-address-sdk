@@ -144,26 +144,37 @@ function validateStealthMetaAddress({
     return false; // Contains non-hex characters
   }
 
-  // Convert cleaned hex string to a Buffer and check its length
-  const bufferLength = Buffer.from(cleanedStealthMetaAddress, "hex").length;
-
-  // Define expected lengths for compressed and uncompressed keys
-  const compressedKeyLength = 33; // Length of a compressed public key
-  const uncompressedKeyLength = 65; // Length of an uncompressed public key (64 bytes + 1 byte prefix)
-
-  // For scheme 1, check if the length matches a single or dual compressed/uncompressed key scheme
-  if (
-    bufferLength === compressedKeyLength || // Single compressed key
-    bufferLength === 2 * compressedKeyLength || // Dual compressed keys
-    bufferLength === uncompressedKeyLength || // Single uncompressed key
-    bufferLength === 2 * uncompressedKeyLength // Dual uncompressed keys
-  ) {
-    return true;
+  // Allow for a single key used for both spending and viewing, or two distinct keys
+  if (![66, 132].includes(cleanedStealthMetaAddress.length)) {
+    return false;
   }
 
-  // Further structure checks can be added here if needed
+  // Validate the format of each public key
+  const singlePublicKeyHexLength = 66; // Length for compressed keys
+  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+    0,
+    singlePublicKeyHexLength
+  ) as HexString;
+  const viewingPublicKeyHex =
+    cleanedStealthMetaAddress.length === 132
+      ? (cleanedStealthMetaAddress.slice(singlePublicKeyHexLength) as HexString)
+      : (spendingPublicKeyHex as HexString); // Use the same key for spending and viewing if only one is provided
 
-  return false;
+  if (
+    !isValidCompressedPublicKey(spendingPublicKeyHex) ||
+    !isValidCompressedPublicKey(viewingPublicKeyHex)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
+  return (
+    (publicKeyHex.startsWith("02") || publicKeyHex.startsWith("03")) &&
+    publicKeyHex.length === 66
+  );
 }
 
 /**
@@ -186,43 +197,19 @@ function parseKeysFromStealthMetaAddress({
   handleSchemeId(schemeId);
 
   const cleanedStealthMetaAddress = stealthMetaAddress.slice(2);
-
-  // Define the length of a single public key in hex characters
-  const singlePublicKeyHexLength = 33 * 2; // Length for compressed keys
-
-  // Example for a single public key scheme
-  //   const publicKey = stealthAddress;
-  // For a single public key scheme, the stealth address is the public key
-  // For a dual public key scheme, the stealth address is the concatenation of the two public keys
-  // Example for a dual public key scheme
-  if (cleanedStealthMetaAddress.length === singlePublicKeyHexLength) {
-    return {
-      spendingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(
-        true
-      ),
-      viewingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(
-        true
-      ),
-    };
-  }
-
-  // Ensure that the total length matches that of two public keys
-  if (cleanedStealthMetaAddress.length !== 2 * singlePublicKeyHexLength) {
-    throw new Error("Invalid stealth meta-address length");
-  }
-
-  // Slice the cleaned stealth meta address to get spending and viewing public keys
-  const spendingPublicKey = cleanedStealthMetaAddress.slice(
+  const singlePublicKeyHexLength = 66; // Length for compressed keys
+  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
     singlePublicKeyHexLength
   );
-  const viewingPublicKey = cleanedStealthMetaAddress.slice(
-    singlePublicKeyHexLength
-  );
+  const viewingPublicKeyHex =
+    cleanedStealthMetaAddress.length === 132
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
+      : spendingPublicKeyHex; // Use the same key for spending and viewing if only one is provided
 
   return {
-    spendingPublicKey: Point.fromHex(spendingPublicKey).toRawBytes(true),
-    viewingPublicKey: Point.fromHex(viewingPublicKey).toRawBytes(true),
+    spendingPublicKey: Point.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
+    viewingPublicKey: Point.fromHex(viewingPublicKeyHex).toRawBytes(true), // Compressed
   };
 }
 
