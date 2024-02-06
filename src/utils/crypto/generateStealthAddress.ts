@@ -184,55 +184,41 @@ function parseKeysFromStealthMetaAddress({
 }) {
   handleSchemeId(schemeId);
 
-  // For a single public key scheme, the stealth address is the public key
+  const cleanedStealthMetaAddress = stealthMetaAddress.slice(2);
+
+  // Define the length of a single public key in hex characters
+  const singlePublicKeyHexLength = 33 * 2; // Length for compressed keys
+
   // Example for a single public key scheme
   //   const publicKey = stealthAddress;
+  // For a single public key scheme, the stealth address is the public key
   // For a dual public key scheme, the stealth address is the concatenation of the two public keys
   // Example for a dual public key scheme
-  const spendingPublicKey = stealthMetaAddress.slice(0, 66);
-  const viewingPublicKey = stealthMetaAddress.slice(66);
-
-  if (
-    !isValidPublicKey({
-      publicKey: spendingPublicKey,
-      schemeId,
-    })
-  ) {
-    throw new Error("Invalid spend public key");
+  if (cleanedStealthMetaAddress.length === singlePublicKeyHexLength) {
+    return {
+      spendingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(),
+      viewingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(),
+    };
   }
 
-  if (
-    !isValidPublicKey({
-      publicKey: viewingPublicKey,
-      schemeId,
-    })
-  ) {
-    throw new Error("Invalid view public key");
+  // Ensure that the total length matches that of two public keys
+  if (cleanedStealthMetaAddress.length !== 2 * singlePublicKeyHexLength) {
+    throw new Error("Invalid stealth meta-address length");
   }
+
+  // Slice the cleaned stealth meta address to get spending and viewing public keys
+  const spendingPublicKey = cleanedStealthMetaAddress.slice(
+    0,
+    singlePublicKeyHexLength
+  );
+  const viewingPublicKey = cleanedStealthMetaAddress.slice(
+    singlePublicKeyHexLength
+  );
 
   return {
     spendingPublicKey: Point.fromHex(spendingPublicKey).toRawBytes(),
     viewingPublicKey: Point.fromHex(viewingPublicKey).toRawBytes(),
   };
-}
-
-/**
- * Checks if a given public key is valid based on the scheme.
- *
- * @param {object} params - Parameters for validating a public key:
- *   - publicKey: The public key to validate.
- *   - schemeId: The scheme identifier.
- * @returns {boolean} True if the public key is valid, false otherwise.
- */
-function isValidPublicKey({
-  publicKey,
-  schemeId,
-}: {
-  publicKey: string;
-  schemeId: VALID_SCHEME_ID;
-}): boolean {
-  handleSchemeId(schemeId);
-  return !!Point.fromHex(publicKey);
 }
 
 /**
