@@ -1,5 +1,6 @@
 import { bytesToHex, getAddress } from "viem";
 import {
+  generatePrivateKey,
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
@@ -21,12 +22,26 @@ describe("generateStealthAddress", () => {
   // Spending Public Key: 0x02415529b5a96fc810b24d1c754dade2e2af1d8123953cca79699b845d371df11a
   // Viewing Public Key: 0x02137217931b4abbdd24476879a6799ee30053248bff0c12a799362bbf2d23d1c5
   test("should generate a valid stealth address given a valid stealth meta-address URI", async () => {
-    const result = generateStealthAddress({
-      stealthMetaAddressURI: validStealthMetaAddressURI,
+    // First and second private keys are the same
+    const firstPrivateKey = generatePrivateKey({ schemeId });
+    const secondPrivateKey = generatePrivateKey({
+      ephemeralPrivateKey: firstPrivateKey,
       schemeId,
     });
 
-    expect(result.stealthAddress).toBe(getAddress(expectedStealthAddress));
+    const result = generateStealthAddress({
+      stealthMetaAddressURI: validStealthMetaAddressURI,
+      schemeId,
+      ephemeralPrivateKey: firstPrivateKey,
+    });
+
+    const result2 = generateStealthAddress({
+      stealthMetaAddressURI: validStealthMetaAddressURI,
+      schemeId,
+      ephemeralPrivateKey: secondPrivateKey,
+    });
+
+    expect(result.stealthAddress).toBe(result2.stealthAddress);
   });
 
   test("should correctly parse spending and viewing public keys from valid stealth meta-address", () => {

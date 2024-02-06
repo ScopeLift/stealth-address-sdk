@@ -383,5 +383,10 @@ function publicKeyToAddress({
   return publicKeyToAddressViem(bytesToHex(publicKey));
 }
 
-export { generateStealthAddress, parseKeysFromStealthMetaAddress, getViewTag };
+export {
+  generateStealthAddress,
+  parseKeysFromStealthMetaAddress,
+  getViewTag,
+  generatePrivateKey,
+};
 export default generateStealthAddress;

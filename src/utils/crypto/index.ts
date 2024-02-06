@@ -1,4 +1,5 @@
 export {
+  generatePrivateKey,
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
