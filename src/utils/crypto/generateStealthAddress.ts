@@ -41,7 +41,7 @@ function generateStealthAddress({
     schemeId,
   });
 
-  if (!validateStealthMetaAddress({ stealthMetaAddress })) {
+  if (!validateStealthMetaAddress({ stealthMetaAddress, schemeId })) {
     throw new Error("Invalid stealth meta-address");
   }
 
@@ -97,15 +97,15 @@ function generateStealthAddress({
  *
  * @param {object} params - Parameters for parsing the stealth meta-address URI:
  *   - stealthMetaAddressURI: The URI containing the stealth meta-address.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {HexString} The extracted stealth meta-address.
  */
 function parseStealthMetaAddressURI({
   stealthMetaAddressURI,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   stealthMetaAddressURI: string;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
 
@@ -127,15 +127,15 @@ function parseStealthMetaAddressURI({
  *
  * @param {object} params - Parameters for validating a stealth meta-address:
  *   - stealthMetaAddress: The stealth meta-address to validate.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {boolean} True if the stealth meta-address is valid, false otherwise.
  */
 function validateStealthMetaAddress({
   stealthMetaAddress,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   stealthMetaAddress: string;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }): boolean {
   handleSchemeId(schemeId);
 
@@ -235,17 +235,17 @@ function isValidPublicKey({
  * @param {object} params - Parameters for computing the shared secret:
  *   - ephemeralPrivateKey: The sender's ephemeral private key.
  *   - recipientViewingPublicKey: The recipient's viewing public key.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {Hex} The computed shared secret.
  */
 function computeSharedSecret({
   ephemeralPrivateKey,
   recipientViewingPublicKey,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   ephemeralPrivateKey: Uint8Array;
   recipientViewingPublicKey: Uint8Array;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }): Hex {
   handleSchemeId(schemeId);
 
@@ -258,12 +258,12 @@ function computeSharedSecret({
  *
  * @param {object} params - Parameters for hashing the shared secret:
  *   - sharedSecret: The shared secret to be hashed.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {HexString} The hashed shared secret.
  */
 function getHashedSharedSecret({
   sharedSecret,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   sharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
@@ -287,15 +287,15 @@ function handleSchemeId(schemeId: VALID_SCHEME_ID) {
  *
  * @param {object} params - Parameters for generating or validating the private key:
  *   - ephemeralPrivateKey: (optional) The ephemeral private key to validate.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {Uint8Array} The validated or generated private key.
  */
 function generatePrivateKey({
   ephemeralPrivateKey,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   ephemeralPrivateKey?: Uint8Array;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }) {
   handleSchemeId(schemeId);
 
@@ -359,13 +359,13 @@ function getViewTag({
  * @param {object} params - Parameters for calculating the stealth public key:
  *   - spendingPublicKey: The spending public key.
  *   - hashedSharedSecret: The hashed shared secret.
- *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - schemeId: The scheme identifier.
  * @returns {Uint8Array} The stealth public key.
  */
 function getStealthPublicKey({
   spendingPublicKey,
   hashedSharedSecret,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   spendingPublicKey: Uint8Array;
   hashedSharedSecret: HexString;
