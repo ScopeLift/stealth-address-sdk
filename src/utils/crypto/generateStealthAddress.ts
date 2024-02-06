@@ -87,7 +87,7 @@ function generateStealthAddress({
   return {
     stealthAddress,
     ephemeralPublicKey: bytesToHex(ephemeralPublicKey),
-    viewTag: `0x${viewTag}`,
+    viewTag,
   };
 }
 
