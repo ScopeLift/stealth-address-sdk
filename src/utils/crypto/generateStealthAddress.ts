@@ -1,8 +1,8 @@
 import {
-  utils,
-  Point,
   getPublicKey as getPublicKeySecp256k1,
   getSharedSecret,
+  Point,
+  utils,
 } from "noble-secp256k1";
 import {
   type GenerateStealthAddressReturnType,
@@ -12,7 +12,11 @@ import {
   VALID_SCHEME_ID,
   Valid_Stealth_Meta_Address_Chain,
 } from "./types";
-import { publicKeyToAddress, keccak256 } from "viem/utils";
+import {
+  publicKeyToAddress as publicKeyToAddressViem,
+  keccak256,
+  bytesToHex,
+} from "viem/utils";
 
 // Function to generate a stealth address from a given stealth meta-address
 function generateStealthAddress({
@@ -63,9 +67,10 @@ function generateStealthAddress({
     schemeId,
   });
 
-  const stealthAddress = publicKeyToAddress(
-    stealthPublicKey.toHex() as HexString
-  ); // TODO don't cast
+  const stealthAddress = publicKeyToAddress({
+    publicKey: stealthPublicKey,
+    schemeId,
+  });
 
   return {
     stealthAddress,
@@ -279,7 +284,21 @@ function getStealthPublicKey({
   const hashedSharedSecretPoint = Point.fromPrivateKey(
     Buffer.from(hashedSharedSecret, "hex")
   );
-  return Point.fromHex(spendingPublicKey).add(hashedSharedSecretPoint);
+  return Point.fromHex(spendingPublicKey)
+    .add(hashedSharedSecretPoint)
+    .toRawBytes();
+}
+
+function publicKeyToAddress({
+  publicKey,
+  schemeId,
+}: {
+  publicKey: Uint8Array;
+  schemeId: VALID_SCHEME_ID;
+}) {
+  handleSchemeId(schemeId);
+  // Use viem to convert the public key to an address
+  return publicKeyToAddressViem(bytesToHex(publicKey));
 }
 
 export { generateStealthAddress };
