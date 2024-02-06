@@ -262,7 +262,7 @@ function getHashedSharedSecret({
   schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
-  return keccak256(Buffer.from(sharedSecret.slice(1)));
+  return keccak256(Buffer.from(sharedSecret.slice(2)));
 }
 
 function isSchemeId1(schemeId: VALID_SCHEME_ID) {
@@ -330,7 +330,7 @@ function getPublicKey({
  * @param {object} params - Parameters for extracting the view tag:
  *   - hashedSharedSecret: The hashed shared secret.
  *   - schemeId: The scheme identifier.
- * @returns {string} The extracted view tag.
+ * @returns {HexString} The extracted view tag.
  */
 function getViewTag({
   hashedSharedSecret,
@@ -338,12 +338,11 @@ function getViewTag({
 }: {
   hashedSharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
-}) {
+}): HexString {
   handleSchemeId(schemeId);
 
-  // TODO ensure this is adhering to this: The view tag is extracted by taking the most significant byte
-  // TODO ensure the input type 'Hex' is what we want, and explicitly handle the output type
-  return hashedSharedSecret.slice(0, 2);
+  // The view tag is extracted by taking the most significant byte
+  return `0x${hashedSharedSecret.toString().substring(2, 4)}`;
 }
 
 /**
@@ -393,5 +392,5 @@ function publicKeyToAddress({
   return publicKeyToAddressViem(bytesToHex(publicKey));
 }
 
-export { generateStealthAddress, parseKeysFromStealthMetaAddress };
+export { generateStealthAddress, parseKeysFromStealthMetaAddress, getViewTag };
 export default generateStealthAddress;

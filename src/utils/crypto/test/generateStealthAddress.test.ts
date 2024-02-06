@@ -1,5 +1,9 @@
 import { bytesToHex, getAddress } from "viem";
-import { generateStealthAddress, parseKeysFromStealthMetaAddress } from "..";
+import {
+  generateStealthAddress,
+  getViewTag,
+  parseKeysFromStealthMetaAddress,
+} from "..";
 import { VALID_SCHEME_ID, type HexString } from "../types";
 
 describe("generateStealthAddress", () => {
@@ -43,5 +47,19 @@ describe("generateStealthAddress", () => {
     expect(bytesToHex(result.viewingPublicKey)).toBe(
       expectedViewingPublicKeyHex
     );
+  });
+
+  test("should correctly extract the view tag from the hashed shared secret", () => {
+    // Replace with the hashed shared secret from which you expect to extract the view tag
+    const hashedSharedSecret =
+      "0x158ce29a3dd0c8dca524e5776c2ba6361c280e013f87eee5eb799a713a939501";
+    const expectedViewTag = "0x15";
+
+    const result = getViewTag({
+      hashedSharedSecret,
+      schemeId,
+    });
+
+    expect(result).toBe(expectedViewTag);
   });
 });
