@@ -393,5 +393,5 @@ function publicKeyToAddress({
   return publicKeyToAddressViem(bytesToHex(publicKey));
 }
 
-export { generateStealthAddress };
+export { generateStealthAddress, parseKeysFromStealthMetaAddress };
 export default generateStealthAddress;

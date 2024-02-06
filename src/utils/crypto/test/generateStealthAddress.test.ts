@@ -1,6 +1,6 @@
-import { getAddress } from "viem";
-import { generateStealthAddress } from "..";
-import { VALID_SCHEME_ID } from "../types";
+import { bytesToHex, getAddress } from "viem";
+import { generateStealthAddress, parseKeysFromStealthMetaAddress } from "..";
+import { VALID_SCHEME_ID, type HexString } from "../types";
 
 describe("generateStealthAddress", () => {
   const validStealthMetaAddressURI =
@@ -22,7 +22,26 @@ describe("generateStealthAddress", () => {
       schemeId,
     });
 
-    expect(result).toBeDefined();
     expect(result.stealthAddress).toBe(getAddress(expectedStealthAddress));
+  });
+
+  test("should correctly parse spending and viewing public keys from valid stealth meta-address", () => {
+    const stealthMetaAddress = validStealthMetaAddressURI.slice(7) as HexString;
+    const expectedSpendingPublicKeyHex =
+      "0x02415529b5a96fc810b24d1c754dade2e2af1d8123953cca79699b845d371df11a";
+    const expectedViewingPublicKeyHex =
+      "0x02137217931b4abbdd24476879a6799ee30053248bff0c12a799362bbf2d23d1c5";
+
+    const result = parseKeysFromStealthMetaAddress({
+      stealthMetaAddress,
+      schemeId,
+    });
+
+    expect(bytesToHex(result.spendingPublicKey)).toBe(
+      expectedSpendingPublicKeyHex
+    );
+    expect(bytesToHex(result.viewingPublicKey)).toBe(
+      expectedViewingPublicKeyHex
+    );
   });
 });
