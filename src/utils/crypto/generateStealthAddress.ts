@@ -134,16 +134,28 @@ function validateStealthMetaAddress({
 }): boolean {
   handleSchemeId(schemeId);
 
-  // Example validation for a stealth meta-address
-  // Adjust the validation logic based on your specific stealth address scheme
+  const cleanedStealthMetaAddress = stealthMetaAddress.startsWith("0x")
+    ? stealthMetaAddress.substring(2)
+    : stealthMetaAddress;
 
-  // Check if the address is of expected length
-  // For a single public key scheme, it might be 33 bytes (compressed EC point), so 66 hex characters
-  // For a dual public key scheme, it might be 66 bytes, so 132 hex characters
-  const expectedLengthSchemeId1 = 132; // Example length for dual key scheme
+  // Check if stealthMetaAddress contains only valid hex characters
+  if (!/^[a-fA-F0-9]+$/.test(cleanedStealthMetaAddress)) {
+    return false; // Contains non-hex characters
+  }
 
+  // Convert cleaned hex string to a Buffer and check its length
+  const bufferLength = Buffer.from(cleanedStealthMetaAddress, "hex").length;
+
+  // Define expected lengths for compressed and uncompressed keys
+  const compressedKeyLength = 33; // Length of a compressed public key
+  const uncompressedKeyLength = 65; // Length of an uncompressed public key (64 bytes + 1 byte prefix)
+
+  // For scheme 1, check if the length matches a single or dual compressed/uncompressed key scheme
   if (
-    Buffer.from(stealthMetaAddress, "hex").length === expectedLengthSchemeId1
+    bufferLength === compressedKeyLength || // Single compressed key
+    bufferLength === 2 * compressedKeyLength || // Dual compressed keys
+    bufferLength === uncompressedKeyLength || // Single uncompressed key
+    bufferLength === 2 * uncompressedKeyLength // Dual uncompressed keys
   ) {
     return true;
   }
