@@ -21,7 +21,17 @@ describe("generateStealthAddress", () => {
   // Metadata: 0xd9
   // Spending Public Key: 0x02415529b5a96fc810b24d1c754dade2e2af1d8123953cca79699b845d371df11a
   // Viewing Public Key: 0x02137217931b4abbdd24476879a6799ee30053248bff0c12a799362bbf2d23d1c5
-  test("should generate a valid stealth address given a valid stealth meta-address URI", async () => {
+  test("should generate a valid stealth address given a valid stealth meta-address URI", () => {
+    const expectedStealthAddress = "something";
+    const result = generateStealthAddress({
+      stealthMetaAddressURI: validStealthMetaAddressURI,
+      schemeId,
+    });
+
+    expect(result.stealthAddress).toBe(expectedStealthAddress);
+  });
+
+  test("should generate the same stealth address given the same ephemeralPrivateKey", () => {
     // First and second private keys are the same
     const firstPrivateKey = generatePrivateKey({ schemeId });
     const secondPrivateKey = generatePrivateKey({
