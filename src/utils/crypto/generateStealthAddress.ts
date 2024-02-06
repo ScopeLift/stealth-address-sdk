@@ -11,6 +11,7 @@ import {
   type IGenerateStealthAddress,
   VALID_SCHEME_ID,
   Valid_Stealth_Meta_Address_Chain,
+  type EthAddress,
 } from "./types";
 import {
   publicKeyToAddress as publicKeyToAddressViem,
@@ -18,7 +19,18 @@ import {
   bytesToHex,
 } from "viem/utils";
 
-// Function to generate a stealth address from a given stealth meta-address
+/**
+ * Generates a stealth address from a given stealth meta-address.
+ * This function is designed to support stealth address usage in accordance with the ERC-5564 standard
+ * for Ethereum, focusing on the implementation of scheme 1 with extensibility for additional schemes.
+ *
+ * @param {IGenerateStealthAddress} params - Parameters for generating a stealth address:
+ *   - stealthMetaAddressURI: The URI containing the stealth meta-address. Should adhere to the format:
+ *     "st:<chain>:<stealthMetaAddress>", where <chain> is the chain identifier and <stealthMetaAddress> is the stealth meta-address.
+ *   - schemeId: (optional) The scheme identifier, defaults to SCHEME_ID_1.
+ *   - ephemeralPrivateKey: (optional) The ephemeral private key to use; if not provided, a new one is generated.
+ * @returns {GenerateStealthAddressReturnType} Object containing the stealth address, ephemeral public key, and view tag.
+ */
 function generateStealthAddress({
   stealthMetaAddressURI,
   schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
@@ -29,7 +41,7 @@ function generateStealthAddress({
     schemeId,
   });
 
-  if (!validateStealthMetaAddress({ stealthMetaAddress })) {
+  if (!validateStealthMetaAddress({ stealthMetaAddress, schemeId })) {
     throw new Error("Invalid stealth meta-address");
   }
 
@@ -79,14 +91,22 @@ function generateStealthAddress({
   };
 }
 
-// Parses a stealth meta-address URI and extracts the address data
+/**
+ * Parses a stealth meta-address URI and extracts the address data.
+ * Validates the structure and format of the stealth meta-address.
+ *
+ * @param {object} params - Parameters for parsing the stealth meta-address URI:
+ *   - stealthMetaAddressURI: The URI containing the stealth meta-address.
+ *   - schemeId: The scheme identifier.
+ * @returns {HexString} The extracted stealth meta-address.
+ */
 function parseStealthMetaAddressURI({
   stealthMetaAddressURI,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   stealthMetaAddressURI: string;
-  schemeId?: VALID_SCHEME_ID;
-}) {
+  schemeId: VALID_SCHEME_ID;
+}): HexString {
   handleSchemeId(schemeId);
 
   const parts = stealthMetaAddressURI.split(":");
@@ -102,12 +122,20 @@ function parseStealthMetaAddressURI({
   return parts[2] as HexString;
 }
 
+/**
+ * Validates the format and structure of a stealth meta-address based on the specified scheme.
+ *
+ * @param {object} params - Parameters for validating a stealth meta-address:
+ *   - stealthMetaAddress: The stealth meta-address to validate.
+ *   - schemeId: The scheme identifier.
+ * @returns {boolean} True if the stealth meta-address is valid, false otherwise.
+ */
 function validateStealthMetaAddress({
   stealthMetaAddress,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   stealthMetaAddress: string;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }): boolean {
   handleSchemeId(schemeId);
 
@@ -131,6 +159,16 @@ function validateStealthMetaAddress({
   return false;
 }
 
+/**
+ * Extracts and validates the spending and viewing public keys from a stealth meta-address.
+ *
+ * @param {object} params - Parameters for extracting keys from a stealth meta-address:
+ *   - stealthMetaAddress: The stealth meta-address.
+ *   - schemeId: The scheme identifier.
+ * @returns {object} An object containing:
+ *   - spendingPublicKey: The extracted spending public key.
+ *   - viewingPublicKey: The extracted viewing public key.
+ */
 function parseKeysFromStealthMetaAddress({
   stealthMetaAddress,
   schemeId,
@@ -172,6 +210,14 @@ function parseKeysFromStealthMetaAddress({
   };
 }
 
+/**
+ * Checks if a given public key is valid based on the scheme.
+ *
+ * @param {object} params - Parameters for validating a public key:
+ *   - publicKey: The public key to validate.
+ *   - schemeId: The scheme identifier.
+ * @returns {boolean} True if the public key is valid, false otherwise.
+ */
 function isValidPublicKey({
   publicKey,
   schemeId,
@@ -184,30 +230,40 @@ function isValidPublicKey({
 }
 
 /**
- * Computes a shared secret
- * @param {Uint8Array} ephemeralPrivateKey - The sender's ephemeral private key
- * @param {Uint8Array} recipientViewingPublicKey - The recipient's viewing public key
- * @returns {string} The shared secret
+ * Computes a shared secret based on the scheme
+ *
+ * @param {object} params - Parameters for computing the shared secret:
+ *   - ephemeralPrivateKey: The sender's ephemeral private key.
+ *   - recipientViewingPublicKey: The recipient's viewing public key.
+ *   - schemeId: The scheme identifier.
+ * @returns {Hex} The computed shared secret.
  */
 function computeSharedSecret({
   ephemeralPrivateKey,
   recipientViewingPublicKey,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   ephemeralPrivateKey: Uint8Array;
   recipientViewingPublicKey: Uint8Array;
-  schemeId?: VALID_SCHEME_ID;
-}) {
+  schemeId: VALID_SCHEME_ID;
+}): Hex {
   handleSchemeId(schemeId);
 
   // Use seccp25k1 to compute the shared secret if scheme 1
   return getSharedSecret(ephemeralPrivateKey, recipientViewingPublicKey) as Hex;
 }
 
-// Function to hash the shared secret to derive the stealth scalar (offset)
+/**
+ * Hashes the shared secret based on the scheme.
+ *
+ * @param {object} params - Parameters for hashing the shared secret:
+ *   - sharedSecret: The shared secret to be hashed.
+ *   - schemeId: The scheme identifier.
+ * @returns {HexString} The hashed shared secret.
+ */
 function getHashedSharedSecret({
   sharedSecret,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   sharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
@@ -226,12 +282,20 @@ function handleSchemeId(schemeId: VALID_SCHEME_ID) {
   }
 }
 
+/**
+ * Generates or validates an ephemeral private key.
+ *
+ * @param {object} params - Parameters for generating or validating the private key:
+ *   - ephemeralPrivateKey: (optional) The ephemeral private key to validate.
+ *   - schemeId: The scheme identifier.
+ * @returns {Uint8Array} The validated or generated private key.
+ */
 function generatePrivateKey({
   ephemeralPrivateKey,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   ephemeralPrivateKey?: Uint8Array;
-  schemeId?: VALID_SCHEME_ID;
+  schemeId: VALID_SCHEME_ID;
 }) {
   handleSchemeId(schemeId);
 
@@ -245,6 +309,15 @@ function generatePrivateKey({
   return utils.randomPrivateKey();
 }
 
+/**
+ * Retrieves the public key from the given private key.
+ *
+ * @param {object} params - Parameters for retrieving the public key:
+ *   - privateKey: The private key.
+ *   - compressed: (optional) A boolean indicating whether the public key should be compressed.
+ *   - schemeId: The scheme identifier.
+ * @returns {Uint8Array} The corresponding public key.
+ */
 function getPublicKey({
   privateKey,
   compressed,
@@ -258,6 +331,14 @@ function getPublicKey({
   return getPublicKeySecp256k1(privateKey, compressed);
 }
 
+/**
+ * Extracts the view tag from the hashed shared secret.
+ *
+ * @param {object} params - Parameters for extracting the view tag:
+ *   - hashedSharedSecret: The hashed shared secret.
+ *   - schemeId: The scheme identifier.
+ * @returns {string} The extracted view tag.
+ */
 function getViewTag({
   hashedSharedSecret,
   schemeId,
@@ -272,10 +353,19 @@ function getViewTag({
   return hashedSharedSecret.slice(0, 2);
 }
 
+/**
+ * Calculates the stealth public key; for scheme 1, adds the hashed shared secret point to the spending public key.
+ *
+ * @param {object} params - Parameters for calculating the stealth public key:
+ *   - spendingPublicKey: The spending public key.
+ *   - hashedSharedSecret: The hashed shared secret.
+ *   - schemeId: The scheme identifier.
+ * @returns {Uint8Array} The stealth public key.
+ */
 function getStealthPublicKey({
   spendingPublicKey,
   hashedSharedSecret,
-  schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
+  schemeId,
 }: {
   spendingPublicKey: Uint8Array;
   hashedSharedSecret: HexString;
@@ -290,13 +380,21 @@ function getStealthPublicKey({
     .toRawBytes();
 }
 
+/**
+ * Converts a public key to an Ethereum address.
+ *
+ * @param {object} params - Parameters for converting the public key to an address:
+ *   - publicKey: The public key.
+ *   - schemeId: The scheme identifier.
+ * @returns {EthAddress} The Ethereum address derived from the public key.
+ */
 function publicKeyToAddress({
   publicKey,
   schemeId,
 }: {
   publicKey: Uint8Array;
   schemeId: VALID_SCHEME_ID;
-}) {
+}): EthAddress {
   handleSchemeId(schemeId);
   // Use viem to convert the public key to an address
   return publicKeyToAddressViem(bytesToHex(publicKey));
