@@ -16,6 +16,7 @@ import {
   publicKeyToAddress as publicKeyToAddressViem,
   keccak256,
   bytesToHex,
+  hexToBytes,
 } from "viem/utils";
 
 /**
@@ -216,8 +217,8 @@ function parseKeysFromStealthMetaAddress({
   );
 
   return {
-    spendingPublicKey: Point.fromHex(spendingPublicKey).toRawBytes(),
-    viewingPublicKey: Point.fromHex(viewingPublicKey).toRawBytes(),
+    spendingPublicKey: Point.fromHex(spendingPublicKey).toHex(true),
+    viewingPublicKey: Point.fromHex(viewingPublicKey).toHex(true),
   };
 }
 
@@ -365,7 +366,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = Point.fromPrivateKey(
-    Buffer.from(hashedSharedSecret, "hex")
+    hexToBytes(hashedSharedSecret)
   );
   return Point.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
