@@ -10,7 +10,6 @@ import {
   type HexString,
   type IGenerateStealthAddress,
   VALID_SCHEME_ID,
-  Valid_Stealth_Meta_Address_Chain,
   type EthAddress,
 } from "./types";
 import {
@@ -111,11 +110,7 @@ function parseStealthMetaAddressURI({
 
   const parts = stealthMetaAddressURI.split(":");
 
-  if (
-    parts.length !== 3 ||
-    parts[0] !== "st" ||
-    !(parts[1] in Valid_Stealth_Meta_Address_Chain)
-  ) {
+  if (parts.length !== 3 || parts[0] !== "st") {
     throw new Error("Invalid stealth meta-address format");
   }
 
