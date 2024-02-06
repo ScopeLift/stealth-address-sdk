@@ -197,8 +197,12 @@ function parseKeysFromStealthMetaAddress({
   // Example for a dual public key scheme
   if (cleanedStealthMetaAddress.length === singlePublicKeyHexLength) {
     return {
-      spendingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(),
-      viewingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(),
+      spendingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(
+        true
+      ),
+      viewingPublicKey: Point.fromHex(cleanedStealthMetaAddress).toRawBytes(
+        true
+      ),
     };
   }
 
