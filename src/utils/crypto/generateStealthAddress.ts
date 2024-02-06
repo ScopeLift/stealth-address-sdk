@@ -143,7 +143,6 @@ function validateStealthMetaAddress({
   const expectedLengthSchemeId1 = 132; // Example length for dual key scheme
 
   if (
-    isSchemeId1(schemeId) &&
     Buffer.from(stealthMetaAddress, "hex").length === expectedLengthSchemeId1
   ) {
     return true;
