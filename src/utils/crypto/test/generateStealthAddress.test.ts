@@ -24,8 +24,5 @@ describe("generateStealthAddress", () => {
 
     expect(result).toBeDefined();
     expect(result.stealthAddress).toBe(getAddress(expectedStealthAddress));
-
-    /*
-     */
   });
 });
