@@ -217,8 +217,8 @@ function parseKeysFromStealthMetaAddress({
   );
 
   return {
-    spendingPublicKey: Point.fromHex(spendingPublicKey).toHex(true),
-    viewingPublicKey: Point.fromHex(viewingPublicKey).toHex(true),
+    spendingPublicKey: Point.fromHex(spendingPublicKey).toRawBytes(true),
+    viewingPublicKey: Point.fromHex(viewingPublicKey).toRawBytes(true),
   };
 }
 
