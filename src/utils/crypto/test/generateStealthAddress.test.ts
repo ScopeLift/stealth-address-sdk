@@ -12,7 +12,7 @@ describe("generateStealthAddress", () => {
 
   // Example data:
   // Stealth Address: 0x2909d531ddeb89f4f7e594c85d706973fd524347
-  // Announcement: 0x03111059b8af63d5fc93d4a0cbd2eeb5f06e30a0d2395ff991458295bf37003ceb
+  // Announcement (ephemeral public key): 0x03111059b8af63d5fc93d4a0cbd2eeb5f06e30a0d2395ff991458295bf37003ceb
   // Metadata: 0xd9
   // Spending Public Key: 0x02415529b5a96fc810b24d1c754dade2e2af1d8123953cca79699b845d371df11a
   // Viewing Public Key: 0x02137217931b4abbdd24476879a6799ee30053248bff0c12a799362bbf2d23d1c5
