@@ -268,6 +268,7 @@ function getViewTag({
   handleSchemeId(schemeId);
 
   // TODO ensure this is adhering to this: The view tag is extracted by taking the most significant byte
+  // TODO ensure the input type 'Hex' is what we want, and explicitly handle the output type
   return hashedSharedSecret.slice(0, 2);
 }
 
