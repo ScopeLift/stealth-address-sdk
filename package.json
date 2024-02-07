@@ -7,7 +7,9 @@
   "type": "module",
   "scripts": {
     "build": "bun tsc",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "bun test src",
+    "watch": "bun test --watch src"
   },
   "devDependencies": {
     "@types/bun": "latest",
