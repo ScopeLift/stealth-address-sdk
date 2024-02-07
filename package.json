@@ -10,16 +10,13 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "@types/bun": "latest",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "eslint": "^8.56.0",
     "noble-secp256k1": "^1.2.14",
-    "prettier": "^3.2.4",
-    "typescript": "^5.3.3",
     "viem": "^2.6.1"
   }
 }
