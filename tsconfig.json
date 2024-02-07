@@ -6,6 +6,9 @@
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
+    "outDir": "./dist",
+    "declaration": true,
+    "rootDir": "./src",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -17,6 +20,6 @@
     "skipLibCheck": true,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true
-  }
+    "forceConsistentCasingInFileNames": true,
+  },
 }
