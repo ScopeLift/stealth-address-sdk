@@ -4,3 +4,4 @@ export {
   getViewTag,
   parseKeysFromStealthMetaAddress,
 } from './generateStealthAddress';
+export { VALID_SCHEME_ID } from './types';
