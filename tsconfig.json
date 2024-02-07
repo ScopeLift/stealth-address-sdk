@@ -9,6 +9,7 @@
     "outDir": "./dist",
     "declaration": true,
     "rootDir": "./src",
+    "esModuleInterop": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
