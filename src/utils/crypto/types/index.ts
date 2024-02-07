@@ -1,7 +1,7 @@
-import type { Address } from "viem";
+import type { Address } from 'viem';
 
 export enum VALID_SCHEME_ID {
-  SCHEME_ID_1 = "1",
+  SCHEME_ID_1 = '1',
 }
 
 export type HexString = `0x${string}`;

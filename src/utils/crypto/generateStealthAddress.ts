@@ -3,7 +3,7 @@ import {
   getSharedSecret,
   Point,
   utils,
-} from "noble-secp256k1";
+} from 'noble-secp256k1';
 import {
   type GenerateStealthAddressReturnType,
   type Hex,
@@ -11,13 +11,13 @@ import {
   type IGenerateStealthAddress,
   VALID_SCHEME_ID,
   type EthAddress,
-} from "./types";
+} from './types';
 import {
   publicKeyToAddress as publicKeyToAddressViem,
   keccak256,
   bytesToHex,
   hexToBytes,
-} from "viem/utils";
+} from 'viem/utils';
 
 /**
  * Generates a stealth address from a given stealth meta-address.
@@ -42,7 +42,7 @@ function generateStealthAddress({
   });
 
   if (!validateStealthMetaAddress({ stealthMetaAddress, schemeId })) {
-    throw new Error("Invalid stealth meta-address");
+    throw new Error('Invalid stealth meta-address');
   }
 
   const ephemeralPrivateKeyToUse = generatePrivateKey({
@@ -109,10 +109,10 @@ function parseStealthMetaAddressURI({
 }): HexString {
   handleSchemeId(schemeId);
 
-  const parts = stealthMetaAddressURI.split(":");
+  const parts = stealthMetaAddressURI.split(':');
 
-  if (parts.length !== 3 || parts[0] !== "st") {
-    throw new Error("Invalid stealth meta-address format");
+  if (parts.length !== 3 || parts[0] !== 'st') {
+    throw new Error('Invalid stealth meta-address format');
   }
 
   return parts[2] as HexString;
@@ -135,7 +135,7 @@ function validateStealthMetaAddress({
 }): boolean {
   handleSchemeId(schemeId);
 
-  const cleanedStealthMetaAddress = stealthMetaAddress.startsWith("0x")
+  const cleanedStealthMetaAddress = stealthMetaAddress.startsWith('0x')
     ? stealthMetaAddress.substring(2)
     : stealthMetaAddress;
 
@@ -153,7 +153,7 @@ function validateStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength,
+    singlePublicKeyHexLength
   ) as HexString;
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -172,7 +172,7 @@ function validateStealthMetaAddress({
 
 function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
   return (
-    (publicKeyHex.startsWith("02") || publicKeyHex.startsWith("03")) &&
+    (publicKeyHex.startsWith('02') || publicKeyHex.startsWith('03')) &&
     publicKeyHex.length === 66
   );
 }
@@ -200,7 +200,7 @@ function parseKeysFromStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength,
+    singlePublicKeyHexLength
   );
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -356,7 +356,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = Point.fromPrivateKey(
-    hexToBytes(hashedSharedSecret),
+    hexToBytes(hashedSharedSecret)
   );
   return Point.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)

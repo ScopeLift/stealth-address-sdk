@@ -1,1 +1,1 @@
-export { generateStealthAddress } from "./utils/crypto";
+export { generateStealthAddress } from './utils/crypto';
