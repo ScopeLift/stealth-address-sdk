@@ -18,5 +18,18 @@ npm install stealth-address-sdk
 # or
 yarn add stealth-address-sdk
 # or
-bun add stealth-address-sdk
+bun install stealth-address-sdk
 ```
+
+## Quick Start
+
+import { generateStealthAddress } from 'stealth-address-sdk';
+
+const stealthMetaAddressURI = '...'; // Your stealth meta-address URI
+
+// Generate a stealth address using the default scheme (1)  
+// To learn more about the initial implementation scheme using SECP256k1, please see the reference [here](https://eips.ethereum.org/EIPS/eip-5564)  
+const result = generateStealthAddress({ stealthMetaAddressURI });
+
+// Use the stealth address  
+console.log(result.stealthAddress);
