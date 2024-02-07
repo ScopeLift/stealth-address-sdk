@@ -5,4 +5,8 @@ export {
   parseKeysFromStealthMetaAddress,
 } from './crypto';
 
-export { VALID_SCHEME_ID } from './crypto/types';
+export {
+  type GenerateStealthAddressReturnType,
+  type IGenerateStealthAddressParams,
+  VALID_SCHEME_ID,
+} from './crypto/types';

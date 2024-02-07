@@ -7,13 +7,17 @@ export enum VALID_SCHEME_ID {
 export type HexString = `0x${string}`;
 export type EthAddress = Address;
 
+/**
+ * Represents the output of the generateStealthAddress function,
+ * containing the stealth address and other relevant cryptographic details.
+ */
 export type GenerateStealthAddressReturnType = {
   stealthAddress: EthAddress;
   ephemeralPublicKey: HexString;
   viewTag: HexString;
 };
 
-export interface IGenerateStealthAddress {
+export interface IGenerateStealthAddressParams {
   stealthMetaAddressURI: string;
   schemeId?: VALID_SCHEME_ID;
   ephemeralPrivateKey?: Uint8Array;
