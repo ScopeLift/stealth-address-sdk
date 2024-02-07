@@ -1,1 +1,6 @@
-export { generateStealthAddress } from "./generateStealthAddress";
+export {
+  generatePrivateKey,
+  generateStealthAddress,
+  getViewTag,
+  parseKeysFromStealthMetaAddress,
+} from "./generateStealthAddress";

@@ -10,13 +10,13 @@ import {
   type HexString,
   type IGenerateStealthAddress,
   VALID_SCHEME_ID,
-  Valid_Stealth_Meta_Address_Chain,
   type EthAddress,
 } from "./types";
 import {
   publicKeyToAddress as publicKeyToAddressViem,
   keccak256,
   bytesToHex,
+  hexToBytes,
 } from "viem/utils";
 
 /**
@@ -87,7 +87,7 @@ function generateStealthAddress({
   return {
     stealthAddress,
     ephemeralPublicKey: bytesToHex(ephemeralPublicKey),
-    viewTag: `0x${viewTag}`,
+    viewTag,
   };
 }
 
@@ -111,11 +111,7 @@ function parseStealthMetaAddressURI({
 
   const parts = stealthMetaAddressURI.split(":");
 
-  if (
-    parts.length !== 3 ||
-    parts[0] !== "st" ||
-    !(parts[1] in Valid_Stealth_Meta_Address_Chain)
-  ) {
+  if (parts.length !== 3 || parts[0] !== "st") {
     throw new Error("Invalid stealth meta-address format");
   }
 
@@ -139,24 +135,46 @@ function validateStealthMetaAddress({
 }): boolean {
   handleSchemeId(schemeId);
 
-  // Example validation for a stealth meta-address
-  // Adjust the validation logic based on your specific stealth address scheme
+  const cleanedStealthMetaAddress = stealthMetaAddress.startsWith("0x")
+    ? stealthMetaAddress.substring(2)
+    : stealthMetaAddress;
 
-  // Check if the address is of expected length
-  // For a single public key scheme, it might be 33 bytes (compressed EC point), so 66 hex characters
-  // For a dual public key scheme, it might be 66 bytes, so 132 hex characters
-  const expectedLengthSchemeId1 = 132; // Example length for dual key scheme
-
-  if (
-    isSchemeId1(schemeId) &&
-    Buffer.from(stealthMetaAddress, "hex").length === expectedLengthSchemeId1
-  ) {
-    return true;
+  // Check if stealthMetaAddress contains only valid hex characters
+  if (!/^[a-fA-F0-9]+$/.test(cleanedStealthMetaAddress)) {
+    return false; // Contains non-hex characters
   }
 
-  // Further structure checks can be added here if needed
+  // Allow for a single key used for both spending and viewing, or two distinct keys
+  if (![66, 132].includes(cleanedStealthMetaAddress.length)) {
+    return false;
+  }
 
-  return false;
+  // Validate the format of each public key
+  const singlePublicKeyHexLength = 66; // Length for compressed keys
+  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+    0,
+    singlePublicKeyHexLength
+  ) as HexString;
+  const viewingPublicKeyHex =
+    cleanedStealthMetaAddress.length === 132
+      ? (cleanedStealthMetaAddress.slice(singlePublicKeyHexLength) as HexString)
+      : (spendingPublicKeyHex as HexString); // Use the same key for spending and viewing if only one is provided
+
+  if (
+    !isValidCompressedPublicKey(spendingPublicKeyHex) ||
+    !isValidCompressedPublicKey(viewingPublicKeyHex)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
+  return (
+    (publicKeyHex.startsWith("02") || publicKeyHex.startsWith("03")) &&
+    publicKeyHex.length === 66
+  );
 }
 
 /**
@@ -178,55 +196,21 @@ function parseKeysFromStealthMetaAddress({
 }) {
   handleSchemeId(schemeId);
 
-  // For a single public key scheme, the stealth address is the public key
-  // Example for a single public key scheme
-  //   const publicKey = stealthAddress;
-  // For a dual public key scheme, the stealth address is the concatenation of the two public keys
-  // Example for a dual public key scheme
-  const spendingPublicKey = stealthMetaAddress.slice(0, 66);
-  const viewingPublicKey = stealthMetaAddress.slice(66);
-
-  if (
-    !isValidPublicKey({
-      publicKey: spendingPublicKey,
-      schemeId,
-    })
-  ) {
-    throw new Error("Invalid spend public key");
-  }
-
-  if (
-    !isValidPublicKey({
-      publicKey: viewingPublicKey,
-      schemeId,
-    })
-  ) {
-    throw new Error("Invalid view public key");
-  }
+  const cleanedStealthMetaAddress = stealthMetaAddress.slice(2);
+  const singlePublicKeyHexLength = 66; // Length for compressed keys
+  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+    0,
+    singlePublicKeyHexLength
+  );
+  const viewingPublicKeyHex =
+    cleanedStealthMetaAddress.length === 132
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
+      : spendingPublicKeyHex; // Use the same key for spending and viewing if only one is provided
 
   return {
-    spendingPublicKey: Point.fromHex(spendingPublicKey).toRawBytes(),
-    viewingPublicKey: Point.fromHex(viewingPublicKey).toRawBytes(),
+    spendingPublicKey: Point.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
+    viewingPublicKey: Point.fromHex(viewingPublicKeyHex).toRawBytes(true), // Compressed
   };
-}
-
-/**
- * Checks if a given public key is valid based on the scheme.
- *
- * @param {object} params - Parameters for validating a public key:
- *   - publicKey: The public key to validate.
- *   - schemeId: The scheme identifier.
- * @returns {boolean} True if the public key is valid, false otherwise.
- */
-function isValidPublicKey({
-  publicKey,
-  schemeId,
-}: {
-  publicKey: string;
-  schemeId: VALID_SCHEME_ID;
-}): boolean {
-  handleSchemeId(schemeId);
-  return !!Point.fromHex(publicKey);
 }
 
 /**
@@ -269,7 +253,7 @@ function getHashedSharedSecret({
   schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
-  return keccak256(Buffer.from(sharedSecret.slice(1)));
+  return keccak256(Buffer.from(sharedSecret.slice(2)));
 }
 
 function isSchemeId1(schemeId: VALID_SCHEME_ID) {
@@ -337,7 +321,7 @@ function getPublicKey({
  * @param {object} params - Parameters for extracting the view tag:
  *   - hashedSharedSecret: The hashed shared secret.
  *   - schemeId: The scheme identifier.
- * @returns {string} The extracted view tag.
+ * @returns {HexString} The extracted view tag.
  */
 function getViewTag({
   hashedSharedSecret,
@@ -345,12 +329,11 @@ function getViewTag({
 }: {
   hashedSharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
-}) {
+}): HexString {
   handleSchemeId(schemeId);
 
-  // TODO ensure this is adhering to this: The view tag is extracted by taking the most significant byte
-  // TODO ensure the input type 'Hex' is what we want, and explicitly handle the output type
-  return hashedSharedSecret.slice(0, 2);
+  // The view tag is extracted by taking the most significant byte
+  return `0x${hashedSharedSecret.toString().substring(2, 4)}`;
 }
 
 /**
@@ -373,7 +356,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = Point.fromPrivateKey(
-    Buffer.from(hashedSharedSecret, "hex")
+    hexToBytes(hashedSharedSecret)
   );
   return Point.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
@@ -400,5 +383,10 @@ function publicKeyToAddress({
   return publicKeyToAddressViem(bytesToHex(publicKey));
 }
 
-export { generateStealthAddress };
+export {
+  generateStealthAddress,
+  parseKeysFromStealthMetaAddress,
+  getViewTag,
+  generatePrivateKey,
+};
 export default generateStealthAddress;
