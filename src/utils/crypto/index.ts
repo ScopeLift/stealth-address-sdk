@@ -4,6 +4,7 @@ export {
   getViewTag,
   parseKeysFromStealthMetaAddress,
 } from './generateStealthAddress';
+
 export {
   type GenerateStealthAddressReturnType,
   type IGenerateStealthAddressParams,

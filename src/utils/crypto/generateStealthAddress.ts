@@ -26,14 +26,14 @@ import {
  *
  * @param {IGenerateStealthAddressParams} params Parameters for generating a stealth address:
  * - `stealthMetaAddressURI`: The URI containing the stealth meta-address.
- *   Should adhere to the format: "st:<chain>:<stealthMetaAddress>",
+ *   Should adhere to the format: 'st:<chain>:<stealthMetaAddress>',
  *   where <chain> is the chain identifier and <stealthMetaAddress> is the stealth meta-address.
  * - `schemeId`: (Optional) The scheme identifier, defaults to SCHEME_ID_1.
  * - `ephemeralPrivateKey`: (Optional) The ephemeral private key to use; if not provided, a new one is generated.
  * @returns {GenerateStealthAddressReturnType} Object containing:
  *   - `stealthAddress`: The generated stealth address.
- *   - `ephemeralPublicKey`: The ephemeral public key used in the generation.
- *   - `viewTag`: The view tag.
+ *   - `ephemeralPublicKey`: The ephemeral public key used to generate the stealth address.
+ *   - `viewTag`: The view tag derived from the hashed shared secret.
  */
 function generateStealthAddress({
   stealthMetaAddressURI,
