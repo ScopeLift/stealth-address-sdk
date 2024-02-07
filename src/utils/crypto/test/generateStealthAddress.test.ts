@@ -12,7 +12,7 @@ describe("generateStealthAddress", () => {
     "st:eth:0x02415529b5a96fc810b24d1c754dade2e2af1d8123953cca79699b845d371df11a02137217931b4abbdd24476879a6799ee30053248bff0c12a799362bbf2d23d1c5";
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const expectedStealthAddress = getAddress(
-    "0x2909d531ddeb89f4f7e594c85d706973fd524347"
+    "0x2909d531ddeb89f4f7e594c85d706973fd524347",
   );
 
   // Example data:
@@ -67,10 +67,10 @@ describe("generateStealthAddress", () => {
     });
 
     expect(bytesToHex(result.spendingPublicKey)).toBe(
-      expectedSpendingPublicKeyHex
+      expectedSpendingPublicKeyHex,
     );
     expect(bytesToHex(result.viewingPublicKey)).toBe(
-      expectedViewingPublicKeyHex
+      expectedViewingPublicKeyHex,
     );
   });
 

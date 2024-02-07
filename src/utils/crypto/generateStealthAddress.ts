@@ -153,7 +153,7 @@ function validateStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyHexLength,
   ) as HexString;
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -200,7 +200,7 @@ function parseKeysFromStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyHexLength,
   );
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -356,7 +356,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = Point.fromPrivateKey(
-    hexToBytes(hashedSharedSecret)
+    hexToBytes(hashedSharedSecret),
   );
   return Point.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
