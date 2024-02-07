@@ -20,7 +20,7 @@ import {
 } from 'viem/utils';
 
 /**
- * Generates a stealth address from a given stealth meta-address.
+ * @description Generates a stealth address from a given stealth meta-address.
  * This function is designed to support stealth address usage in accordance with the ERC-5564 standard
  * for Ethereum, focusing on the implementation of scheme 1 with extensibility for additional schemes.
  *
@@ -96,7 +96,7 @@ function generateStealthAddress({
 }
 
 /**
- * Parses a stealth meta-address URI and extracts the address data.
+ * @description Parses a stealth meta-address URI and extracts the address data.
  * Validates the structure and format of the stealth meta-address.
  *
  * @param {object} params - Parameters for parsing the stealth meta-address URI:
@@ -123,7 +123,7 @@ function parseStealthMetaAddressURI({
 }
 
 /**
- * Validates the format and structure of a stealth meta-address based on the specified scheme.
+ * @description Validates the format and structure of a stealth meta-address based on the specified scheme.
  *
  * @param {object} params - Parameters for validating a stealth meta-address:
  *   - stealthMetaAddress: The stealth meta-address to validate.
@@ -182,7 +182,7 @@ function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
 }
 
 /**
- * Extracts and validates the spending and viewing public keys from a stealth meta-address.
+ * @description Extracts and validates the spending and viewing public keys from a stealth meta-address.
  *
  * @param {object} params - Parameters for extracting keys from a stealth meta-address:
  *   - stealthMetaAddress: The stealth meta-address.
@@ -218,7 +218,7 @@ function parseKeysFromStealthMetaAddress({
 }
 
 /**
- * Computes a shared secret based on the scheme
+ * @description Computes a shared secret based on the scheme
  *
  * @param {object} params - Parameters for computing the shared secret:
  *   - ephemeralPrivateKey: The sender's ephemeral private key.
@@ -242,7 +242,7 @@ function computeSharedSecret({
 }
 
 /**
- * Hashes the shared secret based on the scheme.
+ * @description Hashes the shared secret based on the scheme.
  *
  * @param {object} params - Parameters for hashing the shared secret:
  *   - sharedSecret: The shared secret to be hashed.
@@ -271,7 +271,7 @@ function handleSchemeId(schemeId: VALID_SCHEME_ID) {
 }
 
 /**
- * Generates or validates an ephemeral private key.
+ * @description Generates or validates an ephemeral private key.
  *
  * @param {object} params - Parameters for generating or validating the private key:
  *   - ephemeralPrivateKey: (optional) The ephemeral private key to validate.
@@ -298,7 +298,7 @@ function generatePrivateKey({
 }
 
 /**
- * Retrieves the public key from the given private key.
+ * @description Retrieves the public key from the given private key.
  *
  * @param {object} params - Parameters for retrieving the public key:
  *   - privateKey: The private key.
@@ -320,7 +320,7 @@ function getPublicKey({
 }
 
 /**
- * Extracts the view tag from the hashed shared secret.
+ * @description Extracts the view tag from the hashed shared secret.
  *
  * @param {object} params - Parameters for extracting the view tag:
  *   - hashedSharedSecret: The hashed shared secret.
@@ -341,7 +341,7 @@ function getViewTag({
 }
 
 /**
- * Calculates the stealth public key; for scheme 1, adds the hashed shared secret point to the spending public key.
+ * @description Calculates the stealth public key; for scheme 1, adds the hashed shared secret point to the spending public key.
  *
  * @param {object} params - Parameters for calculating the stealth public key:
  *   - spendingPublicKey: The spending public key.
@@ -368,7 +368,7 @@ function getStealthPublicKey({
 }
 
 /**
- * Converts a public key to an Ethereum address.
+ * @description Converts a public key to an Ethereum address.
  *
  * @param {object} params - Parameters for converting the public key to an address:
  *   - publicKey: The public key.
