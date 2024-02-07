@@ -25,7 +25,9 @@ bun install stealth-address-sdk
 
 import { generateStealthAddress } from 'stealth-address-sdk';
 
-const stealthMetaAddressURI = '...'; // Your stealth meta-address URI
+// Your stealth meta-address URI
+// Follows the format: "st:<chain>:<stealthMetaAddress>", where <chain> is the [chain identifier](https://eips.ethereum.org/EIPS/eip-3770#examples) ([examples](https://github.com/ethereum-lists/chains)) and <stealthMetaAddress> is the stealth meta-address.  
+const stealthMetaAddressURI = '...';
 
 // Generate a stealth address using the default scheme (1)  
 // To learn more about the initial implementation scheme using SECP256k1, please see the reference [here](https://eips.ethereum.org/EIPS/eip-5564)  
