@@ -5,17 +5,12 @@ import {
   generateStealthAddress,
   VALID_SCHEME_ID,
 } from '..';
-import { bytesToHex, publicKeyToAddress } from 'viem/utils';
-import { getPublicKey } from '@noble/secp256k1';
 import { privateKeyToAddress } from 'viem/accounts';
 
 describe('generateStealthAddress and computeStealthKey', () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressURI =
     'st:eth:0x033404e82cd2a92321d51e13064ec13a0fb0192a9fdaaca1cfb47b37bd27ec13970390ad5eca026c05ab5cf4d620a2ac65241b11df004ddca360e954db1b26e3846e';
-  const ephemeralPublicKey =
-    '0x03fc725f1e2db3aadef6e90ff1f919c664e5034ab8c374bc0df743416b36cabf34';
-
   const spendingPrivateKey =
     '0x363721eb9e981558c748b824cb32a840da2b3e8957c2fc3bcb8d9c86cb87456';
   const viewingPrivateKey =
@@ -31,7 +26,7 @@ describe('generateStealthAddress and computeStealthKey', () => {
     });
 
     const computedStealthPrivateKeyHex = computeStealthKey({
-      ephemeralPublicKey,
+      ephemeralPublicKey: generatedStealthAddressResult.ephemeralPublicKey,
       schemeId,
       spendingPrivateKey,
       viewingPrivateKey,
