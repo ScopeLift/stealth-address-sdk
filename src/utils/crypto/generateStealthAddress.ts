@@ -388,9 +388,11 @@ function publicKeyToAddress({
 }
 
 export {
-  generateStealthAddress,
-  parseKeysFromStealthMetaAddress,
-  getViewTag,
   generatePrivateKey,
+  generateStealthAddress,
+  getHashedSharedSecret,
+  getViewTag,
+  handleSchemeId,
+  parseKeysFromStealthMetaAddress,
 };
 export default generateStealthAddress;

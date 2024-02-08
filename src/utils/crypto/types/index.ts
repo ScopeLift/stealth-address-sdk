@@ -35,3 +35,14 @@ export interface IParseSpendAndViewKeysReturnType {
   spendingPublicKey: Hex;
   viewingPublicKey: Hex;
 }
+
+export interface IComputeStealthKeyParams {
+  /** The viewing private key. */
+  viewingPrivateKey: HexString;
+  /** The spending private key. */
+  spendingPrivateKey: HexString;
+  /** The ephemeral public key from the announcement. */
+  ephemeralPublicKey: HexString;
+  /** The schemeId to use for the stealth address generation. */
+  schemeId: VALID_SCHEME_ID;
+}
