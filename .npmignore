@@ -1,0 +1,20 @@
+# Configuration and development tools
+.prettierrc
+.bun
+tsconfig.json
+README.md
+
+# Source files and tests
+src/
+examples/
+*.test.ts
+*.test.js
+
+# Miscellaneous
+*.log
+*.lockb
+
+# Development and build directories
+node_modules/
+dist/test/
+dist/utils/crypto/test/

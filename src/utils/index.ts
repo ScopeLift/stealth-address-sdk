@@ -3,10 +3,10 @@ export {
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
-} from './generateStealthAddress';
+} from './crypto';
 
 export {
   type GenerateStealthAddressReturnType,
   type IGenerateStealthAddressParams,
   VALID_SCHEME_ID,
-} from './types';
+} from './crypto/types';
