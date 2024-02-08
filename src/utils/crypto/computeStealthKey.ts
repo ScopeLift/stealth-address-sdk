@@ -15,23 +15,17 @@ function computeStealthKey({
   handleSchemeId(schemeId);
 
   const sharedSecret = getSharedSecret(
-    viewingPrivateKey,
-    ephemeralPublicKey
-  ) as Hex;
+    hexToBytes(viewingPrivateKey),
+    hexToBytes(ephemeralPublicKey)
+  );
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
 
-  const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(
-    hexToBytes(hashedSharedSecret)
-  );
-
   // Compute the stealth private key
-  const stealthPrivateKey = ProjectivePoint.fromHex(spendingPrivateKey)
-    .add(hashedSharedSecretPoint)
-    .toRawBytes();
+  const stealthPrivateKey = `0x${BigInt(spendingPrivateKey) + BigInt(hashedSharedSecret)}`;
 
   // Return the stealth private key as a hex string
-  return bytesToHex(stealthPrivateKey);
+  return stealthPrivateKey as HexString;
 }
 
 export default computeStealthKey;
