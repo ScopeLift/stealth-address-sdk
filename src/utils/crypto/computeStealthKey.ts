@@ -25,7 +25,8 @@ function computeStealthKey({
   const hashedSecretBigInt = BigInt(hashedSharedSecret);
   const curveOrderBigInt = BigInt(`0x${CURVE.n.toString(16)}`);
 
-  // Compute the stealth private key
+  // Compute the stealth private key by summing the spending private key and the hashed shared secret, then applying modulo with the curve's order.
+  // This ensures the resulting key is within the elliptic curve's valid scalar range.
   const stealthPrivateKeyBigInt =
     (spendingPrivateKeyBigInt + hashedSecretBigInt) % curveOrderBigInt;
 
