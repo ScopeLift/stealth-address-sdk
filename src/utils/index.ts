@@ -3,6 +3,7 @@ export {
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
+  computeStealthKey,
 } from './crypto';
 
 export {
