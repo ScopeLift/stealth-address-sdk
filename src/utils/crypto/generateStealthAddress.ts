@@ -1,9 +1,9 @@
 import {
   getPublicKey as getPublicKeySecp256k1,
   getSharedSecret,
-  Point,
+  ProjectivePoint,
   utils,
-} from 'noble-secp256k1';
+} from '@noble/secp256k1';
 import {
   type GenerateStealthAddressReturnType,
   type Hex,
@@ -212,8 +212,10 @@ function parseKeysFromStealthMetaAddress({
       : spendingPublicKeyHex; // Use the same key for spending and viewing if only one is provided
 
   return {
-    spendingPublicKey: Point.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
-    viewingPublicKey: Point.fromHex(viewingPublicKeyHex).toRawBytes(true), // Compressed
+    spendingPublicKey:
+      ProjectivePoint.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
+    viewingPublicKey:
+      ProjectivePoint.fromHex(viewingPublicKeyHex).toRawBytes(true), // Compressed
   };
 }
 
@@ -359,10 +361,10 @@ function getStealthPublicKey({
   schemeId: VALID_SCHEME_ID;
 }) {
   handleSchemeId(schemeId);
-  const hashedSharedSecretPoint = Point.fromPrivateKey(
+  const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(
     hexToBytes(hashedSharedSecret)
   );
-  return Point.fromHex(spendingPublicKey)
+  return ProjectivePoint.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
     .toRawBytes();
 }

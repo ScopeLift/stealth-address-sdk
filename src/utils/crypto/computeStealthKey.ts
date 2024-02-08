@@ -1,4 +1,4 @@
-import { Point, getSharedSecret } from 'noble-secp256k1';
+import { ProjectivePoint, getSharedSecret } from '@noble/secp256k1';
 import type { Hex, HexString, IComputeStealthKeyParams } from './types';
 import {
   getHashedSharedSecret,
@@ -21,12 +21,12 @@ function computeStealthKey({
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
 
-  const hashedSharedSecretPoint = Point.fromPrivateKey(
+  const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(
     hexToBytes(hashedSharedSecret)
   );
 
   // Compute the stealth private key
-  const stealthPrivateKey = Point.fromHex(spendingPrivateKey)
+  const stealthPrivateKey = ProjectivePoint.fromHex(spendingPrivateKey)
     .add(hashedSharedSecretPoint)
     .toRawBytes();
 

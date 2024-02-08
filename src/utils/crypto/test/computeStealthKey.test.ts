@@ -5,8 +5,8 @@ import {
   generateStealthAddress,
   VALID_SCHEME_ID,
 } from '..';
-import { getPublicKey } from 'noble-secp256k1';
-import { publicKeyToAddress } from 'viem/utils';
+import { bytesToHex, publicKeyToAddress } from 'viem/utils';
+import { getPublicKey } from '@noble/secp256k1';
 import type { HexString } from '../types';
 
 describe('generateStealthAddress and computeStealthKey', () => {
@@ -43,7 +43,7 @@ describe('generateStealthAddress and computeStealthKey', () => {
     );
 
     const computedStealthAddress = publicKeyToAddress(
-      computedStealthPublicKey as HexString
+      bytesToHex(computedStealthPublicKey)
     );
 
     // Validate the generated stealth address matches the computed stealth address
