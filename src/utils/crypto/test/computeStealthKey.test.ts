@@ -36,7 +36,7 @@ describe('generateStealthAddress and computeStealthKey', () => {
 
     const computedStealthPublicKey = getPublicKey(
       hexToBytes(computedStealthPrivateKeyHex),
-      true
+      false
     );
 
     const computedStealthAddress = publicKeyToAddress(

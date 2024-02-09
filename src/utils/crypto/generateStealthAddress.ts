@@ -259,7 +259,7 @@ function getHashedSharedSecret({
   schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
-  return keccak256(Buffer.from(sharedSecret.slice(2)));
+  return keccak256(sharedSecret);
 }
 
 function isSchemeId1(schemeId: VALID_SCHEME_ID) {
@@ -366,7 +366,7 @@ function getStealthPublicKey({
   );
   return ProjectivePoint.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
-    .toRawBytes();
+    .toRawBytes(false);
 }
 
 /**
