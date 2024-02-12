@@ -46,3 +46,18 @@ export interface IComputeStealthKeyParams {
   /** The schemeId to use for the stealth address generation. */
   schemeId: VALID_SCHEME_ID;
 }
+
+export interface ICheckStealthAddressParams {
+  /** The stealth address of the user. */
+  userStealthAddress: EthAddress;
+  /** The view tag from the announcement. */
+  viewTag: HexString;
+  /** The ephemeral public key from the announcement. */
+  ephemeralPublicKey: HexString;
+  /** The spending public key of the user. */
+  spendingPublicKey: HexString;
+  /** The viewing private key of the user. */
+  viewingPrivateKey: HexString;
+  /** The scheme ID of the announcement. */
+  schemeId: VALID_SCHEME_ID;
+}
