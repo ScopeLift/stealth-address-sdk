@@ -1,4 +1,4 @@
-import { getSharedSecret, ProjectivePoint } from '@noble/secp256k1';
+import { getSharedSecret } from '@noble/secp256k1';
 import type { ICheckStealthAddressParams } from './types';
 import {
   getHashedSharedSecret,
@@ -9,14 +9,16 @@ import {
 } from '.';
 
 /**
- * Checks if a given announcement is intended for the user with a specific viewing private key and spending public key.
- * @param {HexString} ephemeralPublicKey The ephemeral public key from the announcement.
- * @param {HexString} spendingPublicKey The spending public key of the user.
- * @param {HexString} userStealthAddress The stealth address of the user.
- * @param {HexString} viewingPrivateKey The viewing private key of the user.
- * @param {HexString} viewTag The view tag from the announcement.
- * @param {VALID_SCHEME_ID} schemeId The scheme ID of the announcement.
- * @returns {boolean} True if the announcement is for the user, false otherwise.
+ * @description Checks if a given announcement is intended for the user.
+ * @param {ICheckStealthAddressParams} params Parameters for checking if the announcement is intended for the user:
+ *   - `ephemeralPublicKey`: The ephemeral public key from the announcement.
+ *   - `spendingPublicKey`: The user's spending public key.
+ *   - `userStealthAddress`: The user's stealth address, used to verify the derived stealth address.
+ *   - `viewingPrivateKey`: The user's viewing private key.
+ *   - `viewTag`: The view tag from the announcement, used to quickly filter announcements.
+ *   - `schemeId`: The scheme ID.
+ * @returns {boolean} True if the derived stealth address matches the user's stealth address, indicating
+ * the announcement is intended for the user; false otherwise.
  */
 function checkStealthAddress({
   ephemeralPublicKey,
