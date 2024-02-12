@@ -54,3 +54,5 @@ function checkStealthAddress({
   // Compare derived stealth address with the user's stealth address
   return stealthAddress === userStealthAddress;
 }
+
+export default checkStealthAddress;
