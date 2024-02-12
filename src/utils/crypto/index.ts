@@ -1,8 +1,12 @@
 export {
   generatePrivateKey,
   generateStealthAddress,
+  getHashedSharedSecret,
+  getStealthPublicKey,
   getViewTag,
+  handleSchemeId,
   parseKeysFromStealthMetaAddress,
+  publicKeyToAddress,
 } from './generateStealthAddress';
 
 export { default as computeStealthKey } from './computeStealthKey';

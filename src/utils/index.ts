@@ -1,9 +1,9 @@
 export {
+  computeStealthKey,
   generatePrivateKey,
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
-  computeStealthKey,
 } from './crypto';
 
 export {
