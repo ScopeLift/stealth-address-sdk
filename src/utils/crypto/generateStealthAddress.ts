@@ -356,7 +356,7 @@ function getStealthPublicKey({
   hashedSharedSecret,
   schemeId,
 }: {
-  spendingPublicKey: Uint8Array;
+  spendingPublicKey: Hex;
   hashedSharedSecret: HexString;
   schemeId: VALID_SCHEME_ID;
 }) {
@@ -381,20 +381,24 @@ function publicKeyToAddress({
   publicKey,
   schemeId,
 }: {
-  publicKey: Uint8Array;
+  publicKey: Hex;
   schemeId: VALID_SCHEME_ID;
 }): EthAddress {
   handleSchemeId(schemeId);
   // Use viem to convert the public key to an address
-  return publicKeyToAddressViem(bytesToHex(publicKey));
+  return publicKeyToAddressViem(
+    typeof publicKey !== 'string' ? bytesToHex(publicKey) : publicKey
+  );
 }
 
 export {
   generatePrivateKey,
   generateStealthAddress,
   getHashedSharedSecret,
+  getStealthPublicKey,
   getViewTag,
   handleSchemeId,
   parseKeysFromStealthMetaAddress,
+  publicKeyToAddress,
 };
 export default generateStealthAddress;
