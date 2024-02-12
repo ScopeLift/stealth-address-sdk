@@ -5,6 +5,7 @@ export {
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
+  parseStealthMetaAddressURI,
 } from './crypto';
 
 export {

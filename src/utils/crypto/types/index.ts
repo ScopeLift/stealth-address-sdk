@@ -55,7 +55,7 @@ export interface ICheckStealthAddressParams {
   /** The ephemeral public key from the announcement. */
   ephemeralPublicKey: HexString;
   /** The spending public key of the user. */
-  spendingPublicKey: HexString;
+  spendingPublicKey: Uint8Array;
   /** The viewing private key of the user. */
   viewingPrivateKey: HexString;
   /** The scheme ID of the announcement. */

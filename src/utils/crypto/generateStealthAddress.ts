@@ -226,7 +226,7 @@ function parseKeysFromStealthMetaAddress({
  *   - ephemeralPrivateKey: The sender's ephemeral private key.
  *   - recipientViewingPublicKey: The recipient's viewing public key.
  *   - schemeId: The scheme identifier.
- * @returns {Hex} The computed shared secret.
+ * @returns {Uint8Array} The computed shared secret.
  */
 function computeSharedSecret({
   ephemeralPrivateKey,
@@ -236,11 +236,11 @@ function computeSharedSecret({
   ephemeralPrivateKey: Uint8Array;
   recipientViewingPublicKey: Uint8Array;
   schemeId: VALID_SCHEME_ID;
-}): Hex {
+}) {
   handleSchemeId(schemeId);
 
   // Use seccp25k1 to compute the shared secret if scheme 1
-  return getSharedSecret(ephemeralPrivateKey, recipientViewingPublicKey) as Hex;
+  return getSharedSecret(ephemeralPrivateKey, recipientViewingPublicKey);
 }
 
 /**
@@ -356,7 +356,7 @@ function getStealthPublicKey({
   hashedSharedSecret,
   schemeId,
 }: {
-  spendingPublicKey: Hex;
+  spendingPublicKey: Uint8Array;
   hashedSharedSecret: HexString;
   schemeId: VALID_SCHEME_ID;
 }) {
@@ -399,6 +399,7 @@ export {
   getViewTag,
   handleSchemeId,
   parseKeysFromStealthMetaAddress,
+  parseStealthMetaAddressURI,
   publicKeyToAddress,
 };
 export default generateStealthAddress;

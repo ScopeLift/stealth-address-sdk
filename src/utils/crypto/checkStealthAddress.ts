@@ -7,6 +7,7 @@ import {
   handleSchemeId,
   publicKeyToAddress,
 } from '.';
+import { bytesToHex, hexToBytes } from 'viem';
 
 /**
  * @description Checks if a given announcement is intended for the user.
@@ -30,7 +31,10 @@ function checkStealthAddress({
 }: ICheckStealthAddressParams) {
   handleSchemeId(schemeId);
 
-  const sharedSecret = getSharedSecret(viewingPrivateKey, ephemeralPublicKey);
+  const sharedSecret = getSharedSecret(
+    hexToBytes(viewingPrivateKey),
+    hexToBytes(ephemeralPublicKey)
+  );
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
 

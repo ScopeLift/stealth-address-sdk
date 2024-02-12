@@ -6,6 +6,7 @@ export {
   getViewTag,
   handleSchemeId,
   parseKeysFromStealthMetaAddress,
+  parseStealthMetaAddressURI,
   publicKeyToAddress,
 } from './generateStealthAddress';
 
