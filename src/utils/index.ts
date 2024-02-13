@@ -8,6 +8,8 @@ export {
   parseStealthMetaAddressURI,
 } from './crypto';
 
+export { generateRandomStealthMetaAddress } from './helpers';
+
 export {
   type GenerateStealthAddressReturnType,
   type ICheckStealthAddressParams,
