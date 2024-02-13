@@ -60,12 +60,12 @@ describe('adding private keys', () => {
   );
   const curveOrder = BigInt(CURVE.n);
 
-  test('adding private keys without modulo should exceed the curve order', async () => {
+  test('adding private keys without modulo should exceed the curve order', () => {
     const sumWithoutModulo = privateKey1 + privateKey2;
     expect(sumWithoutModulo).toBeGreaterThan(curveOrder);
   });
 
-  test('adding private keys with modulo should be within the curve order', async () => {
+  test('adding private keys with modulo should be within the curve order', () => {
     const sumWithModulo = addPriv({
       a: privateKey1,
       b: privateKey2,
