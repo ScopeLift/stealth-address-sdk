@@ -86,16 +86,16 @@ describe('adding private keys', () => {
     expect(correctedScalar).toBeLessThan(curveOrder);
   });
 
-  test('adding private keys without modulo should exceed the curve order', () => {
+  test('adding private key scalars with addPriv', () => {
     const sumWithoutModulo = privateKey1 + privateKey2;
+    // The sum exceeds the curve's order, which is invalid
     expect(sumWithoutModulo).toBeGreaterThan(curveOrder);
-  });
 
-  test('adding private keys with modulo should be within the curve order', () => {
     const sumWithModulo = addPriv({
       a: privateKey1,
       b: privateKey2,
     });
+    // The sum is within the curve's order, which is valid
     expect(sumWithModulo).toBeLessThanOrEqual(curveOrder);
   });
 });
