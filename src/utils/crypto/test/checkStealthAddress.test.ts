@@ -6,6 +6,7 @@ import {
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI,
 } from '..';
+import { bytesToHex } from 'viem';
 
 describe('checkStealthAddress', () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -33,7 +34,7 @@ describe('checkStealthAddress', () => {
     const isForUser = checkStealthAddress({
       ephemeralPublicKey,
       schemeId,
-      spendingPublicKey,
+      spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: stealthAddress,
       viewingPrivateKey,
       viewTag,
@@ -47,7 +48,7 @@ describe('checkStealthAddress', () => {
     const isForUser = checkStealthAddress({
       ephemeralPublicKey,
       schemeId,
-      spendingPublicKey,
+      spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: stealthAddress,
       viewingPrivateKey,
       viewTag: mismatchedViewTag,
@@ -61,7 +62,7 @@ describe('checkStealthAddress', () => {
     const isForUser = checkStealthAddress({
       ephemeralPublicKey,
       schemeId,
-      spendingPublicKey,
+      spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: differentStealthAddress,
       viewingPrivateKey,
       viewTag,
