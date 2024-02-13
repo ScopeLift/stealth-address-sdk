@@ -18,7 +18,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "noble-secp256k1": "^1.2.14",
+    "@noble/secp256k1": "^2.0.0",
     "viem": "^2.6.1"
   }
 }
