@@ -7,7 +7,7 @@ import {
   handleSchemeId,
   publicKeyToAddress,
 } from '.';
-import { bytesToHex, hexToBytes } from 'viem';
+import { hexToBytes } from 'viem';
 
 /**
  * @description Checks if a given announcement is intended for the user.
