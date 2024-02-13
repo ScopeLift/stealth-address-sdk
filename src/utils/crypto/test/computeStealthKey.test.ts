@@ -6,9 +6,12 @@ import {
   VALID_SCHEME_ID,
 } from '..';
 import { publicKeyToAddress } from 'viem/accounts';
-import { getPublicKey, CURVE, ProjectivePoint, utils } from '@noble/secp256k1';
+import { getPublicKey, CURVE, utils } from '@noble/secp256k1';
 import { bytesToHex, hexToBytes } from 'viem';
 import { addPriv } from '../computeStealthKey';
+
+const formatPrivKey = (privateKey: bigint) =>
+  `${privateKey.toString(16).padStart(64, '0')}`;
 
 describe('generateStealthAddress and computeStealthKey', () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -66,20 +69,20 @@ describe('adding private keys', () => {
 
     // Create a scalar that exceeds the curve's order
     const exceededScalar = curveOrder + BigInt(1);
-    // Format
-    const _exceedScalar = `${exceededScalar.toString(16).padStart(64, '0')}`;
 
     // Check validity without modulo operation
-    const isValidWithoutModulo = utils.isValidPrivateKey(_exceedScalar);
+    const isValidWithoutModulo = utils.isValidPrivateKey(
+      formatPrivKey(exceededScalar)
+    );
     expect(isValidWithoutModulo).toBe(false);
 
     // Apply modulo operation to bring the scalar within valid range
     const correctedScalar = exceededScalar % curveOrder;
-    // Format
-    const _correctedScalar = `${correctedScalar.toString(16).padStart(64, '0')}`;
 
     // Check validity with modulo operation
-    const isValidWithModulo = utils.isValidPrivateKey(_correctedScalar);
+    const isValidWithModulo = utils.isValidPrivateKey(
+      formatPrivKey(correctedScalar)
+    );
     expect(isValidWithModulo).toBe(true);
 
     // Additionally, demonstrate that correctedScalar is less than curveOrder
@@ -97,5 +100,19 @@ describe('adding private keys', () => {
     });
     // The sum is within the curve's order, which is valid
     expect(sumWithModulo).toBeLessThanOrEqual(curveOrder);
+  });
+
+  test('fuzzTest addPriv', () => {
+    const iterations = 100000;
+
+    for (let i = 0; i < iterations; i++) {
+      // Generate two random scalars
+      const scalarA = BigInt(bytesToHex(utils.randomPrivateKey()));
+      const scalarB = BigInt(bytesToHex(utils.randomPrivateKey()));
+
+      const result = addPriv({ a: scalarA, b: scalarB });
+
+      expect(utils.isValidPrivateKey(formatPrivKey(result))).toBe(true);
+    }
   });
 });
