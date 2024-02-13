@@ -1,0 +1,11 @@
+{
+  "name": "example-check-stealth-address",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stealth-address-sdk": "stealth-address-sdk@latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
