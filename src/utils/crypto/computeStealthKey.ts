@@ -38,7 +38,7 @@ function computeStealthKey({
 
 // Adds two private key scalars, ensuring the resulting key is within the elliptic curve's valid scalar range (modulo the curve's order).
 function addPriv({ a, b }: { a: bigint; b: bigint }) {
-  const curveOrderBigInt = BigInt(`0x${CURVE.n.toString(16)}`);
+  const curveOrderBigInt = BigInt(CURVE.n);
   return (a + b) % curveOrderBigInt;
 }
 
