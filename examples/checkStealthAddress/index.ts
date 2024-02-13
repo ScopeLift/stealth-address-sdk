@@ -4,7 +4,6 @@ import {
   generateStealthAddress,
   VALID_SCHEME_ID,
 } from 'stealth-address-sdk';
-import { hexToBytes } from 'viem';
 
 // User's keys (for example purposes, real values should be securely generated and stored)
 const {
@@ -27,7 +26,7 @@ console.log(`View Tag: ${viewTag}`);
 const isForUser = checkStealthAddress({
   ephemeralPublicKey, // From the announcement
   schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-  spendingPublicKey: hexToBytes(userSpendingPublicKey),
+  spendingPublicKey: userSpendingPublicKey,
   userStealthAddress: stealthAddress, // User's known stealth address
   viewingPrivateKey: userViewingPrivateKey,
   viewTag, // From the announcement

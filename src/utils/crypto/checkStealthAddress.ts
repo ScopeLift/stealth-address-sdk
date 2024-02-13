@@ -46,7 +46,7 @@ function checkStealthAddress({
   }
 
   const stealthPublicKey = getStealthPublicKey({
-    spendingPublicKey,
+    spendingPublicKey: hexToBytes(spendingPublicKey),
     hashedSharedSecret,
     schemeId,
   });
