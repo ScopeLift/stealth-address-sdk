@@ -22,7 +22,7 @@ describe('generateStealthAddress and computeStealthKey', () => {
   const viewingPrivateKey =
     '0xb52a0555f6a8663d89f00365893b1ef9e38eaf2e8bc48a63319c9ea5cb4a27c5';
 
-  test('full cycle stealth address generation and validation', async () => {
+  test('full cycle stealth address generation and validation', () => {
     const ephemeralPrivateKey = generatePrivateKey({ schemeId });
 
     const generatedStealthAddressResult = generateStealthAddress({
