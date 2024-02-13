@@ -7,8 +7,8 @@ The current version only allows for stealth address generation, **which is a wor
 ## Features
 
 - Generate Ethereum stealth addresses.
-- (Planned) Compute stealth address private keys.
-- (Planned) Check stealth address announcements.
+- Compute stealth address private keys.
+- Check stealth address announcements.
 - (Planned) More features to fully support ERC-5564 interactions.
 
 ## Installation
