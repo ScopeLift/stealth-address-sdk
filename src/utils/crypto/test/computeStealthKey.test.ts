@@ -6,7 +6,7 @@ import {
   VALID_SCHEME_ID,
 } from '..';
 import { publicKeyToAddress } from 'viem/accounts';
-import { getPublicKey, CURVE } from '@noble/secp256k1';
+import { getPublicKey, CURVE, ProjectivePoint, utils } from '@noble/secp256k1';
 import { bytesToHex, hexToBytes } from 'viem';
 import { addPriv } from '../computeStealthKey';
 
@@ -59,6 +59,32 @@ describe('adding private keys', () => {
     '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0'
   );
   const curveOrder = BigInt(CURVE.n);
+
+  test('demonstrate exceeding curve order results in invalid scalar, and modulo corrects it', () => {
+    // Curve's order
+    const curveOrder = BigInt(CURVE.n);
+
+    // Create a scalar that exceeds the curve's order
+    const exceededScalar = curveOrder + BigInt(1);
+    // Format
+    const _exceedScalar = `${exceededScalar.toString(16).padStart(64, '0')}`;
+
+    // Check validity without modulo operation
+    const isValidWithoutModulo = utils.isValidPrivateKey(_exceedScalar);
+    expect(isValidWithoutModulo).toBe(false);
+
+    // Apply modulo operation to bring the scalar within valid range
+    const correctedScalar = exceededScalar % curveOrder;
+    // Format
+    const _correctedScalar = `${correctedScalar.toString(16).padStart(64, '0')}`;
+
+    // Check validity with modulo operation
+    const isValidWithModulo = utils.isValidPrivateKey(_correctedScalar);
+    expect(isValidWithModulo).toBe(true);
+
+    // Additionally, demonstrate that correctedScalar is less than curveOrder
+    expect(correctedScalar).toBeLessThan(curveOrder);
+  });
 
   test('adding private keys without modulo should exceed the curve order', () => {
     const sumWithoutModulo = privateKey1 + privateKey2;
