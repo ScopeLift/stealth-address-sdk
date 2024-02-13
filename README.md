@@ -25,7 +25,7 @@ bun install stealth-address-sdk
 
 ### Generating a Stealth Address
 
-```
+```ts
 import { generateStealthAddress } from 'stealth-address-sdk';
 
 // Your stealth meta-address URI
@@ -42,14 +42,14 @@ console.log(result.stealthAddress);
 
 ### Computing Stealh Key
 
-```
-import { computeStealthKey } from 'stealth-address-sdk';
+```ts
+import { computeStealthKey, VALID_SCHEME_ID } from 'stealth-address-sdk';
 
 // Example inputs
 const viewingPrivateKey = '0x...'; // Viewing private key of the recipient
 const spendingPrivateKey = '0x...'; // Spending private key of the recipient
 const ephemeralPublicKey = '0x...'; // Ephemeral public key from the sender's announcement
-const schemeId = 'VALID_SCHEME_ID.SCHEME_ID_1'; // Scheme ID, currently only '1' is supported
+const schemeId = VALID_SCHEME_ID.SCHEME_ID_1; // Scheme ID, currently only '1' is supported
 
 // Compute the stealth private key
 const stealthPrivateKey = computeStealthKey({
@@ -62,8 +62,8 @@ const stealthPrivateKey = computeStealthKey({
 
 ### Checking Stealth Address Announcements
 
-```
-import { checkStealthAddress } from 'stealth-address-sdk';
+```ts
+import { checkStealthAddress, VALID_SCHEME_ID } from 'stealth-address-sdk';
 
 // Example inputs
 const ephemeralPublicKey = '0x...'; // The ephemeral public key from the announcement
@@ -71,7 +71,7 @@ const spendingPublicKey = '0x...'; // The user's spending public key
 const userStealthAddress = '0x...'; // The user's stealth address
 const viewingPrivateKey = '0x...'; // The user's viewing private key
 const viewTag = '0x...'; // The view tag from the announcement
-const schemeId = 'VALID_SCHEME_ID.SCHEME_ID_1'; // Scheme ID, currently only '1' is supported
+const schemeId = VALID_SCHEME_ID.SCHEME_ID_1; // Scheme ID, currently only '1' is supported
 
 // Check if the announcement is intended for the user
 const isForUser = checkStealthAddress({
@@ -83,5 +83,9 @@ const isForUser = checkStealthAddress({
   viewTag,
 });
 
-console.log(isForUser ? 'Announcement is for the user' : 'Announcement is not for the user');
+console.log(
+  isForUser
+    ? 'Announcement is for the user'
+    : 'Announcement is not for the user'
+);
 ```
