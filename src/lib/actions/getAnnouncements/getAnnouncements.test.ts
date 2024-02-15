@@ -6,7 +6,7 @@ import {
   createStealthClient,
   generateStealthAddress,
 } from '../../..';
-import { createWalletClient, http } from 'viem';
+import { createWalletClient, http, publicActions } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 
@@ -21,7 +21,7 @@ const setupWallet = () => {
     transport: http(process.env.SEPOLIA_RPC_URL!),
   });
 
-  return walletClient;
+  return walletClient.extend(publicActions);
 };
 
 describe('getAnnouncements', async () => {
@@ -49,17 +49,22 @@ describe('getAnnouncements', async () => {
   console.log('ephemeralPublicKey:', ephemeralPublicKey);
   console.log('viewTag:', viewTag);
 
-  // announce the stealth address, ephemeral public key, and view tag
-  await walletClient.writeContract({
+  // Announce the stealth address, ephemeral public key, and view tag
+  const hash = await walletClient.writeContract({
     address: ANNOUNCER_CONTRACTS.get(11155111)!,
     functionName: 'announce',
     args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
     abi: ERC556AnnouncerAbi,
   });
 
+  // Wait for the transaction to be mined
+  await walletClient.waitForTransactionReceipt({
+    hash,
+  });
+
   test('fetches announcements successfully', async () => {
     const announcements = await stealthClient.getAnnouncements({
-      ERC5564Address: ERC5564Address,
+      ERC5564Address,
       args: {},
       fromBlock,
     });
@@ -70,9 +75,9 @@ describe('getAnnouncements', async () => {
 
   test('fetches specific announcement successfully using stealth address', async () => {
     const announcements = await stealthClient.getAnnouncements({
-      ERC5564Address: ERC5564Address,
+      ERC5564Address,
       args: {
-        stealthAddress: stealthAddress,
+        stealthAddress,
       },
       fromBlock,
     });
