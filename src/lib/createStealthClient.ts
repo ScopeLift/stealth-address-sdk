@@ -1,6 +1,7 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import type {
   ClientParams,
+  InitializedStealthActions,
   StealthClientInitParams,
   StealthClientReturnType,
 } from './actions/types';
@@ -23,28 +24,35 @@ function createStealthClient({
     transport: http(rpcUrl),
   });
 
-  const initializedActions = Object.keys(stealthActions).reduce(
-    (acc, actionName) => {
-      const action = (stealthActions as any)[actionName];
-      if (typeof action === 'function') {
-        (acc as any)[actionName] = action.bind(null, { publicClient });
-      }
-      return acc;
-    },
-    {} as StealthClientReturnType
-  );
+  const isKeyOfStealthActions = (
+    key: string
+  ): key is keyof StealthClientReturnType => key in stealthActions;
 
-  return initializedActions;
+  // Initialize actions with the publicClient
+  return Object.keys(stealthActions).reduce((acc, actionName) => {
+    const key = actionName;
+
+    if (isKeyOfStealthActions(key)) {
+      const action = stealthActions[key];
+      acc[key] = (...args: Parameters<typeof action>) =>
+        action({ clientParams: { publicClient }, ...args[0] });
+    }
+
+    return acc;
+  }, {} as StealthClientReturnType);
 }
 
-const handleViemPublicClient = (clientParams: ClientParams): PublicClient => {
+const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
   let publicClient = clientParams?.publicClient;
+
   if (publicClient) {
     return publicClient;
   }
+
   if (!clientParams?.chainId || !clientParams?.rpcUrl) {
     throw new Error('clientParams chainId and rpcUrl are required');
   }
+
   return createPublicClient({
     chain: getChain(clientParams.chainId),
     transport: http(clientParams.rpcUrl),

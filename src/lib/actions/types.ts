@@ -3,9 +3,9 @@ import type { EthAddress } from '../../utils/crypto/types';
 import type { VALID_CHAIN_IDS } from '../helpers/types';
 
 export type ClientParams = {
-  chainId: VALID_CHAIN_IDS;
-  rpcUrl: string;
+  chainId?: VALID_CHAIN_IDS;
   publicClient?: PublicClient;
+  rpcUrl?: string;
 };
 
 export type StealthClientInitParams = {
@@ -24,23 +24,23 @@ export type BlockType =
   | 'finalized';
 
 export type GetAnnouncementsParams = {
-  clientParams: ClientParams;
+  clientParams?: ClientParams;
   ERC5564Address: EthAddress;
-  fromBlock?: BlockType;
-  toBlock?: BlockType;
   args: {
     schemeId?: bigint | bigint[] | null | undefined;
     stealthAddress?: `0x${string}` | `0x${string}`[] | null | undefined;
     caller?: `0x${string}` | `0x${string}`[] | null | undefined;
   };
+  fromBlock?: BlockType;
+  toBlock?: BlockType;
 };
 
 export interface AnnouncementLog extends Log {
-  schemeId: bigint | undefined;
-  stealthAddress: EthAddress | undefined;
   caller: EthAddress | undefined;
   ephemeralPubKey: `0x${string}` | undefined;
   metadata: `0x${string}` | undefined;
+  schemeId: bigint | undefined;
+  stealthAddress: EthAddress | undefined;
 }
 export type GetAnnouncementsReturnType = AnnouncementLog[];
 
