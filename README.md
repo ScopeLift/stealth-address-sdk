@@ -1,15 +1,7 @@
-# stealth-address-sdk
+# Stealth Address SDK
 
-To install dependencies:
+This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564) and [EIP-6538](https://eips.ethereum.org/EIPS/eip-6538). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
 
-```bash
-bun install
-```
+## License
 
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.25. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+[MIT](/LICENSE) License
