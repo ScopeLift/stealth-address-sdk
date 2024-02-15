@@ -16,7 +16,7 @@ import { getChain } from '../helpers/chains';
 
 async function getAnnouncements({
   clientParams,
-  IERC5564Address,
+  ERC5564Address,
   args,
   fromBlock,
   toBlock,
@@ -37,7 +37,7 @@ async function getAnnouncements({
   }
 
   const fetchParams = {
-    address: IERC5564Address,
+    address: ERC5564Address,
     args,
   };
 

@@ -1,4 +1,5 @@
 import {
+  ANNOUNCER_CONTRACTS,
   VALID_SCHEME_ID,
   createStealthClient,
   getAnnouncements,
@@ -14,17 +15,22 @@ const stealthClient = createStealthClient({ chainId, rpcUrl });
 // Use the address of your calling contract if applicable
 const CALLER = '0xYourCallingContractAddress';
 
-// The contract address of the ERC5564Announcer on your target blockchain
-const IERC5564_ADDRESS = '0xContractAddressOfERC5564Announcer';
-
 // Example stealth address
 const stealthAddress = '0xYourStealthAddress';
 
 async function fetchAnnouncements() {
+  // The contract address of the ERC5564Announcer on your target blockchain
+  // You can use the provided ANNOUNCER_CONTRACTS map to get the singleton contract address for a valid chain ID
+  const ERC5564Address = ANNOUNCER_CONTRACTS.get(chainId);
+
+  if (!ERC5564Address) {
+    throw new Error('No contract found: invalid chain ID');
+  }
+
   // Example call to getAnnouncements action on the stealth client
   // Adjust parameters according to your requirements
   const announcements = await stealthClient.getAnnouncements({
-    IERC5564Address: IERC5564_ADDRESS,
+    ERC5564Address,
     args: {
       schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
       caller: CALLER,
@@ -38,7 +44,7 @@ async function fetchAnnouncements() {
   const otherAnnouncements = await getAnnouncements({
     // pass in the rpcUrl and chainId to clientParams
     clientParams: { rpcUrl, chainId },
-    IERC5564Address: IERC5564_ADDRESS,
+    ERC5564Address,
     args: {
       schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
       caller: CALLER,
