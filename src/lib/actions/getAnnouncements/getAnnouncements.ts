@@ -5,14 +5,8 @@ import type {
   AnnouncementLog,
 } from '../types';
 
-import {
-  createPublicClient,
-  http,
-  type PublicClient,
-  parseAbiItem,
-} from 'viem';
+import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
-import { getChain } from '../../helpers/chains';
 import { handleViemPublicClient } from '../../createStealthClient';
 
 async function getAnnouncements({
