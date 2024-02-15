@@ -3,7 +3,7 @@ import type {
   GetAnnouncementsReturnType,
   BlockType,
   AnnouncementLog,
-} from './types';
+} from '../types';
 
 import {
   createPublicClient,
@@ -12,7 +12,7 @@ import {
   parseAbiItem,
 } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
-import { getChain } from '../helpers/chains';
+import { getChain } from '../../helpers/chains';
 
 async function getAnnouncements({
   clientParams,
