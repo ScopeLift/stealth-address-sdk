@@ -61,29 +61,22 @@ describe('getAnnouncements', async () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address: ERC5564Address,
       args: {},
-      fromBlock: BigInt(ERC5564_CONTRACT_DEPLOY_BLOCK),
+      fromBlock,
     });
 
-    // Assert
     expect(announcements).toBeDefined();
     expect(announcements.length).toBeGreaterThan(0);
-    console.log('Fetched announcements:', announcements);
   });
 
-  test('fetches specific announcement successfully using generated details', async () => {
+  test('fetches specific announcement successfully using stealth address', async () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address: ERC5564Address,
       args: {
         stealthAddress: stealthAddress,
-        metadata: viewTag,
-        ephemeralPublicKey,
       },
-      fromBlock: BigInt(ERC5564_CONTRACT_DEPLOY_BLOCK),
+      fromBlock,
     });
 
-    // Assert
-    expect(announcements).toBeDefined();
-    expect(announcements.length).toBeGreaterThan(0);
-    console.log('Fetched announcements:', announcements);
+    expect(announcements[0].stealthAddress).toBe(stealthAddress);
   });
 });

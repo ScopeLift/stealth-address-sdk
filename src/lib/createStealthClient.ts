@@ -1,5 +1,6 @@
-import { createPublicClient, http } from 'viem'; // Assuming Viem provides this
+import { createPublicClient, http, type PublicClient } from 'viem';
 import type {
+  ClientParams,
   StealthClientInitParams,
   StealthClientReturnType,
 } from './actions/types';
@@ -36,4 +37,19 @@ function createStealthClient({
   return initializedActions;
 }
 
+const handleViemPublicClient = (clientParams: ClientParams): PublicClient => {
+  let publicClient = clientParams?.publicClient;
+  if (publicClient) {
+    return publicClient;
+  }
+  if (!clientParams?.chainId || !clientParams?.rpcUrl) {
+    throw new Error('clientParams chainId and rpcUrl are required');
+  }
+  return createPublicClient({
+    chain: getChain(clientParams.chainId),
+    transport: http(clientParams.rpcUrl),
+  });
+};
+
+export { createStealthClient, handleViemPublicClient };
 export default createStealthClient;

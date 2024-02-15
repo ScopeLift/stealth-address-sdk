@@ -13,6 +13,7 @@ import {
 } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
 import { getChain } from '../../helpers/chains';
+import { handleViemPublicClient } from '../../createStealthClient';
 
 async function getAnnouncements({
   clientParams,
@@ -21,20 +22,7 @@ async function getAnnouncements({
   fromBlock,
   toBlock,
 }: GetAnnouncementsParams): Promise<GetAnnouncementsReturnType> {
-  let publicClient = clientParams?.publicClient;
-
-  // Create a public client if one is not provided
-  if (!publicClient) {
-    if (!clientParams?.chainId || !clientParams.rpcUrl) {
-      throw new Error('clientParams chainId and rpcUrl are required');
-    }
-
-    const { chainId, rpcUrl } = clientParams;
-    publicClient = createPublicClient({
-      chain: getChain(chainId),
-      transport: http(rpcUrl),
-    });
-  }
+  const publicClient = handleViemPublicClient(clientParams);
 
   const fetchParams = {
     address: ERC5564Address,

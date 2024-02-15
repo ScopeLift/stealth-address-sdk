@@ -24,7 +24,7 @@ export type BlockType =
   | 'finalized';
 
 export type GetAnnouncementsParams = {
-  clientParams?: ClientParams;
+  clientParams: ClientParams;
   ERC5564Address: EthAddress;
   fromBlock?: BlockType;
   toBlock?: BlockType;
