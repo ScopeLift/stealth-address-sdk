@@ -87,3 +87,7 @@ console.log(
     : 'Announcement is not for the user'
 );
 ```
+
+## License
+
+[MIT](/LICENSE) License
