@@ -52,7 +52,7 @@ const fetchLogsInChunks = async ({
   fetchParams,
   fromBlock,
   toBlock,
-  chunkSize = 1000, // Default chunk size, can be adjusted
+  chunkSize = 5000, // Default chunk size, can be adjusted
 }: {
   publicClient: PublicClient;
   fetchParams: {
@@ -96,7 +96,7 @@ const fetchLogsInChunks = async ({
         'event Announcement(uint256 indexed schemeId,address indexed stealthAddress,address indexed caller,bytes ephemeralPubKey,bytes metadata)'
       ),
       fromBlock: currentBlock,
-      toBlock: resolvedToBlock,
+      toBlock: endBlock,
     });
     allLogs.push(...logs);
     currentBlock = endBlock + BigInt(1);
