@@ -1,12 +1,11 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
+import { getChain } from '../helpers/chains';
+import * as stealthActions from '../actions';
 import type {
   ClientParams,
-  InitializedStealthActions,
   StealthClientInitParams,
   StealthClientReturnType,
-} from './actions/types';
-import { getChain } from './helpers/chains';
-import * as stealthActions from './actions';
+} from './types';
 
 function createStealthClient({
   chainId,
