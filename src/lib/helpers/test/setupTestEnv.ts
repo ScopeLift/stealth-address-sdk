@@ -1,5 +1,5 @@
 import { createStealthClient } from '../..';
-import { ERC5564_CONTRACT } from '../../..';
+import { ERC5564_CONTRACT, ERC6538_CONTRACT } from '../../..';
 import type { VALID_CHAIN_IDS } from '../types';
 
 function setupTestEnv() {
@@ -24,11 +24,18 @@ function setupTestEnv() {
   const ERC5564DeployBlock = BigInt(ERC5564DeployBlockEnv);
   const ERC5564Address = ERC5564_CONTRACT.SEPOLIA;
 
+  // Setup ERC6538 contract details
+  const ERC6538Address = ERC6538_CONTRACT.SEPOLIA;
+  if (!ERC6538Address) {
+    throw new Error('TEST_ERC6538_ADDRESS is not defined');
+  }
+
   return {
-    stealthClient,
-    ERC5564DeployBlock,
-    ERC5564Address,
     chainId,
+    ERC5564Address,
+    ERC5564DeployBlock,
+    ERC6538Address,
+    stealthClient,
   };
 }
 
