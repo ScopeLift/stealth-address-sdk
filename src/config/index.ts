@@ -1,1 +1,1 @@
-export { ANNOUNCER_CONTRACTS } from './contractAddresses';
+export { ERC5564_CONTRACT } from './contractAddresses';

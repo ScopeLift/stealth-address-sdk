@@ -1,5 +1,5 @@
 import {
-  ANNOUNCER_CONTRACTS,
+  ERC5564_CONTRACT,
   VALID_SCHEME_ID,
   createStealthClient,
   getAnnouncements,
@@ -20,12 +20,8 @@ const stealthAddress = '0xYourStealthAddress';
 
 async function fetchAnnouncements() {
   // The contract address of the ERC5564Announcer on your target blockchain
-  // You can use the provided ANNOUNCER_CONTRACTS map to get the singleton contract address for a valid chain ID
-  const ERC5564Address = ANNOUNCER_CONTRACTS.get(chainId);
-
-  if (!ERC5564Address) {
-    throw new Error('No contract found: invalid chain ID');
-  }
+  // You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
+  const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
 
   // Example call to getAnnouncements action on the stealth client
   // Adjust parameters according to your requirements

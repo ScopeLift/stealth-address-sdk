@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
 import {
-  ANNOUNCER_CONTRACTS,
+  ERC5564_CONTRACT,
   VALID_SCHEME_ID,
   createStealthClient,
   generateStealthAddress,
@@ -33,7 +33,7 @@ describe('getAnnouncements', async () => {
   const fromBlock = BigInt(ERC5564_CONTRACT_DEPLOY_BLOCK);
   const CHAIN_ID = 11155111; // Sepolia
   const rpcUrl = process.env.SEPOLIA_RPC_URL!;
-  const ERC5564Address = ANNOUNCER_CONTRACTS.get(CHAIN_ID)!;
+  const ERC5564Address = ERC5564_CONTRACT.SEPOLIA;
   const stealthClient = createStealthClient({ rpcUrl, chainId: CHAIN_ID });
 
   const walletClient = setupWallet();
@@ -51,7 +51,7 @@ describe('getAnnouncements', async () => {
 
   // Announce the stealth address, ephemeral public key, and view tag
   const hash = await walletClient.writeContract({
-    address: ANNOUNCER_CONTRACTS.get(11155111)!,
+    address: ERC5564Address,
     functionName: 'announce',
     args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
     abi: ERC556AnnouncerAbi,
