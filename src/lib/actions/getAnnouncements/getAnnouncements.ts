@@ -1,13 +1,13 @@
-import type {
-  GetAnnouncementsParams,
-  GetAnnouncementsReturnType,
-  BlockType,
-  AnnouncementLog,
-} from '../types';
+import type { BlockType } from '../types';
 
 import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
-import { handleViemPublicClient } from '../../createStealthClient';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import type {
+  AnnouncementLog,
+  GetAnnouncementsParams,
+  GetAnnouncementsReturnType,
+} from './types';
 
 async function getAnnouncements({
   clientParams,
