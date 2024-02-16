@@ -3,7 +3,9 @@ import type { VALID_CHAIN_IDS } from '../helpers/types';
 import type {
   GetAnnouncementsParams,
   GetAnnouncementsReturnType,
-} from '../actions/getAnnouncements/types';
+  GetStealthMetaAddressParams,
+  GetStealthMetaAddressReturnType,
+} from '../actions/';
 
 export type ClientParams = {
   chainId?: VALID_CHAIN_IDS;
@@ -18,11 +20,14 @@ export type StealthClientInitParams = {
 
 export type StealthClientReturnType = InitializedStealthActions;
 
-export interface StealthActions {
+export type StealthActions = {
   getAnnouncements: (
     params: GetAnnouncementsParams
   ) => Promise<GetAnnouncementsReturnType>;
-}
+  getStealthMetaAddress: (
+    params: GetStealthMetaAddressParams
+  ) => Promise<GetStealthMetaAddressReturnType>;
+};
 
 export type InitializedStealthActions = {
   [K in keyof StealthActions]: (
