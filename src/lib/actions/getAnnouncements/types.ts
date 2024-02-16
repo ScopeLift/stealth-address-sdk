@@ -1,6 +1,7 @@
 import type { Log } from 'viem';
 import type { EthAddress } from '../../../utils/crypto/types';
-import type { BlockType, ClientParams } from '../types';
+import type { BlockType } from '../types';
+import type { ClientParams } from '../../stealthClient/types';
 
 export interface AnnouncementLog extends Log {
   caller: EthAddress | undefined;
