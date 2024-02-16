@@ -6,7 +6,7 @@ import type {
 } from './types';
 
 /**
- * Retrieves a stealth meta address from the ERC-6538 Registry contract.
+ * @description Retrieves a stealth meta address from the ERC-6538 Registry contract.
  *
  * The `registrant` parameter can represent different types of recipient identifiers,
  * including a standard Ethereum address (160-bit) or other formats like ENS names.
