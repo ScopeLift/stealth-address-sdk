@@ -1,42 +1,17 @@
 import { describe, test, expect } from 'bun:test';
 import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
-import {
-  ERC5564_CONTRACT,
-  VALID_SCHEME_ID,
-  createStealthClient,
-  generateStealthAddress,
-} from '../../..';
-import { createWalletClient, http, publicActions } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
-
-const setupWallet = () => {
-  const account = privateKeyToAccount(
-    process.env.TEST_PRIVATE_KEY as `0x${string}`
-  );
-
-  const walletClient = createWalletClient({
-    account,
-    chain: sepolia,
-    transport: http(process.env.SEPOLIA_RPC_URL!),
-  });
-
-  return walletClient.extend(publicActions);
-};
+import { VALID_SCHEME_ID, generateStealthAddress } from '../../..';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 
 describe('getAnnouncements', async () => {
+  const { stealthClient, ERC5564DeployBlock, ERC5564Address } = setupTestEnv();
+  const walletClient = setupTestWallet();
+
   const stealthMetaAddressReceiver =
     'st:eth:0x020c828476b87a4d391f8b4b98de012125adb5be021a2dc6761cd6265219d901e203860c009a2c71de2a4abdf892804d52d56770599d6407bbdac77c311be98bd7e7';
-
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
-  const ERC5564_CONTRACT_DEPLOY_BLOCK = BigInt(5281643);
-  const fromBlock = BigInt(ERC5564_CONTRACT_DEPLOY_BLOCK);
-  const CHAIN_ID = 11155111; // Sepolia
-  const rpcUrl = process.env.SEPOLIA_RPC_URL!;
-  const ERC5564Address = ERC5564_CONTRACT.SEPOLIA;
-  const stealthClient = createStealthClient({ rpcUrl, chainId: CHAIN_ID });
-
-  const walletClient = setupWallet();
+  const fromBlock = ERC5564DeployBlock;
 
   // Setup stealth address details
   const { stealthAddress, viewTag, ephemeralPublicKey } =
@@ -45,22 +20,22 @@ describe('getAnnouncements', async () => {
       schemeId,
     });
 
-  console.log('stealthAddress:', stealthAddress);
-  console.log('ephemeralPublicKey:', ephemeralPublicKey);
-  console.log('viewTag:', viewTag);
-
   // Announce the stealth address, ephemeral public key, and view tag
   const hash = await walletClient.writeContract({
     address: ERC5564Address,
     functionName: 'announce',
     args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
     abi: ERC556AnnouncerAbi,
+    chain: walletClient.chain,
+    account: walletClient.account!,
   });
 
+  console.log('Waiting for announcement transaction to be mined...');
   // Wait for the transaction to be mined
-  await walletClient.waitForTransactionReceipt({
+  const res = await walletClient.waitForTransactionReceipt({
     hash,
   });
+  console.log('Announcement transaction mined:', res.transactionHash);
 
   test('fetches announcements successfully', async () => {
     const announcements = await stealthClient.getAnnouncements({
