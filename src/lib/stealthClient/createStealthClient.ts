@@ -1,6 +1,6 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { getChain } from '../helpers/chains';
-import * as stealthActions from '../actions';
+import { actions as stealthActions } from '../actions';
 import type {
   ClientParams,
   StealthClientInitParams,
@@ -23,22 +23,20 @@ function createStealthClient({
     transport: http(rpcUrl),
   });
 
-  const isKeyOfStealthActions = (
-    key: string
-  ): key is keyof StealthClientReturnType => key in stealthActions;
+  const initializedActions: StealthClientReturnType = {
+    getAnnouncements: params =>
+      stealthActions.getAnnouncements({
+        clientParams: { publicClient },
+        ...params,
+      }),
+    getStealthMetaAddress: params =>
+      stealthActions.getStealthMetaAddress({
+        clientParams: { publicClient },
+        ...params,
+      }),
+  };
 
-  // Initialize actions with the publicClient
-  return Object.keys(stealthActions).reduce((acc, actionName) => {
-    const key = actionName;
-
-    if (isKeyOfStealthActions(key)) {
-      const action = stealthActions[key];
-      acc[key] = (...args: Parameters<typeof action>) =>
-        action({ clientParams: { publicClient }, ...args[0] });
-    }
-
-    return acc;
-  }, {} as StealthClientReturnType);
+  return initializedActions;
 }
 
 const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
