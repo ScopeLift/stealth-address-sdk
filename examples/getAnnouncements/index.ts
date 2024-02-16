@@ -13,10 +13,13 @@ const rpcUrl = 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID';
 const stealthClient = createStealthClient({ chainId, rpcUrl });
 
 // Use the address of your calling contract if applicable
-const CALLER = '0xYourCallingContractAddress';
+const caller = '0xYourCallingContractAddress';
 
 // Example stealth address
 const stealthAddress = '0xYourStealthAddress';
+
+// Your scheme id
+const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
 
 async function fetchAnnouncements() {
   // The contract address of the ERC5564Announcer on your target blockchain
@@ -28,8 +31,8 @@ async function fetchAnnouncements() {
   const announcements = await stealthClient.getAnnouncements({
     ERC5564Address,
     args: {
-      schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
-      caller: CALLER,
+      schemeId,
+      caller,
       // Additional args for filtering, if necessary
       // fromBlock: '0x0',
       // toBlock: 'latest',
@@ -42,8 +45,8 @@ async function fetchAnnouncements() {
     clientParams: { rpcUrl, chainId },
     ERC5564Address,
     args: {
-      schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
-      caller: CALLER,
+      schemeId,
+      caller,
       stealthAddress,
     },
   });
