@@ -44,7 +44,6 @@ describe('getAnnouncements', async () => {
       fromBlock,
     });
 
-    expect(announcements).toBeDefined();
     expect(announcements.length).toBeGreaterThan(0);
   });
 
@@ -58,5 +57,40 @@ describe('getAnnouncements', async () => {
     });
 
     expect(announcements[0].stealthAddress).toBe(stealthAddress);
+  });
+  test('fetches specific announcements successfully using caller', async () => {
+    const announcements = await stealthClient.getAnnouncements({
+      ERC5564Address,
+      args: {
+        caller: walletClient.account?.address,
+      },
+      fromBlock,
+    });
+
+    expect(announcements[0].caller).toBe(walletClient.account?.address!);
+  });
+
+  test('fetches specific announcements successfully using schemeId', async () => {
+    const announcements = await stealthClient.getAnnouncements({
+      ERC5564Address,
+      args: {
+        schemeId: BigInt(schemeId),
+      },
+      fromBlock,
+    });
+
+    expect(announcements[0].schemeId).toBe(BigInt(schemeId));
+
+    const invalidSchemeId = BigInt('2');
+
+    const invalidAnnouncements = await stealthClient.getAnnouncements({
+      ERC5564Address,
+      args: {
+        schemeId: invalidSchemeId,
+      },
+      fromBlock,
+    });
+
+    expect(invalidAnnouncements.length).toBe(0);
   });
 });
