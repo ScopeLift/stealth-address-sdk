@@ -1,7 +1,6 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import type {
   ClientParams,
-  InitializedStealthActions,
   StealthClientInitParams,
   StealthClientReturnType,
 } from './actions/types';
