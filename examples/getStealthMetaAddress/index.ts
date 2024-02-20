@@ -7,7 +7,7 @@ import {
 
 // Example stealth client parameters
 const chainId = 11155111; // Example chain ID for Sepolia
-const rpcUrl = process.env.RPC_URL; // Use your env rpc url;
+const rpcUrl = process.env.RPC_URL; // Use your env rpc url that aligns with the chainId;
 
 // Initialize the stealth client
 const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
