@@ -15,6 +15,19 @@ import {
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 
+/**
+ * @description Fetches and processes a list of announcements to determine which are relevant for the user.
+ * Filters announcements based on the `checkStealthAddress` function and optional exclude/include lists,
+ *
+ * @param {GetAnnouncementsForUserParams} params Parameters for fetching and filtering announcements, including:
+ * - `announcements`: Array of announcement logs to be processed.
+ * - `spendingPublicKey`: The user's spending public key.
+ * - `viewingPrivateKey`: The user's viewing private key.
+ * - `clientParams`:(Optional) Client parameters.
+ * - `excludeList`: (Optional) Addresses to exclude from the results.
+ * - `includeList`: (Optional) Addresses to specifically include in the results.
+ * @returns {Promise<GetAnnouncementsForUserReturnType>} A promise that resolves to an array of announcements relevant to the user.
+ */
 async function getAnnouncementsForUser({
   announcements,
   spendingPublicKey,
@@ -50,6 +63,19 @@ async function getAnnouncementsForUser({
   return relevantAnnouncements;
 }
 
+/**
+ * @description Processes a single announcement to determine if it is relevant for the user.
+ * Checks if the announcement is intended for the user based on `checkStealthAddress` and filters based on exclude/include lists.
+ *
+ * @param {AnnouncementLog} announcement The announcement to process.
+ * @param {PublicClient} publicClient The Viem public client for fetching transaction details.
+ * @param {ProcessAnnouncementParams} params Additional parameters for processing, including:
+ * - `spendingPublicKey`: The user's spending public key.
+ * - `viewingPrivateKey`: The user's viewing private key.
+ * - `excludeList`: (Optional) Addresses to exclude from the results.
+ * - `includeList`: (Optional) Addresses to specifically include in the results.
+ * @returns {Promise<ProcessAnnouncementReturnType>} A promise that resolves to the processed announcement if it is relevant, or null otherwise.
+ */
 async function processAnnouncement(
   announcement: AnnouncementLog,
   publicClient: PublicClient,
@@ -96,7 +122,17 @@ async function processAnnouncement(
   return announcement;
 }
 
-// Helper function to determine if an announcement should be included
+/**
+ * @description Determines if an announcement should be included based on exclude and include lists.
+ * Fetches the transaction sender and checks against the provided lists for filtering.
+ *
+ * @param {Object} params The parameters for the inclusion check, including:
+ * - `hash`: The transaction hash of the announcement.
+ * - `excludeList`: A list of addresses to exclude from the results.
+ * - `includeList`: A list of addresses to specifically include in the results.
+ * - `publicClient`: The Viem public client for fetching transaction details.
+ * @returns {Promise<boolean>} A promise that resolves to true if the announcement should be included, false otherwise.
+ */
 async function shouldIncludeAnnouncement({
   hash,
   excludeList,
@@ -119,14 +155,23 @@ async function shouldIncludeAnnouncement({
   return true; // Include if none of the above conditions apply
 }
 
-// Helper function to get the `from` value from a transaction
+/**
+ * @description Fetches the transaction sender ('from' address) for a given transaction hash.
+ * Utilized for filtering announcements based on exclude/include lists by identifying the sender of each announcement.
+ *
+ * @param {Object} params The parameters for fetching the transaction sender, including:
+ * - `publicClient`: The Viem public client used for the transaction fetch.
+ * - `hash`: The transaction hash to fetch the 'from' address for.
+ * @returns {Promise<`0x${string}`>} A promise that resolves to the transaction sender address.
+ * @throws {FromValueNotFoundError} If the transaction or sender address cannot be fetched, indicating a potential issue with the transaction lookup.
+ */
 async function getTransactionFrom({
   publicClient,
   hash,
 }: {
   publicClient: PublicClient;
   hash: `0x${string}`;
-}) {
+}): Promise<`0x${string}`> {
   try {
     const tx = await publicClient.getTransaction({ hash });
     return tx.from;
