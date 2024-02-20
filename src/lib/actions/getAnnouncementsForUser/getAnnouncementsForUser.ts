@@ -3,11 +3,13 @@ import {
   VALID_SCHEME_ID,
   checkStealthAddress,
   getViewTagFromMetadata,
+  type EthAddress,
 } from '../../..';
 import type {
   GetAnnouncementsForUserParams,
   GetAnnouncementsForUserReturnType,
 } from './types';
+import type { AnnouncementLog } from '../getAnnouncements/types';
 
 async function getAnnouncementsForUser({
   announcements,
@@ -17,49 +19,46 @@ async function getAnnouncementsForUser({
   excludeList = [],
   includeList = [],
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
-  const relevantAnnouncements = announcements.filter(async announcement => {
-    const {
-      ephemeralPubKey: ephemeralPublicKey,
-      metadata,
-      stealthAddress: userStealthAddress,
-      transactionHash: hash,
-    } = announcement;
+  const relevantAnnouncements = await announcements.reduce(
+    async (accPromise, announcement) => {
+      const acc = await accPromise;
 
-    const viewTag = getViewTagFromMetadata(metadata);
+      const {
+        ephemeralPubKey: ephemeralPublicKey,
+        metadata,
+        stealthAddress: userStealthAddress,
+        transactionHash: hash,
+      } = announcement;
 
-    // Check if the announcement is intended for the user
-    const isForUser = checkStealthAddress({
-      ephemeralPublicKey,
-      schemeId: Number(announcement.schemeId) as VALID_SCHEME_ID, // TODO possibly refactor VALID_SCHEME_ID to BigInt
-      spendingPublicKey,
-      userStealthAddress,
-      viewingPrivateKey,
-      viewTag,
-    });
+      const viewTag = getViewTagFromMetadata(metadata);
+      const isForUser = checkStealthAddress({
+        ephemeralPublicKey,
+        schemeId: Number(announcement.schemeId) as VALID_SCHEME_ID, // TODO refactor to bigint
+        spendingPublicKey,
+        userStealthAddress,
+        viewingPrivateKey,
+        viewTag,
+      });
 
-    if (!isForUser) {
-      return;
-    }
+      if (!isForUser) return acc;
 
-    const from = await getTransactionFrom({
-      hash,
-      publicClient: clientParams?.publicClient,
-    });
+      // Handle excludeList and includeList
+      const includeAnnouncement = await shouldIncludeAnnouncement({
+        hash,
+        excludeList,
+        includeList,
+        publicClient: clientParams?.publicClient,
+      });
 
-    // Skip if announcer is in excludeList
-    if (excludeList.includes(from)) {
-      return false;
-    }
-
-    // Only include if `from` is in includeList (if includeList is specified)
-    if (includeList.length > 0 && !includeList.includes(from)) {
-      return false;
-    }
-  });
+      return includeAnnouncement ? [...acc, announcement] : acc;
+    },
+    Promise.resolve<AnnouncementLog[]>([])
+  );
 
   return relevantAnnouncements;
 }
 
+// Helper function to get the `from` value from a transaction
 async function getTransactionFrom({
   publicClient,
   hash,
@@ -76,6 +75,32 @@ async function getTransactionFrom({
   } catch (error) {
     throw new Error(`Error fetching transaction from value: ${error}`);
   }
+}
+
+// Helper function to determine if an announcement should be included
+async function shouldIncludeAnnouncement({
+  hash,
+  excludeList,
+  includeList,
+  publicClient,
+}: {
+  hash: `0x${string}` | null;
+  excludeList: EthAddress[];
+  includeList: EthAddress[];
+  publicClient: PublicClient | undefined;
+}): Promise<boolean> {
+  if (excludeList.length === 0 && includeList.length === 0) {
+    return true; // No filters applied, include announcement
+  }
+
+  const from = await getTransactionFrom({ hash, publicClient });
+  if (excludeList.includes(from)) {
+    return false; // Exclude if `from` is in excludeList
+  }
+  if (includeList.length > 0 && !includeList.includes(from)) {
+    return false; // Exclude if `from` is not in includeList (when includeList is specified)
+  }
+  return true; // Include if none of the above conditions apply
 }
 
 export default getAnnouncementsForUser;
