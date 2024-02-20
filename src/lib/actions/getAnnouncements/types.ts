@@ -5,10 +5,10 @@ import type { ClientParams } from '../../stealthClient/types';
 
 export interface AnnouncementLog extends Log {
   caller: EthAddress | undefined;
-  ephemeralPubKey: `0x${string}` | undefined;
-  metadata: `0x${string}` | undefined;
-  schemeId: bigint | undefined;
-  stealthAddress: EthAddress | undefined;
+  ephemeralPubKey: `0x${string}`;
+  metadata: `0x${string}`;
+  schemeId: bigint;
+  stealthAddress: EthAddress;
 }
 
 export type GetAnnouncementsParams = {
