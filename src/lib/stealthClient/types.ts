@@ -1,6 +1,7 @@
 import type { PublicClient } from 'viem';
 import type { VALID_CHAIN_IDS } from '../helpers/types';
 import type {
+  GetAnnouncementsForUserParams,
   GetAnnouncementsParams,
   GetAnnouncementsReturnType,
   GetStealthMetaAddressParams,
@@ -27,6 +28,9 @@ export type StealthActions = {
   getStealthMetaAddress: (
     params: GetStealthMetaAddressParams
   ) => Promise<GetStealthMetaAddressReturnType>;
+  getAnnouncementsForUser: (
+    params: GetAnnouncementsForUserParams
+  ) => Promise<GetAnnouncementsReturnType>;
 };
 
 export type InitializedStealthActions = {
