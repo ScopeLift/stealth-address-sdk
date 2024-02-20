@@ -7,10 +7,10 @@ import {
 
 // Example stealth client parameters
 const chainId = 11155111; // Example chain ID for Sepolia
-const rpcUrl = 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID';
+const rpcUrl = process.env.RPC_URL; // Use your env rpc url;
 
 // Initialize the stealth client
-const stealthClient = createStealthClient({ chainId, rpcUrl });
+const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
 
 // Example getting the singleton registry contract address for Sepolia
 const ERC6538Address = ERC6538_CONTRACT.SEPOLIA;
