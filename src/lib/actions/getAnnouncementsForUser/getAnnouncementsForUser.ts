@@ -1,15 +1,19 @@
 import type { PublicClient } from 'viem';
 import {
-  VALID_SCHEME_ID,
   checkStealthAddress,
   getViewTagFromMetadata,
   type EthAddress,
 } from '../../..';
-import type {
-  GetAnnouncementsForUserParams,
-  GetAnnouncementsForUserReturnType,
+import {
+  TransactionHashRequiredError,
+  type GetAnnouncementsForUserParams,
+  type GetAnnouncementsForUserReturnType,
+  FromValueNotFoundError,
+  type ProcessAnnouncementParams,
+  type ProcessAnnouncementReturnType,
 } from './types';
 import type { AnnouncementLog } from '../getAnnouncements/types';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 
 async function getAnnouncementsForUser({
   announcements,
@@ -19,61 +23,77 @@ async function getAnnouncementsForUser({
   excludeList = [],
   includeList = [],
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
-  const relevantAnnouncements = await Promise.all(
-    announcements.map(async announcement => {
-      const {
-        ephemeralPubKey: ephemeralPublicKey,
-        metadata,
-        stealthAddress: userStealthAddress,
-        transactionHash: hash,
-      } = announcement;
+  const publicClient = handleViemPublicClient(clientParams);
 
-      const viewTag = getViewTagFromMetadata(metadata);
-      const isForUser = checkStealthAddress({
-        ephemeralPublicKey,
-        schemeId: Number(announcement.schemeId) as VALID_SCHEME_ID, // TODO refactor to bigint
+  const processedAnnouncements = await Promise.allSettled(
+    announcements.map(announcement =>
+      processAnnouncement(announcement, publicClient, {
         spendingPublicKey,
-        userStealthAddress,
         viewingPrivateKey,
-        viewTag,
-      });
-
-      if (!isForUser) return null;
-
-      // Handle excludeList and includeList
-      const includeAnnouncement = await shouldIncludeAnnouncement({
-        hash,
+        clientParams,
         excludeList,
         includeList,
-        publicClient: clientParams?.publicClient,
-      });
-
-      return includeAnnouncement ? announcement : null;
-    })
+      })
+    )
   );
 
-  return relevantAnnouncements.filter(
-    (announcement): announcement is AnnouncementLog => announcement !== null
+  const relevantAnnouncements = processedAnnouncements.reduce<
+    AnnouncementLog[]
+  >(
+    (acc, result) =>
+      result.status === 'fulfilled' && result.value !== null
+        ? [...acc, result.value]
+        : acc,
+    []
   );
+
+  return relevantAnnouncements;
 }
 
-// Helper function to get the `from` value from a transaction
-async function getTransactionFrom({
-  publicClient,
-  hash,
-}: {
-  publicClient: PublicClient | undefined;
-  hash: `0x${string}` | null;
-}) {
-  if (!hash) throw new Error('No hash provided');
-  if (!publicClient) throw new Error('No publicClient provided');
+async function processAnnouncement(
+  announcement: AnnouncementLog,
+  publicClient: PublicClient,
+  {
+    spendingPublicKey,
+    viewingPrivateKey,
+    excludeList = [],
+    includeList = [],
+  }: ProcessAnnouncementParams
+): Promise<ProcessAnnouncementReturnType> {
+  const {
+    ephemeralPubKey: ephemeralPublicKey,
+    metadata,
+    stealthAddress: userStealthAddress,
+    transactionHash: hash,
+  } = announcement;
 
-  try {
-    const tx = await publicClient.getTransaction({ hash });
-    return tx.from;
-  } catch (error) {
-    throw new Error(`Error fetching transaction from value: ${error}`);
-  }
+  const viewTag = getViewTagFromMetadata(metadata);
+
+  const isForUser = checkStealthAddress({
+    ephemeralPublicKey,
+    spendingPublicKey,
+    userStealthAddress,
+    viewingPrivateKey,
+    viewTag,
+    schemeId: Number(announcement.schemeId),
+  });
+
+  // If the announcement is not intended for the user, return null
+  if (!isForUser) return null;
+
+  if (!hash) throw new TransactionHashRequiredError();
+
+  const shouldInclude = await shouldIncludeAnnouncement({
+    hash,
+    excludeList,
+    includeList,
+    publicClient,
+  });
+
+  if (!shouldInclude) return null;
+
+  // If all checks pass, return the original announcement
+  return announcement;
 }
 
 // Helper function to determine if an announcement should be included
@@ -83,23 +103,36 @@ async function shouldIncludeAnnouncement({
   includeList,
   publicClient,
 }: {
-  hash: `0x${string}` | null;
+  hash: `0x${string}`;
   excludeList: EthAddress[];
   includeList: EthAddress[];
-  publicClient: PublicClient | undefined;
+  publicClient: PublicClient;
 }): Promise<boolean> {
-  if (excludeList.length === 0 && includeList.length === 0) {
-    return true; // No filters applied, include announcement
-  }
+  if (excludeList.length === 0 && includeList.length === 0) return true; // No filters applied, include announcement
 
   const from = await getTransactionFrom({ hash, publicClient });
-  if (excludeList.includes(from)) {
-    return false; // Exclude if `from` is in excludeList
-  }
-  if (includeList.length > 0 && !includeList.includes(from)) {
-    return false; // Exclude if `from` is not in includeList (when includeList is specified)
-  }
+
+  if (excludeList.includes(from)) return false; // Exclude if `from` is in excludeList
+
+  if (includeList.length > 0 && !includeList.includes(from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
+
   return true; // Include if none of the above conditions apply
+}
+
+// Helper function to get the `from` value from a transaction
+async function getTransactionFrom({
+  publicClient,
+  hash,
+}: {
+  publicClient: PublicClient;
+  hash: `0x${string}`;
+}) {
+  try {
+    const tx = await publicClient.getTransaction({ hash });
+    return tx.from;
+  } catch (error) {
+    throw new FromValueNotFoundError();
+  }
 }
 
 export default getAnnouncementsForUser;

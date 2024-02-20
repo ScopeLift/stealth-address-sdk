@@ -34,3 +34,11 @@ export type InitializedStealthActions = {
     params: Parameters<StealthActions[K]>[0]
   ) => ReturnType<StealthActions[K]>;
 };
+
+export class PublicClientRequiredError extends Error {
+  constructor(message: string = 'publicClient is required') {
+    super(message);
+    this.name = 'PublicClientRequiredError';
+    Object.setPrototypeOf(this, PublicClientRequiredError.prototype);
+  }
+}

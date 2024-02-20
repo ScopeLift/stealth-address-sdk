@@ -1,10 +1,11 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { getChain } from '../helpers/chains';
 import { actions as stealthActions } from '../actions';
-import type {
-  ClientParams,
-  StealthClientInitParams,
-  StealthClientReturnType,
+import {
+  PublicClientRequiredError,
+  type ClientParams,
+  type StealthClientInitParams,
+  type StealthClientReturnType,
 } from './types';
 
 function createStealthClient({
@@ -47,13 +48,19 @@ const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
   }
 
   if (!clientParams?.chainId || !clientParams?.rpcUrl) {
-    throw new Error('clientParams chainId and rpcUrl are required');
+    throw new PublicClientRequiredError(
+      'clientParams chainId and rpcUrl are required'
+    );
   }
 
-  return createPublicClient({
-    chain: getChain(clientParams.chainId),
-    transport: http(clientParams.rpcUrl),
-  });
+  try {
+    return createPublicClient({
+      chain: getChain(clientParams.chainId),
+      transport: http(clientParams.rpcUrl),
+    });
+  } catch (error) {
+    throw new PublicClientRequiredError('public client could not be created.');
+  }
 };
 
 export { createStealthClient, handleViemPublicClient };

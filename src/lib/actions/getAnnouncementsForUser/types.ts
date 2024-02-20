@@ -5,7 +5,6 @@ import type { AnnouncementLog } from '../getAnnouncements/types';
 export type GetAnnouncementsForUserParams = {
   announcements: AnnouncementLog[];
   spendingPublicKey: `0x${string}`;
-  userStealthAddress: EthAddress;
   viewingPrivateKey: `0x${string}`;
   clientParams?: ClientParams;
   excludeList?: EthAddress[]; // Optional: list of "from" values (msg.sender) to exclude
@@ -13,3 +12,28 @@ export type GetAnnouncementsForUserParams = {
 };
 
 export type GetAnnouncementsForUserReturnType = AnnouncementLog[];
+
+export type ProcessAnnouncementParams = Omit<
+  GetAnnouncementsForUserParams,
+  'announcements'
+>;
+
+export type ProcessAnnouncementReturnType = AnnouncementLog | null;
+
+export class FromValueNotFoundError extends Error {
+  constructor(
+    message: string = 'The "from" value could not be retrieved for a transaction.'
+  ) {
+    super(message);
+    this.name = 'FromValueNotFoundError';
+    Object.setPrototypeOf(this, FromValueNotFoundError.prototype);
+  }
+}
+
+export class TransactionHashRequiredError extends Error {
+  constructor(message: string = 'The transaction hash is required.') {
+    super(message);
+    this.name = 'TransactionHashRequiredError';
+    Object.setPrototypeOf(this, TransactionHashRequiredError.prototype);
+  }
+}
