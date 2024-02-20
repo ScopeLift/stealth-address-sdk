@@ -97,6 +97,7 @@ const fetchLogsInChunks = async ({
       ),
       fromBlock: currentBlock,
       toBlock: endBlock,
+      strict: true,
     });
     allLogs.push(...logs);
     currentBlock = endBlock + BigInt(1);
