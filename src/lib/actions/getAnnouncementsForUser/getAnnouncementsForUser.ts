@@ -19,10 +19,8 @@ async function getAnnouncementsForUser({
   excludeList = [],
   includeList = [],
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
-  const relevantAnnouncements = await announcements.reduce(
-    async (accPromise, announcement) => {
-      const acc = await accPromise;
-
+  const relevantAnnouncements = await Promise.all(
+    announcements.map(async announcement => {
       const {
         ephemeralPubKey: ephemeralPublicKey,
         metadata,
@@ -40,7 +38,7 @@ async function getAnnouncementsForUser({
         viewTag,
       });
 
-      if (!isForUser) return acc;
+      if (!isForUser) return null;
 
       // Handle excludeList and includeList
       const includeAnnouncement = await shouldIncludeAnnouncement({
@@ -50,12 +48,13 @@ async function getAnnouncementsForUser({
         publicClient: clientParams?.publicClient,
       });
 
-      return includeAnnouncement ? [...acc, announcement] : acc;
-    },
-    Promise.resolve<AnnouncementLog[]>([])
+      return includeAnnouncement ? announcement : null;
+    })
   );
 
-  return relevantAnnouncements;
+  return relevantAnnouncements.filter(
+    (announcement): announcement is AnnouncementLog => announcement !== null
+  );
 }
 
 // Helper function to get the `from` value from a transaction
