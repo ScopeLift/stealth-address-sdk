@@ -6,11 +6,12 @@ import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
 import { ERC5564AnnouncerAbi } from '../../abi';
 
 describe('getAnnouncementsForUser', async () => {
-  const { stealthClient, ERC5564Address } = setupTestEnv();
+  const { stealthClient, ERC5564Address, ERC5564DeployBlock } = setupTestEnv();
   const walletClient = setupTestWallet();
   const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
     setupTestStealthKeys();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  const fromBlock = ERC5564DeployBlock;
 
   // Set up stealth address details
   const { stealthAddress, ephemeralPublicKey, viewTag } =
@@ -44,6 +45,7 @@ describe('getAnnouncementsForUser', async () => {
       stealthAddress,
       caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
     },
+    fromBlock,
   });
 
   test('filters announcements correctly for the user', async () => {
