@@ -9,6 +9,17 @@ import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../createStealthClient';
 
+/**
+ * This function queries logs for the `Announcement` event emitted by the ERC5564 contract.
+ *
+ * @param {GetAnnouncementsParams} params - Parameters required for fetching announcements:
+ *   - `clientParams`: Contains either an existing `PublicClient` instance or parameters to create one.
+ *   - `ERC5564Address`: The address of the ERC5564 contract emitting the announcements.
+ *   - `args`: Additional arguments to filter the logs, such as indexed parameters of the event.
+ *   - `fromBlock`: The starting block number (or tag) for log fetching.
+ *   - `toBlock`: The ending block number (or tag) for log fetching.
+ * @returns {Promise<GetAnnouncementsReturnType>} An array of announcement logs matching the query.
+ */
 async function getAnnouncements({
   clientParams,
   ERC5564Address,
@@ -47,6 +58,17 @@ async function getAnnouncements({
   return announcements;
 }
 
+/**
+ * Fetches logs in chunks to handle potential large range queries efficiently.
+ *
+ * @param {Object} params - The parameters for fetching logs in chunks.
+ *   - `publicClient`: An instance of the viem `PublicClient`.
+ *   - `fetchParams`: Parameters for the log fetch query.
+ *   - `fromBlock`: The starting block number for the fetch.
+ *   - `toBlock`: The ending block number for the fetch.
+ *   - `chunkSize`: The number of blocks to query in each chunk.
+ * @returns {Promise<any[]>} A flattened array of all logs fetched in chunks.
+ */
 const fetchLogsInChunks = async ({
   publicClient,
   fetchParams,
@@ -64,7 +86,7 @@ const fetchLogsInChunks = async ({
   fromBlock?: BlockType;
   toBlock?: BlockType;
   chunkSize?: number;
-}) => {
+}): Promise<any[]> => {
   const resolvedFromBlock =
     (await resolveBlockNumber({
       publicClient,
@@ -105,13 +127,21 @@ const fetchLogsInChunks = async ({
   return allLogs;
 };
 
+/**
+ * Resolves a block number from a given block type (number, tag, or bigint).
+ *
+ * @param {Object} params - Parameters for resolving the block number.
+ *   - `publicClient`: An instance of the viem `PublicClient`.
+ *   - `block`: The block number or tag to resolve.
+ * @returns {Promise<bigint | null>} The resolved block number as a bigint or null.
+ */
 async function resolveBlockNumber({
   publicClient,
   block,
 }: {
   publicClient: PublicClient;
   block?: BlockType;
-}) {
+}): Promise<bigint | null> {
   if (typeof block === 'bigint') {
     return block;
   }
