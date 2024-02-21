@@ -1,4 +1,4 @@
-import type { PublicClient } from 'viem';
+import { getAddress, type PublicClient } from 'viem';
 import {
   checkStealthAddress,
   getViewTagFromMetadata,
@@ -38,14 +38,22 @@ async function getAnnouncementsForUser({
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
 
+  // Validate excludeList and includeList
+  const _excludeList = [...new Set(excludeList).values()].map(address =>
+    getAddress(address)
+  );
+  const _includeList = [...new Set(includeList).values()].map(address =>
+    getAddress(address)
+  );
+
   const processedAnnouncements = await Promise.allSettled(
     announcements.map(announcement =>
       processAnnouncement(announcement, publicClient, {
         spendingPublicKey,
         viewingPrivateKey,
         clientParams,
-        excludeList,
-        includeList,
+        excludeList: _excludeList,
+        includeList: _includeList,
       })
     )
   );
@@ -116,6 +124,14 @@ async function processAnnouncement(
     publicClient,
   });
 
+  console.log(
+    'should include announcement:',
+    shouldInclude,
+    hash,
+    excludeList,
+    includeList
+  );
+
   if (!shouldInclude) return null;
 
   // If all checks pass, return the original announcement
@@ -147,10 +163,12 @@ async function shouldIncludeAnnouncement({
   if (excludeList.length === 0 && includeList.length === 0) return true; // No filters applied, include announcement
 
   const from = await getTransactionFrom({ hash, publicClient });
+  // From validated
+  const _from = getAddress(from);
 
-  if (excludeList.includes(from)) return false; // Exclude if `from` is in excludeList
+  if (excludeList.includes(_from)) return false; // Exclude if `from` is in excludeList
 
-  if (includeList.length > 0 && !includeList.includes(from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
+  if (includeList.length > 0 && !includeList.includes(_from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
 
   return true; // Include if none of the above conditions apply
 }
