@@ -78,4 +78,62 @@ describe('getAnnouncementsForUser', async () => {
 
     expect(results3.length).toBe(0);
   });
+
+  test('handles include and exclude lists correctly', async () => {
+    // Just an example: the 'from' address of the announcement to use for filtering
+    const fromAddressToTest = walletClient.account?.address!;
+    const someOtherAddress = '0xD945323b7E5071598868989838414e679F29C0AB';
+
+    // Test with an exclude list that should filter out the announcement
+    const excludeListResults = await stealthClient.getAnnouncementsForUser({
+      announcements,
+      spendingPublicKey,
+      viewingPrivateKey,
+      excludeList: [fromAddressToTest],
+    });
+
+    expect(excludeListResults.length).toBe(0);
+
+    // Test with an exclude list that doesn't have this from address
+    const excludeListResults2 = await stealthClient.getAnnouncementsForUser({
+      announcements,
+      spendingPublicKey,
+      viewingPrivateKey,
+      excludeList: [someOtherAddress],
+    });
+
+    expect(excludeListResults2[0].stealthAddress).toEqual(stealthAddress);
+
+    // Test with an include list that should only include the announcement
+    const includeListResults = await stealthClient.getAnnouncementsForUser({
+      announcements,
+      spendingPublicKey,
+      viewingPrivateKey,
+      includeList: [fromAddressToTest],
+    });
+
+    expect(includeListResults[0].stealthAddress).toEqual(stealthAddress);
+
+    // Test with an include list that doesn't have this from address
+    const includeListResults2 = await stealthClient.getAnnouncementsForUser({
+      announcements,
+      spendingPublicKey,
+      viewingPrivateKey,
+      includeList: [someOtherAddress],
+    });
+
+    expect(includeListResults2.length).toBe(0);
+
+    // Test with both an include and exclude list, which should exclude the announcement
+    const includeAndExcludeListResults =
+      await stealthClient.getAnnouncementsForUser({
+        announcements,
+        spendingPublicKey,
+        viewingPrivateKey,
+        includeList: [fromAddressToTest],
+        excludeList: [fromAddressToTest],
+      });
+
+    expect(includeAndExcludeListResults.length).toBe(0);
+  });
 });
