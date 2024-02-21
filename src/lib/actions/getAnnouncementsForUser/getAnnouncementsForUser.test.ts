@@ -38,6 +38,7 @@ describe('getAnnouncementsForUser', async () => {
   console.log('Announcement transaction mined:', res.transactionHash);
 
   // Fetch relevant announcements to check against
+  console.log('fetching announcements...');
   const announcements = await stealthClient.getAnnouncements({
     ERC5564Address,
     args: {
@@ -47,6 +48,7 @@ describe('getAnnouncementsForUser', async () => {
     },
     fromBlock,
   });
+  console.log('relevant announcements fetched for testing');
 
   test('filters announcements correctly for the user', async () => {
     // Fetch announcements for the specific user
