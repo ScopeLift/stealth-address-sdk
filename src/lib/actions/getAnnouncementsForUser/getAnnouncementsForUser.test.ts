@@ -136,4 +136,29 @@ describe('getAnnouncementsForUser', async () => {
 
     expect(includeAndExcludeListResults.length).toBe(0);
   });
+
+  test('efficiently processes a large number of announcements', async () => {
+    // Generate a large set of mock announcements using the first announcement from above
+    const largeNumberOfAnnouncements = 10000; // Example size
+    const largeAnnouncements = Array.from(
+      { length: largeNumberOfAnnouncements },
+      () => announcements[0]
+    );
+
+    const startTime = performance.now();
+
+    const results = await stealthClient.getAnnouncementsForUser({
+      announcements: largeAnnouncements,
+      spendingPublicKey,
+      viewingPrivateKey,
+    });
+
+    const endTime = performance.now();
+
+    // Verify the function handles large data sets correctly
+    expect(results).toHaveLength(largeNumberOfAnnouncements);
+    console.log(
+      `Processed ${largeNumberOfAnnouncements} announcements in ${endTime - startTime} milliseconds.`
+    );
+  });
 });
