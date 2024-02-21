@@ -13,7 +13,7 @@ describe('getAnnouncements', async () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const fromBlock = ERC5564DeployBlock;
 
-  // Setup stealth address details
+  // Set up stealth address details
   const { stealthAddress, viewTag, ephemeralPublicKey } =
     generateStealthAddress({
       stealthMetaAddressURI: stealthMetaAddressReceiver,
