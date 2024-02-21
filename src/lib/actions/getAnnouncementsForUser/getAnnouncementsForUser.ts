@@ -124,14 +124,6 @@ async function processAnnouncement(
     publicClient,
   });
 
-  console.log(
-    'should include announcement:',
-    shouldInclude,
-    hash,
-    excludeList,
-    includeList
-  );
-
   if (!shouldInclude) return null;
 
   // If all checks pass, return the original announcement
