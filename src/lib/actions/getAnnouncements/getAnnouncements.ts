@@ -5,7 +5,7 @@ import type {
   AnnouncementLog,
 } from '../types';
 
-import { type PublicClient, parseAbiItem } from 'viem';
+import { type PublicClient, parseAbiItem, type GetLogsReturnType } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../createStealthClient';
 
@@ -67,7 +67,7 @@ async function getAnnouncements({
  *   - `fromBlock`: The starting block number for the fetch.
  *   - `toBlock`: The ending block number for the fetch.
  *   - `chunkSize`: The number of blocks to query in each chunk.
- * @returns {Promise<any[]>} A flattened array of all logs fetched in chunks.
+ * @returns {Promise<GetLogsReturnType>} A flattened array of all logs fetched in chunks.
  */
 const fetchLogsInChunks = async ({
   publicClient,
@@ -86,7 +86,7 @@ const fetchLogsInChunks = async ({
   fromBlock?: BlockType;
   toBlock?: BlockType;
   chunkSize?: number;
-}): Promise<any[]> => {
+}) => {
   const resolvedFromBlock =
     (await resolveBlockNumber({
       publicClient,
