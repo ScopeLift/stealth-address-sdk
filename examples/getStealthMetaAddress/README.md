@@ -1,1 +1,1 @@
-# Get Stealth Meta Adress Example
+# Get Stealth Meta Address Example

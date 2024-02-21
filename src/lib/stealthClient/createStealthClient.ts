@@ -8,6 +8,22 @@ import {
   type StealthClientReturnType,
 } from './types';
 
+/**
+ * Creates a client for use in stealth address operations that align with ERC5564.
+ *
+ * @param {StealthClientInitParams} params - Parameters for initializing the stealth client, including chain ID and RPC URL.
+ * @returns {StealthClientReturnType} - An object containing initialized stealth action functions.
+ *
+ * @example
+ * import { createStealthClient } from 'stealth-address-sdk'
+ *
+ * const stealthClient = createStealthClient({
+ *   chainId,
+ *   rpcUrl,
+ * })
+ *
+ * stealthClient.getAnnouncements({ params })
+ */
 function createStealthClient({
   chainId,
   rpcUrl,
