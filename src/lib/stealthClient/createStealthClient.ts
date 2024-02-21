@@ -51,6 +51,11 @@ function createStealthClient({
         clientParams: { publicClient },
         ...params,
       }),
+    getAnnouncementsForUser: params =>
+      stealthActions.getAnnouncementsForUser({
+        clientParams: { publicClient },
+        ...params,
+      }),
   };
 
   return initializedActions;
