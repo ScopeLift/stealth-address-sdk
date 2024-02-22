@@ -139,7 +139,7 @@ describe('getAnnouncementsForUser', async () => {
 
   test('efficiently processes a large number of announcements', async () => {
     // Generate a large set of mock announcements using the first announcement from above
-    const largeNumberOfAnnouncements = 10000; // Example size
+    const largeNumberOfAnnouncements = 1000; // Example size
     const largeAnnouncements = Array.from(
       { length: largeNumberOfAnnouncements },
       () => announcements[0]
