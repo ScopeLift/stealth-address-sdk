@@ -39,11 +39,11 @@ async function getAnnouncementsForUser({
   const publicClient = handleViemPublicClient(clientParams);
 
   // Validate excludeList and includeList
-  const _excludeList = [...new Set(excludeList).values()].map(address =>
-    getAddress(address)
+  const _excludeList = new Set(
+    [...new Set(excludeList).values()].map(address => getAddress(address))
   );
-  const _includeList = [...new Set(includeList).values()].map(address =>
-    getAddress(address)
+  const _includeList = new Set(
+    [...new Set(includeList).values()].map(address => getAddress(address))
   );
 
   const processedAnnouncements = await Promise.allSettled(
@@ -80,8 +80,8 @@ async function getAnnouncementsForUser({
  * @param {ProcessAnnouncementParams} params Additional parameters for processing, including:
  * - `spendingPublicKey`: The user's spending public key.
  * - `viewingPrivateKey`: The user's viewing private key.
- * - `excludeList`: (Optional) Addresses to exclude from the results.
- * - `includeList`: (Optional) Addresses to specifically include in the results.
+ * - `excludeList`: Addresses to exclude from the results.
+ * - `includeList`: Addresses to specifically include in the results.
  * @returns {Promise<ProcessAnnouncementReturnType>} A promise that resolves to the processed announcement if it is relevant, or null otherwise.
  */
 async function processAnnouncement(
@@ -90,8 +90,8 @@ async function processAnnouncement(
   {
     spendingPublicKey,
     viewingPrivateKey,
-    excludeList = [],
-    includeList = [],
+    excludeList,
+    includeList,
   }: ProcessAnnouncementParams
 ): Promise<ProcessAnnouncementReturnType> {
   const {
@@ -136,8 +136,8 @@ async function processAnnouncement(
  *
  * @param {Object} params The parameters for the inclusion check, including:
  * - `hash`: The transaction hash of the announcement.
- * - `excludeList`: A list of addresses to exclude from the results.
- * - `includeList`: A list of addresses to specifically include in the results.
+ * - `excludeList`: A Set of addresses to exclude from the results.
+ * - `includeList`: A Set of addresses to specifically include in the results.
  * - `publicClient`: The Viem public client for fetching transaction details.
  * @returns {Promise<boolean>} A promise that resolves to true if the announcement should be included, false otherwise.
  */
@@ -148,19 +148,19 @@ async function shouldIncludeAnnouncement({
   publicClient,
 }: {
   hash: `0x${string}`;
-  excludeList: EthAddress[];
-  includeList: EthAddress[];
+  excludeList: Set<EthAddress>;
+  includeList: Set<EthAddress>;
   publicClient: PublicClient;
 }): Promise<boolean> {
-  if (excludeList.length === 0 && includeList.length === 0) return true; // No filters applied, include announcement
+  if (excludeList.size === 0 && includeList.size === 0) return true; // No filters applied, include announcement
 
   const from = await getTransactionFrom({ hash, publicClient });
   // From validated
   const _from = getAddress(from);
 
-  if (excludeList.includes(_from)) return false; // Exclude if `from` is in excludeList
+  if (excludeList.has(_from)) return false; // Exclude if `from` is in excludeList
 
-  if (includeList.length > 0 && !includeList.includes(_from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
+  if (includeList.size > 0 && !includeList.has(_from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
 
   return true; // Include if none of the above conditions apply
 }

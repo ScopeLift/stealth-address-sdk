@@ -15,8 +15,11 @@ export type GetAnnouncementsForUserReturnType = AnnouncementLog[];
 
 export type ProcessAnnouncementParams = Omit<
   GetAnnouncementsForUserParams,
-  'announcements'
->;
+  'announcements' | 'excludeList' | 'includeList'
+> & {
+  excludeList: Set<EthAddress>;
+  includeList: Set<EthAddress>;
+};
 
 export type ProcessAnnouncementReturnType = AnnouncementLog | null;
 
