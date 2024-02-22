@@ -2,8 +2,6 @@ import {
   ERC5564_CONTRACT,
   VALID_SCHEME_ID,
   createStealthClient,
-  getAnnouncements,
-  getAnnouncementsForUser,
 } from 'stealth-address-sdk';
 
 // Example parameters
@@ -39,26 +37,17 @@ async function fetchAnnouncementsForUser() {
     toBlock: 'latest', // Optional toBlock parameter (defaults to latest)
   });
 
-  // Alternatively, you can use the getAnnouncements function directly
-  const otherAnnouncements = await getAnnouncements({
-    // pass in the rpcUrl and chainId to clientParams
-    clientParams: { rpcUrl, chainId },
-    ERC5564Address,
-    args: {
-      schemeId,
-      caller,
-    },
-  });
-
   // Example call to getAnnouncementsForUser action on the stealth client
   // Adjust parameters according to your requirements
   const userAnnouncements = await stealthClient.getAnnouncementsForUser({
     announcements,
     spendingPublicKey: '0xYourSpendingPublicKey',
     viewingPrivateKey: '0xYourViewingPrivateKey',
-    includeList: ['0xYourEthAddress'], // Optional include list to only include announcements for specific "from" addresses
-    excludeList: ['0xYourOtherEthAddress'], // Optional exclude list to exclude announcements for specific "from" addresses
+    includeList: ['0xSomeEthAddress, 0xSomeOtherEthAddress'], // Optional include list to only include announcements for specific "from" addresses
+    excludeList: ['0xEthAddressToExclude'], // Optional exclude list to exclude announcements for specific "from" addresses
   });
+
+  return userAnnouncements;
 }
 
 fetchAnnouncementsForUser().catch(console.error);
