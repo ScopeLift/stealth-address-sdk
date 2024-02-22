@@ -22,11 +22,11 @@ const stealthAddress = '0xYourStealthAddress';
 // Your scheme id
 const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
 
-async function fetchAnnouncements() {
-  // The contract address of the ERC5564Announcer on your target blockchain
-  // You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
-  const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
+// The contract address of the ERC5564Announcer on your target blockchain
+// You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
+const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
 
+async function fetchAnnouncements() {
   // Example call to getAnnouncements action on the stealth client
   // Adjust parameters according to your requirements
   const announcements = await stealthClient.getAnnouncements({
