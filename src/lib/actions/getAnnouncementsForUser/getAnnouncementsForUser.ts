@@ -155,12 +155,10 @@ async function shouldIncludeAnnouncement({
   if (excludeList.size === 0 && includeList.size === 0) return true; // No filters applied, include announcement
 
   const from = await getTransactionFrom({ hash, publicClient });
-  // From validated
-  const _from = getAddress(from);
 
-  if (excludeList.has(_from)) return false; // Exclude if `from` is in excludeList
+  if (excludeList.has(from)) return false; // Exclude if `from` is in excludeList
 
-  if (includeList.size > 0 && !includeList.has(_from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
+  if (includeList.size > 0 && !includeList.has(from)) return false; // Exclude if `from` is not in includeList (when includeList is specified)
 
   return true; // Include if none of the above conditions apply
 }
@@ -184,7 +182,7 @@ async function getTransactionFrom({
 }): Promise<`0x${string}`> {
   try {
     const tx = await publicClient.getTransaction({ hash });
-    return tx.from;
+    return getAddress(tx.from);
   } catch (error) {
     throw new FromValueNotFoundError();
   }
