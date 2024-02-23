@@ -1,12 +1,16 @@
 import type { WatchAnnouncementsForUserParams } from '..';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { ERC5564AnnouncerAbi } from '../..';
+import { ERC5564AnnouncerAbi, getAnnouncementsForUser } from '../..';
 
 async function watchAnnouncementsForUser<T = void>({
-  clientParams,
-  ERC5564Address,
   args,
-  handleLogs,
+  spendingPublicKey,
+  viewingPrivateKey,
+  ERC5564Address,
+  clientParams,
+  excludeList,
+  includeList,
+  handleLogsForUser,
 }: WatchAnnouncementsForUserParams<T>) {
   const publicClient = handleViemPublicClient(clientParams);
 
@@ -15,7 +19,27 @@ async function watchAnnouncementsForUser<T = void>({
     abi: ERC5564AnnouncerAbi,
     eventName: 'Announcement',
     args,
-    onLogs: handleLogs,
+    onLogs: async logs => {
+      const announcements = logs.map(log => ({
+        ...log,
+        caller: log.args.caller,
+        ephemeralPubKey: log.args.ephemeralPubKey,
+        metadata: log.args.metadata,
+        schemeId: log.args.schemeId,
+        stealthAddress: log.args.stealthAddress,
+      }));
+
+      const relevantAnnouncements = await getAnnouncementsForUser({
+        announcements,
+        spendingPublicKey,
+        viewingPrivateKey,
+        clientParams: { publicClient },
+        excludeList,
+        includeList,
+      });
+
+      handleLogsForUser(relevantAnnouncements);
+    },
     strict: true,
   });
 
