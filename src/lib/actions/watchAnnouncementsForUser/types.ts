@@ -10,6 +10,6 @@ export type WatchAnnouncementsForUserParams<T> = {
   ERC5564Address: EthAddress;
   args: AnnouncementArgs;
   handleLogsForUser: (logs: AnnouncementLog[]) => T;
-} & GetAnnouncementsForUserParams;
+} & Omit<GetAnnouncementsForUserParams, 'announcements'>;
 
 export type WatchAnnouncementsForUserReturnType = WatchContractEventReturnType;
