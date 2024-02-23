@@ -31,6 +31,9 @@ export type StealthActions = {
   getAnnouncementsForUser: (
     params: GetAnnouncementsForUserParams
   ) => Promise<GetAnnouncementsReturnType>;
+  watchAnnouncementsForUser: (
+    params: GetAnnouncementsForUserParams
+  ) => Promise<GetAnnouncementsReturnType>;
 };
 
 export type InitializedStealthActions = {

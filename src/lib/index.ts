@@ -3,5 +3,6 @@ export {
   getAnnouncements,
   getStealthMetaAddress,
   getAnnouncementsForUser,
+  watchAnnouncementsForUser,
 } from './actions';
 export * from './abi';
