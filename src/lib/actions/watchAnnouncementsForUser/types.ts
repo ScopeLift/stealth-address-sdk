@@ -4,6 +4,7 @@ import type {
   AnnouncementLog,
 } from '../getAnnouncements/types';
 import type { GetAnnouncementsForUserParams } from '..';
+import type { WatchContractEventReturnType } from 'viem';
 
 export type WatchAnnouncementsForUserParams<T> = {
   ERC5564Address: EthAddress;
@@ -11,4 +12,4 @@ export type WatchAnnouncementsForUserParams<T> = {
   handleLogsForUser: (logs: AnnouncementLog[]) => T;
 } & GetAnnouncementsForUserParams;
 
-export type WatchAnnouncementsForUserReturnType = {};
+export type WatchAnnouncementsForUserReturnType = WatchContractEventReturnType;

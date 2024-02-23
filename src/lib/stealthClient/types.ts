@@ -6,6 +6,8 @@ import type {
   GetAnnouncementsReturnType,
   GetStealthMetaAddressParams,
   GetStealthMetaAddressReturnType,
+  WatchAnnouncementsForUserParams,
+  WatchAnnouncementsForUserReturnType,
 } from '../actions/';
 
 export type ClientParams = {
@@ -31,9 +33,9 @@ export type StealthActions = {
   getAnnouncementsForUser: (
     params: GetAnnouncementsForUserParams
   ) => Promise<GetAnnouncementsReturnType>;
-  watchAnnouncementsForUser: (
-    params: GetAnnouncementsForUserParams
-  ) => Promise<GetAnnouncementsReturnType>;
+  watchAnnouncementsForUser: <T>(
+    params: WatchAnnouncementsForUserParams<T>
+  ) => Promise<WatchAnnouncementsForUserReturnType>;
 };
 
 export type InitializedStealthActions = {
