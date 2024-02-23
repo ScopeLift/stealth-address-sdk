@@ -10,7 +10,7 @@ export type AnnouncementArgs = {
 };
 
 export interface AnnouncementLog extends Log {
-  caller: EthAddress | undefined;
+  caller: EthAddress;
   ephemeralPubKey: `0x${string}`;
   metadata: `0x${string}`;
   schemeId: bigint;
