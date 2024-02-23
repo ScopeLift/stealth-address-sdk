@@ -2,11 +2,7 @@ import { utils, getPublicKey } from '@noble/secp256k1';
 import { bytesToHex } from 'viem';
 import type { HexString } from '../crypto/types';
 
-function generateRandomStealthMetaAddress(chain = 'eth') {
-  if (chain !== 'eth') {
-    throw new Error('Invalid chain ref');
-  }
-
+function generateRandomStealthMetaAddress() {
   // Generate random spending and viewing private keys
   const spendingPrivateKey = utils.randomPrivateKey();
   const viewingPrivateKey = utils.randomPrivateKey();
@@ -19,7 +15,7 @@ function generateRandomStealthMetaAddress(chain = 'eth') {
   const stealthMetaAddress = (spendingPublicKey +
     viewingPublicKey.substring(2)) as HexString;
 
-  const stealthMetaAddressURI = `st:${chain}:${stealthMetaAddress}`;
+  const stealthMetaAddressURI = `st:eth:${stealthMetaAddress}`;
 
   return {
     spendingPrivateKey: bytesToHex(spendingPrivateKey),

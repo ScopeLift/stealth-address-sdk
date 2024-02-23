@@ -56,32 +56,44 @@ function createStealthClient({
         clientParams: { publicClient },
         ...params,
       }),
+    watchAnnouncementsForUser: params =>
+      stealthActions.watchAnnouncementsForUser({
+        clientParams: { publicClient },
+        ...params,
+      }),
   };
 
   return initializedActions;
 }
 
 const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
-  let publicClient = clientParams?.publicClient;
-
-  if (publicClient) {
-    return publicClient;
-  }
-
-  if (!clientParams?.chainId || !clientParams?.rpcUrl) {
+  if (!clientParams) {
     throw new PublicClientRequiredError(
-      'clientParams chainId and rpcUrl are required'
+      'publicClient or chainId and rpcUrl must be provided'
     );
   }
 
-  try {
-    return createPublicClient({
-      chain: getChain(clientParams.chainId),
-      transport: http(clientParams.rpcUrl),
-    });
-  } catch (error) {
-    throw new PublicClientRequiredError('public client could not be created.');
+  if ('publicClient' in clientParams) {
+    return clientParams.publicClient;
   }
+
+  // Type guard for the 'chainId' and 'rpcUrl' properties
+  if ('chainId' in clientParams && 'rpcUrl' in clientParams) {
+    try {
+      return createPublicClient({
+        chain: getChain(clientParams.chainId),
+        transport: http(clientParams.rpcUrl),
+      });
+    } catch (error) {
+      throw new PublicClientRequiredError(
+        'public client could not be created.'
+      );
+    }
+  }
+
+  throw new PublicClientRequiredError(
+    'Either publicClient or both chainId and rpcUrl must be provided'
+  );
 };
 
 export { createStealthClient, handleViemPublicClient };

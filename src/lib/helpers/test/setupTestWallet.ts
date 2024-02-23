@@ -1,46 +1,45 @@
 import { createWalletClient, http, publicActions } from 'viem';
-import { getChain } from '../chains';
+import { getChain as _getChain } from '../chains';
 import type { SuperWalletClient } from '../types';
 import { privateKeyToAccount } from 'viem/accounts';
-import { getValidChainId } from './setupTestEnv';
+import { getChainInfo, getRpcUrl } from './setupTestEnv';
+import { foundry } from 'viem/chains';
 
-const setupTestWallet = (): SuperWalletClient => {
-  const chainIdEnv = process.env.TEST_CHAIN_ID;
-  if (!chainIdEnv) {
-    throw new Error('TEST_CHAIN_ID is not defined');
-  }
-  const chainId = getValidChainId(Number(chainIdEnv));
+const ANVIL_DEFAULT_PRIVATE_KEY =
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
-  const privKey = process.env.TEST_PRIVATE_KEY;
-  if (!privKey) {
-    throw new Error('TEST_PRIVATE_KEY is not defined');
-  }
+/**
+ * Initializes and configures a wallet client for testing purposes.
+ * Defaults to local anvil node usage or, alternatively, set the PRIVATE_KEY environment variable to use a remote RPC URL.
+ * @returns {SuperWalletClient} A configured wallet client.
+ */
+const setupTestWallet = async (): Promise<SuperWalletClient> => {
+  const { chain, chainId } = await getChainInfo();
+  // Retrieve the account from the private key set in environment variables if provided.
+  const account = getAccount(chainId);
+  const rpcUrl = getRpcUrl();
 
-  const account = privateKeyToAccount(
-    process.env.TEST_PRIVATE_KEY as `0x${string}`
-  );
-
-  const rpcUrl = process.env.TEST_RPC_URL;
-  if (!rpcUrl) {
-    throw new Error('TEST_RPC_URL is not defined');
-  }
-
-  const chain = getChain(chainId);
-  if (!chain) {
-    new Error('Chain not found');
-  }
-
-  const walletClient = createWalletClient({
+  return createWalletClient({
     account,
     chain,
     transport: http(rpcUrl),
-  });
+  }).extend(publicActions);
+};
 
-  if (!walletClient) {
-    throw new Error('Could not create wallet client for testing.');
+const getAccount = (chainId: number) => {
+  // If using foundry anvil, use the default private key
+  if (chainId === foundry.id) {
+    return privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY);
   }
 
-  return walletClient.extend(publicActions);
+  // Retrieve the private key from the environment variable
+  const privKey = process.env.PRIVATE_KEY as `0x${string}` | undefined;
+  if (!privKey) {
+    throw new Error(
+      'Missing PRIVATE_KEY environment variable; make sure to set it when using a remote RPC URL.'
+    );
+  }
+  return privateKeyToAccount(privKey);
 };
 
 export default setupTestWallet;
