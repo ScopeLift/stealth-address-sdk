@@ -89,8 +89,6 @@ describe('watchAnnouncementsForUser', async () => {
   };
 
   test('should watch announcements for a user', () => {
-    console.log('new announcements:', newAnnouncements);
-
     // Check if the announcements were watched
     // There should be 3 announcements because there were 3 calls to the announce function
     expect(newAnnouncements.length).toEqual(3);
