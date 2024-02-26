@@ -11,6 +11,7 @@ async function watchAnnouncementsForUser<T = void>({
   excludeList,
   includeList,
   handleLogsForUser,
+  pollOptions,
 }: WatchAnnouncementsForUserParams<T>) {
   const publicClient = handleViemPublicClient(clientParams);
 
@@ -41,6 +42,7 @@ async function watchAnnouncementsForUser<T = void>({
       handleLogsForUser(relevantAnnouncements);
     },
     strict: true,
+    ...pollOptions,
   });
 
   return unwatch;
