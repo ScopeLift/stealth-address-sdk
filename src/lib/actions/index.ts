@@ -9,6 +9,8 @@ export { default as getAnnouncementsForUser } from './getAnnouncementsForUser/ge
 export { default as watchAnnouncementsForUser } from './watchAnnouncementsForUser/watchAnnouncementsForUser';
 
 export {
+  type AnnouncementArgs,
+  type AnnouncementLog,
   type GetAnnouncementsParams,
   type GetAnnouncementsReturnType,
 } from './getAnnouncements/types';
