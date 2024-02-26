@@ -10,6 +10,13 @@ import {
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 
+type WriteAnnounceArgs = {
+  schemeId: bigint;
+  stealthAddress: `0x${string}`;
+  ephemeralPublicKey: `0x${string}`;
+  viewTag: `0x${string}`;
+};
+
 describe('watchAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address } = setupTestEnv();
   const walletClient = setupTestWallet();
@@ -58,7 +65,7 @@ describe('watchAnnouncementsForUser', async () => {
   });
 
   // Set up and emit announcement for specific stealth address details
-  const announce = async () => {
+  const announce = async (argsOverrides?: Partial<WriteAnnounceArgs>) => {
     console.log('Announcing...');
 
     // Set up stealth address details
@@ -68,11 +75,27 @@ describe('watchAnnouncementsForUser', async () => {
         schemeId,
       });
 
+    // Default arguments
+    const defaultArgs: WriteAnnounceArgs = {
+      schemeId: BigInt(schemeId),
+      stealthAddress,
+      ephemeralPublicKey,
+      viewTag,
+    };
+
+    // Merge defaults with overrides
+    const args = { ...defaultArgs, ...argsOverrides };
+
     // Write to the announcement contract
     const hash = await walletClient.writeContract({
       address: ERC5564Address,
       functionName: 'announce',
-      args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
+      args: [
+        args.schemeId,
+        args.stealthAddress,
+        args.ephemeralPublicKey,
+        args.viewTag,
+      ],
       abi: ERC5564AnnouncerAbi,
       chain: walletClient.chain,
       account: walletClient.account!,
@@ -91,6 +114,35 @@ describe('watchAnnouncementsForUser', async () => {
   test('should watch announcements for a user', () => {
     // Check if the announcements were watched
     // There should be 3 announcements because there were 3 calls to the announce function
+    expect(newAnnouncements.length).toEqual(3);
+  });
+
+  test('should correctly not update announcements for a user if inapplicable', async () => {
+    // Announce again, but arbitrarily (just as an example/for testing) change the ephemeral public key,
+    // so that the announcement does not apply to the user, and is not watched
+    const { stealthAddress, ephemeralPublicKey, viewTag } =
+      generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId,
+      });
+
+    // Replace the last character of ephemeralPublicKey with a different character
+    const lastChar = ephemeralPublicKey.slice(-1);
+    // use the last character shifted one position to the right
+    const newLastChar =
+      lastChar === 'z' ? 'a' : String.fromCharCode(lastChar.charCodeAt(0) + 1);
+    const newEphemeralPublicKey = (ephemeralPublicKey.slice(0, -1) +
+      newLastChar) as `0x${string}`;
+
+    // Write to the announcement contract with an inaccurate ephemeral public key
+    await announce({
+      schemeId: BigInt(schemeId),
+      stealthAddress,
+      ephemeralPublicKey: newEphemeralPublicKey,
+      viewTag,
+    });
+
+    // Expect no change in the number of announcements watched
     expect(newAnnouncements.length).toEqual(3);
   });
 });
