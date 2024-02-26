@@ -82,7 +82,6 @@ describe('watchAnnouncementsForUser', async () => {
 
     const res = await walletClient.waitForTransactionReceipt({
       hash,
-      confirmations: 2,
     });
 
     console.log('Announcement transaction mined:', res.transactionHash);
