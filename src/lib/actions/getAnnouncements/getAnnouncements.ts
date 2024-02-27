@@ -1,13 +1,13 @@
-import type {
-  GetAnnouncementsParams,
-  GetAnnouncementsReturnType,
-  BlockType,
-  AnnouncementLog,
-} from '../types';
+import type { BlockType } from '../types';
 
 import { type PublicClient, parseAbiItem, type GetLogsReturnType } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
-import { handleViemPublicClient } from '../../createStealthClient';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import type {
+  AnnouncementLog,
+  GetAnnouncementsParams,
+  GetAnnouncementsReturnType,
+} from './types';
 
 /**
  * This function queries logs for the `Announcement` event emitted by the ERC5564 contract.

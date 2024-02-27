@@ -1,5 +1,6 @@
 import { utils, getPublicKey } from '@noble/secp256k1';
 import { bytesToHex } from 'viem';
+import type { HexString } from '../crypto/types';
 
 function generateRandomStealthMetaAddress(chain = 'eth') {
   if (chain !== 'eth') {
@@ -15,16 +16,18 @@ function generateRandomStealthMetaAddress(chain = 'eth') {
   const viewingPublicKey = bytesToHex(getPublicKey(viewingPrivateKey, true));
 
   // Concatenate the spending and viewing public keys for the meta-address
-  const stealthMetaAddress = spendingPublicKey + viewingPublicKey.substring(2);
+  const stealthMetaAddress = (spendingPublicKey +
+    viewingPublicKey.substring(2)) as HexString;
 
   const stealthMetaAddressURI = `st:${chain}:${stealthMetaAddress}`;
 
   return {
-    stealthMetaAddressURI,
-    spendingPublicKey,
     spendingPrivateKey: bytesToHex(spendingPrivateKey),
-    viewingPublicKey,
+    spendingPublicKey,
+    stealthMetaAddress,
+    stealthMetaAddressURI,
     viewingPrivateKey: bytesToHex(viewingPrivateKey),
+    viewingPublicKey,
   };
 }
 
