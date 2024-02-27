@@ -28,6 +28,9 @@ describe('watchAnnouncementsForUser', async () => {
   let newAnnouncements: AnnouncementLog[] = [];
   let unwatch: () => void;
   const pollingInterval = 1000; // Override the default polling interval for testing
+  // Delay to wait for the announcements to be watched in accordance with the polling interval
+  const delay = async () =>
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
   beforeAll(async () => {
     // Set up watching announcements for a user
@@ -56,8 +59,7 @@ describe('watchAnnouncementsForUser', async () => {
       await announce();
     }
 
-    // Delay to wait for the announcements to be watched in accordance with the polling interval
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delay();
   });
 
   afterAll(() => {
@@ -126,21 +128,26 @@ describe('watchAnnouncementsForUser', async () => {
         schemeId,
       });
 
-    // Replace the last character of ephemeralPublicKey with a different character
-    const lastChar = ephemeralPublicKey.slice(-1);
-    // use the last character shifted one position to the right
-    const newLastChar =
-      lastChar === 'z' ? 'a' : String.fromCharCode(lastChar.charCodeAt(0) + 1);
-    const newEphemeralPublicKey = (ephemeralPublicKey.slice(0, -1) +
-      newLastChar) as `0x${string}`;
+    const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
+      const lastChar = hexStr.slice(-1);
+      const base = '0123456789abcdef';
+      const index = base.indexOf(lastChar.toLowerCase());
+      const newLastChar = index === 15 ? '0' : base[index + 1]; // Roll over from 'f' to '0'
+      return `0x${hexStr.slice(2, -1) + newLastChar}` as `0x${string}`;
+    };
+
+    // Replace the last character of ephemeralPublicKey with a different character for testing
+    const newEphemeralPublicKey =
+      incrementLastCharOfHexString(ephemeralPublicKey);
 
     // Write to the announcement contract with an inaccurate ephemeral public key
     await announce({
-      schemeId: BigInt(schemeId),
       stealthAddress,
       ephemeralPublicKey: newEphemeralPublicKey,
       viewTag,
     });
+
+    await delay();
 
     // Expect no change in the number of announcements watched
     expect(newAnnouncements.length).toEqual(3);
