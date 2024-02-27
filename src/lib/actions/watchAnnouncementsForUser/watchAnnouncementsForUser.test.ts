@@ -119,7 +119,7 @@ describe('watchAnnouncementsForUser', async () => {
     expect(newAnnouncements.length).toEqual(3);
   });
 
-  test('should correctly not update announcements for a user if annuoncement does not apply to user', async () => {
+  test('should correctly not update announcements for a user if announcement does not apply to user', async () => {
     // Announce again, but arbitrarily (just as an example/for testing) change the ephemeral public key,
     // so that the announcement does not apply to the user, and is not watched
     const { stealthAddress, ephemeralPublicKey, viewTag } =
