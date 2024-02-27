@@ -1,6 +1,6 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { getChain } from '../helpers/chains';
-import { getAnnouncements, actions as stealthActions } from '../actions';
+import { actions as stealthActions } from '../actions';
 import {
   PublicClientRequiredError,
   type ClientParams,
