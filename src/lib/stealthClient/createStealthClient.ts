@@ -61,6 +61,11 @@ function createStealthClient({
         clientParams: { publicClient },
         ...params,
       }),
+    prepareAnnounce: params =>
+      stealthActions.prepareAnnounce({
+        clientParams: { publicClient },
+        ...params,
+      }),
   };
 
   return initializedActions;
