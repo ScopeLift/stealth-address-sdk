@@ -41,8 +41,8 @@ async function fetchAnnouncementsForUser() {
   // Adjust parameters according to your requirements
   const userAnnouncements = await stealthClient.getAnnouncementsForUser({
     announcements,
-    spendingPublicKey: '0xYourSpendingPublicKey',
-    viewingPrivateKey: '0xYourViewingPrivateKey',
+    spendingPublicKey: '0xUserSpendingPublicKey',
+    viewingPrivateKey: '0xUserViewingPrivateKey',
     includeList: ['0xSomeEthAddress, 0xSomeOtherEthAddress'], // Optional include list to only include announcements for specific "from" addresses
     excludeList: ['0xEthAddressToExclude'], // Optional exclude list to exclude announcements for specific "from" addresses
   });
