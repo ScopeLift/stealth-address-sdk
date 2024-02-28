@@ -22,6 +22,13 @@ const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
 // You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
 const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
 
+// Example keys for the user
+// These don't need to be from environment variables
+// Example spending public key
+const spendingPublicKey = process.env.SPENDING_PUBLIC_KEY as `0x${string}`;
+// Example viewing private key
+const viewingPrivateKey = process.env.VIEWING_PRIVATE_KEY as `0x${string}`;
+
 async function fetchAnnouncementsForUser() {
   // Example call to getAnnouncements action on the stealth client to get all potential announcements
   // Use your preferred method to get announcements if different, and
@@ -41,8 +48,8 @@ async function fetchAnnouncementsForUser() {
   // Adjust parameters according to your requirements
   const userAnnouncements = await stealthClient.getAnnouncementsForUser({
     announcements,
-    spendingPublicKey: '0xUserSpendingPublicKey',
-    viewingPrivateKey: '0xUserViewingPrivateKey',
+    spendingPublicKey,
+    viewingPrivateKey,
     includeList: ['0xSomeEthAddress, 0xSomeOtherEthAddress'], // Optional include list to only include announcements for specific "from" addresses
     excludeList: ['0xEthAddressToExclude'], // Optional exclude list to exclude announcements for specific "from" addresses
   });
