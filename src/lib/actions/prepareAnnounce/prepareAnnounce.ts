@@ -44,26 +44,20 @@ async function prepareAnnounce({
     args: writeArgs,
   });
 
-  let to: `0x${string}`;
-
   try {
-    const {
-      request: { address: contractAddress },
-    } = await publicClient.simulateContract({
+    await publicClient.simulateContract({
       account,
       address: ERC5564Address,
       abi: ERC5564AnnouncerAbi,
       functionName: 'announce',
       args: writeArgs,
     });
-
-    to = contractAddress;
   } catch (error) {
     throw new PrepareError(`Failed to prepare contract call: ${error}`);
   }
 
   return {
-    to,
+    to: ERC5564Address,
     account,
     data,
   };
