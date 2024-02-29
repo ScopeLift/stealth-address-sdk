@@ -1,0 +1,11 @@
+{
+  "name": "example-compute-stealth-key",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stealth-address-sdk": "link:stealth-address-sdk"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

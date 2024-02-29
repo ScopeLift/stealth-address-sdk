@@ -1,6 +1,6 @@
 import type { BlockType } from '../types';
 
-import { type PublicClient, parseAbiItem, type GetLogsReturnType } from 'viem';
+import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import type {
@@ -119,6 +119,7 @@ const fetchLogsInChunks = async ({
       ),
       fromBlock: currentBlock,
       toBlock: endBlock,
+      strict: true,
     });
     allLogs.push(...logs);
     currentBlock = endBlock + BigInt(1);

@@ -8,6 +8,7 @@ import {
 // Example parameters
 const chainId = 11155111; // Example chain ID for Sepolia
 const rpcUrl = process.env.RPC_URL; // Your env rpc url that aligns with the chainId;
+const fromBlock = BigInt(12345678); // Example ERC5564 announcer contract deploy block for Sepolia, or the block in which the user registered their stealth meta address (as an example)
 
 // Initialize the stealth client
 const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
@@ -21,11 +22,11 @@ const stealthAddress = '0xYourStealthAddress';
 // Your scheme id
 const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
 
-async function fetchAnnouncements() {
-  // The contract address of the ERC5564Announcer on your target blockchain
-  // You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
-  const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
+// The contract address of the ERC5564Announcer on your target blockchain
+// You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
+const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
 
+async function fetchAnnouncements() {
   // Example call to getAnnouncements action on the stealth client
   // Adjust parameters according to your requirements
   const announcements = await stealthClient.getAnnouncements({
@@ -34,9 +35,9 @@ async function fetchAnnouncements() {
       schemeId,
       caller,
       // Additional args for filtering, if necessary
-      // fromBlock: '0x0',
-      // toBlock: 'latest',
     },
+    fromBlock,
+    // toBlock: 'latest',
   });
 
   // Alternatively, you can use the getAnnouncements function directly

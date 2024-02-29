@@ -8,9 +8,13 @@ export {
   parseStealthMetaAddressURI,
 } from './crypto';
 
-export { generateRandomStealthMetaAddress } from './helpers';
+export {
+  generateRandomStealthMetaAddress,
+  getViewTagFromMetadata,
+} from './helpers';
 
 export {
+  type EthAddress,
   type GenerateStealthAddressReturnType,
   type ICheckStealthAddressParams,
   type IGenerateStealthAddressParams,
