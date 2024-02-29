@@ -4,11 +4,13 @@ This TypeScript SDK provides tools for working with Ethereum stealth addresses a
 
 ## Features
 
-- Generate Ethereum stealth addresses.
-- Compute stealth address private keys.
-- Check stealth address announcements to determine if they are intended for a specific user.
+- Generate Ethereum stealth addresses
+- Compute stealth address private keys
+- Check stealth address announcements to determine if they are intended for a specific user
 - Look up the stealth meta address for a registrant
 - Fetch announcements
+- Watch announcements for a user
+- Prepare the payload for announcing stealth address details
 - (Planned) More features to fully support ERC-5564 interactions.
 
 ## Installation
