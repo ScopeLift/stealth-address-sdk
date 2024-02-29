@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
@@ -10,9 +10,10 @@
     "declaration": true,
     "rootDir": "./src",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "Node",
     "verbatimModuleSyntax": true,
     "noEmit": false,
 
