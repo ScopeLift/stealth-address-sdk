@@ -1,5 +1,5 @@
 {
-  "name": "example-watch-announcements-for-user",
+  "name": "example-prepare-announce",
   "private": true,
   "type": "module",
   "scripts": {
