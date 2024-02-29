@@ -19,6 +19,8 @@ import { PrepareError } from '../types';
  * @property {`0x${string}`} account The address of the account making the announcement.
  * @property {ClientParams} clientParams Optional client parameters for direct function use.
  * @returns {Promise<PrepareAnnounceReturnType>} The prepared announcement payload, including the transaction data.
+ *
+ * @throws {PrepareError} - Throws a PrepareError if the contract call simulation fails.
  */
 async function prepareAnnounce({
   ERC5564Address,
