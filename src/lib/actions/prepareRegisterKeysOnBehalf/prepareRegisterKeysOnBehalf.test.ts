@@ -10,8 +10,8 @@ import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import type { RegisterKeysOnBehalfArgs } from './types';
 
 describe('prepareRegisterKeysOnBehalf', async () => {
-  const { stealthClient, ERC6538Address, chainId } = setupTestEnv(false);
-  const walletClient = setupTestWallet(false);
+  const { stealthClient, ERC6538Address, chainId } = setupTestEnv();
+  const walletClient = setupTestWallet();
   const { stealthMetaAddressURI } = setupTestStealthKeys();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
@@ -39,9 +39,14 @@ describe('prepareRegisterKeysOnBehalf', async () => {
   // Taken from the ERC6538Registry contract
   const primaryType = 'Erc6538RegistryEntry';
 
+  // Derived from the ERC6538Registry contract
+  const ERC6538REGISTRY_ENTRY_TYPE_HASH =
+    '0xad167d3025c204a322703b7e9c41f6179d0d174570f484391f50080b960d41d6' as `0x${string}`;
+
   // Prepare the signature types
   const types = {
     [primaryType]: [
+      { name: 'ERC6538REGISTRY_ENTRY_TYPE_HASH', type: 'bytes32' },
       { name: 'schemeId', type: 'uint256' },
       { name: 'stealthMetaAddress', type: 'bytes' },
       { name: 'nonce', type: 'uint256' },
@@ -49,6 +54,7 @@ describe('prepareRegisterKeysOnBehalf', async () => {
   } as const;
 
   const message = {
+    ERC6538REGISTRY_ENTRY_TYPE_HASH,
     schemeId: BigInt(schemeId),
     stealthMetaAddress: stealthMetaAddressToRegister,
     nonce,
