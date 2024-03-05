@@ -39,9 +39,11 @@ describe('prepareRegisterKeysOnBehalf', async () => {
   // Taken from the ERC6538Registry contract
   const primaryType = 'Erc6538RegistryEntry';
 
-  // Derived from the ERC6538Registry contract
-  const ERC6538REGISTRY_ENTRY_TYPE_HASH =
-    '0xad167d3025c204a322703b7e9c41f6179d0d174570f484391f50080b960d41d6' as `0x${string}`;
+  const ERC6538REGISTRY_ENTRY_TYPE_HASH = await walletClient.readContract({
+    address: ERC6538Address,
+    abi: ERC6538RegistryAbi,
+    functionName: 'ERC6538REGISTRY_ENTRY_TYPE_HASH',
+  });
 
   // Prepare the signature types
   const types = {
