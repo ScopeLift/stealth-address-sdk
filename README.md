@@ -21,6 +21,24 @@ yarn add stealth-address-sdk
 bun install stealth-address-sdk
 ```
 
+## Testing
+
+To run tests using a local fork of a chain using an rpc url
+
+```bash
+bun run anvil-local
+bun run test
+```
+
+To run tests using the remote chain using an rpc url
+
+```bash
+bun run anvil-remote
+bun run test-remote
+```
+
+Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
+
 ## Quick Start
 
 ### Generating a Stealth Address
