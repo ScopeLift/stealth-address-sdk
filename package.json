@@ -6,9 +6,13 @@
   "module": "dist/index.js",
   "type": "module",
   "scripts": {
+    "anvil-local": "make anvil-local",
+    "anvil-remote": "make anvil-remote",
+    "test": "make test-local",
+    "test-remote": "make test-remote",
+    "test-local": "make test-local",
     "build": "bun tsc",
     "format": "prettier --write .",
-    "test": "bun test src",
     "watch": "bun test --watch src"
   },
   "devDependencies": {
