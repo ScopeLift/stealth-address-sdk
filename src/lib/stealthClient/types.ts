@@ -10,38 +10,49 @@ import type {
   WatchAnnouncementsForUserReturnType,
 } from '../actions/';
 
-export type ClientParams = {
-  chainId?: VALID_CHAIN_IDS;
-  publicClient?: PublicClient;
-  rpcUrl?: string;
-};
+export type ClientParams =
+  | {
+      publicClient: PublicClient;
+    }
+  | {
+      chainId: VALID_CHAIN_IDS;
+      rpcUrl: string;
+    };
 
 export type StealthClientInitParams = {
   chainId: VALID_CHAIN_IDS;
   rpcUrl: string;
 };
 
-export type StealthClientReturnType = InitializedStealthActions;
+export type StealthClientReturnType = StealthActions;
 
 export type StealthActions = {
-  getAnnouncements: (
-    params: GetAnnouncementsParams
-  ) => Promise<GetAnnouncementsReturnType>;
-  getStealthMetaAddress: (
-    params: GetStealthMetaAddressParams
-  ) => Promise<GetStealthMetaAddressReturnType>;
-  getAnnouncementsForUser: (
-    params: GetAnnouncementsForUserParams
-  ) => Promise<GetAnnouncementsReturnType>;
-  watchAnnouncementsForUser: <T>(
-    params: WatchAnnouncementsForUserParams<T>
-  ) => Promise<WatchAnnouncementsForUserReturnType>;
-};
-
-export type InitializedStealthActions = {
-  [K in keyof StealthActions]: (
-    params: Parameters<StealthActions[K]>[0]
-  ) => ReturnType<StealthActions[K]>;
+  getAnnouncements: ({
+    ERC5564Address,
+    args,
+    fromBlock,
+    toBlock,
+  }: GetAnnouncementsParams) => Promise<GetAnnouncementsReturnType>;
+  getStealthMetaAddress: ({
+    ERC6538Address,
+    registrant,
+    schemeId,
+  }: GetStealthMetaAddressParams) => Promise<GetStealthMetaAddressReturnType>;
+  getAnnouncementsForUser: ({
+    announcements,
+    spendingPublicKey,
+    viewingPrivateKey,
+    excludeList,
+    includeList,
+  }: GetAnnouncementsForUserParams) => Promise<GetAnnouncementsReturnType>;
+  watchAnnouncementsForUser: <T>({
+    ERC5564Address,
+    args,
+    handleLogsForUser,
+    spendingPublicKey,
+    viewingPrivateKey,
+    pollOptions,
+  }: WatchAnnouncementsForUserParams<T>) => Promise<WatchAnnouncementsForUserReturnType>;
 };
 
 export class PublicClientRequiredError extends Error {
