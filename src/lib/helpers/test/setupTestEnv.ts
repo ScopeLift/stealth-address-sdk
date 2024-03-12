@@ -5,7 +5,7 @@ import type { VALID_CHAIN_IDS } from '../types';
 /**
  * Initializes a test environment testing purposes.
  * @param {boolean} useLocal - Flag to determine if the local or remote RPC URL should be used.
- * To use a local RPC URL, set the TEST_LOCAL_NODE_RPC_URL environment variable and use (for example)
+ * To use a local RPC URL, set the TEST_LOCAL_NODE_ENDPOINT environment variable and use (for example)
  * anvil to fork your rpc url. To use a remote RPC URL, set the TEST_RPC_URL environment variable and set useLocal to false.
  * @returns An object containing the testing environment setup parameters including chain ID, contract addresses, and a stealth client instance.
  */
@@ -61,14 +61,14 @@ function getValidChainId(chainId: number): VALID_CHAIN_IDS {
  * @returns {string} The RPC URL.
  * @throws {Error} If the corresponding environment variable is not defined.
  */
-function getRpcUrl(useLocal = false) {
+function getRpcUrl(useLocal: boolean = true): string {
   const rpcUrl = useLocal
-    ? process.env.TEST_LOCAL_NODE_RPC_URL
+    ? process.env.TEST_LOCAL_NODE_ENDPOINT
     : process.env.TEST_RPC_URL;
   if (!rpcUrl) {
     throw new Error(
       useLocal
-        ? 'TEST_LOCAL_NODE_RPC_URL is not defined'
+        ? 'TEST_LOCAL_NODE_ENDPOINT is not defined'
         : 'TEST_RPC_URL is not defined'
     );
   }
