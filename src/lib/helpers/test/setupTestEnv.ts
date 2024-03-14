@@ -2,6 +2,8 @@ import { createStealthClient } from '../..';
 import { ERC5564_CONTRACT, ERC6538_CONTRACT } from '../../..';
 import type { VALID_CHAIN_IDS } from '../types';
 
+const USE_LOCAL = Boolean(process.env.TEST_ENVIRONMENT_IS_LOCAL ?? true);
+
 /**
  * Initializes a test environment testing purposes.
  * @param {boolean} useLocal - Flag to determine if the local or remote RPC URL should be used.
@@ -9,13 +11,13 @@ import type { VALID_CHAIN_IDS } from '../types';
  * anvil to fork your rpc url. To use a remote RPC URL, set the TEST_RPC_URL environment variable and set useLocal to false.
  * @returns An object containing the testing environment setup parameters including chain ID, contract addresses, and a stealth client instance.
  */
-function setupTestEnv(useLocal: boolean = true) {
+function setupTestEnv() {
   if (!process.env.TEST_CHAIN_ID) {
     throw new Error('TEST_CHAIN_ID is not defined');
   }
   // Setup stealth client
   const chainId = getValidChainId(Number(process.env.TEST_CHAIN_ID));
-  const rpcUrl = getRpcUrl(useLocal);
+  const rpcUrl = getRpcUrl();
   const stealthClient = createStealthClient({ rpcUrl, chainId });
 
   // Setup ERC5564 contract details
@@ -56,18 +58,17 @@ function getValidChainId(chainId: number): VALID_CHAIN_IDS {
 }
 
 /**
- * Retrieves the RPC URL based on the `useLocal` flag.
- * @param {boolean} useLocal - Determines which environment variable to use for the RPC URL.
+ * Retrieves the RPC URL based on the `USE_LOCAL` flag derived from the env.
  * @returns {string} The RPC URL.
  * @throws {Error} If the corresponding environment variable is not defined.
  */
-function getRpcUrl(useLocal: boolean = true): string {
-  const rpcUrl = useLocal
+function getRpcUrl(): string {
+  const rpcUrl = USE_LOCAL
     ? process.env.TEST_LOCAL_NODE_ENDPOINT
     : process.env.TEST_RPC_URL;
   if (!rpcUrl) {
     throw new Error(
-      useLocal
+      USE_LOCAL
         ? 'TEST_LOCAL_NODE_ENDPOINT is not defined'
         : 'TEST_RPC_URL is not defined'
     );

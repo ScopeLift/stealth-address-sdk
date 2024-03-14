@@ -6,16 +6,15 @@ import { getRpcUrl, getValidChainId } from './setupTestEnv';
 
 /**
  * Initializes and configures a wallet client for testing purposes.
- * @param {boolean} useLocal - Flag to determine if a local or remote RPC URL should be used.
  * To use a local RPC URL, set the TEST_LOCAL_NODE_ENDPOINT environment variable and use (for example)
- * anvil to fork your rpc url. To use a remote RPC URL, set the TEST_RPC_URL environment variable and set useLocal to false.
+ * anvil to fork your rpc url. To use a remote RPC URL, set the TEST_RPC_URL environment variable and set TEST_ENVIRONMENT_IS_LOCAL to false.
  * @returns {SuperWalletClient} A configured wallet client.
  */
-const setupTestWallet = (useLocal: boolean = true): SuperWalletClient => {
+const setupTestWallet = (): SuperWalletClient => {
   // Retrieve the account from the private key set in environment variables.
   const account = getAccount();
   // Determine the RPC URL based on whether local or remote env is used.
-  const rpcUrl = getRpcUrl(useLocal);
+  const rpcUrl = getRpcUrl();
   // Obtain the viem chain information
   const chain = getChain();
 
