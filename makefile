@@ -13,7 +13,7 @@ anvil-local:
 test-remote:
 	@echo "Running tests on remote chain..."
 	# Run tests with environment variables
-	env TEST_CHAIN_ID=$(TEST_CHAIN_ID) TEST_RPC_URL=$(TEST_RPC_URL) bun test src
+	env TEST_CHAIN_ID=$(TEST_CHAIN_ID) TEST_RPC_URL=$(TEST_RPC_URL) TEST_ENVIRONMENT_IS_LOCAL='false' bun test src
 
 # Test with local fork of the provided rpc url chain
 test-local:
