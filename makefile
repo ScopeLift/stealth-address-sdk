@@ -3,11 +3,6 @@
 # Default command to run when no target is specified
 all: test-local
 
-# Make anvil remote
-anvil-remote:
-	@echo "Starting Anvil with remote chain..."
-	# Start Anvil with the provided rpc url chain and capture its PID
-	anvil -f $(TEST_RPC_URL) & echo $$! > anvil_pid.txt
 
 # Make anvil local
 anvil-local:
