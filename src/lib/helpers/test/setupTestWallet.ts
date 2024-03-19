@@ -1,14 +1,11 @@
-import {
-  createTestClient,
-  createWalletClient,
-  http,
-  publicActions,
-  walletActions,
-} from 'viem';
+import { createWalletClient, http, publicActions } from 'viem';
 import { getChain as _getChain } from '../chains';
 import type { SuperWalletClient } from '../types';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getChainInfo, getRpcUrl } from './setupTestEnv';
+
+const ANVIL_DEFAULT_PRIVATE_KEY =
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 /**
  * Initializes and configures a wallet client for testing purposes.
@@ -21,28 +18,17 @@ const setupTestWallet = (): SuperWalletClient => {
   const rpcUrl = getRpcUrl();
   const { chain } = getChainInfo();
 
-  // Create a wallet client using the provided rpc url and private key (if provided, or defaults to creating a Viem test client).
-  if (account) {
-    return createWalletClient({
-      account,
-      chain,
-      transport: http(rpcUrl),
-    }).extend(publicActions);
-  }
-
-  return createTestClient({
-    mode: 'anvil',
+  return createWalletClient({
+    account,
+    chain,
     transport: http(rpcUrl),
-  })
-    .extend(publicActions)
-    .extend(walletActions);
+  }).extend(publicActions);
 };
 
 const getAccount = () => {
-  // Retrieve the private key from the environment variables or default to a test private key.
-  const privKey = (process.env.TEST_PRIVATE_KEY ||
-    '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80') as `0x${string}`;
-  return privateKeyToAccount(privKey);
+  // Retrieve the private key from the environment variables or default to the anvil test private key.
+  const privKey = process.env.TEST_PRIVATE_KEY as `0x${string}` | undefined;
+  return privateKeyToAccount(privKey ?? ANVIL_DEFAULT_PRIVATE_KEY);
 };
 
 export default setupTestWallet;
