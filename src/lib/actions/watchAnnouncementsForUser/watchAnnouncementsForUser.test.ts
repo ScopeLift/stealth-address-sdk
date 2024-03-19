@@ -18,7 +18,7 @@ type WriteAnnounceArgs = {
 };
 
 describe('watchAnnouncementsForUser', async () => {
-  const { stealthClient, ERC5564Address } = setupTestEnv();
+  const { stealthClient, ERC5564Address } = await setupTestEnv();
   const walletClient = setupTestWallet();
   const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
     setupTestStealthKeys();

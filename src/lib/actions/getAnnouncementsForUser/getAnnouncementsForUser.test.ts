@@ -6,7 +6,8 @@ import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
 import { ERC5564AnnouncerAbi } from '../../abi';
 
 describe('getAnnouncementsForUser', async () => {
-  const { stealthClient, ERC5564Address, ERC5564DeployBlock } = setupTestEnv();
+  const { stealthClient, ERC5564Address, ERC5564DeployBlock } =
+    await setupTestEnv();
   const walletClient = setupTestWallet();
   const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
     setupTestStealthKeys();

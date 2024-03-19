@@ -8,7 +8,7 @@ import {
 } from '../../..';
 
 describe('getStealthMetaAddress', async () => {
-  const { stealthClient, ERC6538Address } = setupTestEnv();
+  const { stealthClient, ERC6538Address } = await setupTestEnv();
   const walletClient = setupTestWallet();
 
   // Generate a random stealth meta address just for testing purposes
