@@ -1,38 +1,13 @@
-function setupTestStealthKeys() {
-  const spendingPublicKey = process.env.TEST_SPENDING_PUBLIC_KEY as
-    | `0x${string}`
-    | undefined;
-  if (!spendingPublicKey) {
-    throw new Error('TEST_SPENDING_PUBLIC_KEY is not defined');
-  }
+import { VALID_SCHEME_ID, generateRandomStealthMetaAddress } from '../../..';
 
-  const spendingPrivateKey = process.env.TEST_SPENDING_PRIVATE_KEY as
-    | `0x${string}`
-    | undefined;
-  if (!spendingPrivateKey) {
-    throw new Error('TEST_SPENDING_PRIVATE_KEY is not defined');
-  }
-
-  const viewingPublicKey = process.env.TEST_VIEWING_PUBLIC_KEY as
-    | `0x${string}`
-    | undefined;
-  if (!viewingPublicKey) {
-    throw new Error('TEST_VIEWING_PUBLIC_KEY is not defined');
-  }
-
-  const viewingPrivateKey = process.env.TEST_VIEWING_PRIVATE_KEY as
-    | `0x${string}`
-    | undefined;
-  if (!viewingPrivateKey) {
-    throw new Error('TEST_VIEWING_PRIVATE_KEY is not defined');
-  }
-
-  const stealthMetaAddressURI = process.env.TEST_STEALTH_META_ADDRESS_URI as
-    | `0x${string}`
-    | undefined;
-  if (!stealthMetaAddressURI) {
-    throw new Error('TEST_STEALTH_META_ADDRESS_URI is not defined');
-  }
+function setupTestStealthKeys(schemeId: VALID_SCHEME_ID) {
+  const {
+    spendingPrivateKey,
+    spendingPublicKey,
+    stealthMetaAddressURI,
+    viewingPrivateKey,
+    viewingPublicKey,
+  } = generateRandomStealthMetaAddress('eth');
 
   return {
     spendingPublicKey,

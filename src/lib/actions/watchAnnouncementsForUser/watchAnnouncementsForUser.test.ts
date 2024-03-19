@@ -20,9 +20,9 @@ type WriteAnnounceArgs = {
 describe('watchAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address } = await setupTestEnv();
   const walletClient = setupTestWallet();
-  const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
-    setupTestStealthKeys();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
+    setupTestStealthKeys(schemeId);
 
   // Track the new announcements to see if they are being watched
   let newAnnouncements: AnnouncementLog[] = [];
