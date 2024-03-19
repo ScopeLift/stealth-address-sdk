@@ -23,18 +23,18 @@ bun install stealth-address-sdk
 
 ## Testing
 
-To run tests using a local fork of a chain using an rpc url
+Tests default to using your local [anvil](https://book.getfoundry.sh/anvil/) node
 
 ```bash
-bun run anvil-local
+anvil
 bun run test
 ```
 
-To run tests using the remote chain using an rpc url
+Alternatively, run your tests using a fork of your provided (`TEST_RPC_URL` in `env`) rpc url
 
 ```bash
 bun run anvil-remote
-bun run test-remote
+bun run test-fork
 ```
 
 Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
