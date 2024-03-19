@@ -9,9 +9,9 @@ describe('getAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address, ERC5564DeployBlock } =
     await setupTestEnv();
   const walletClient = setupTestWallet();
-  const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
-    setupTestStealthKeys();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
+    setupTestStealthKeys(schemeId);
   const fromBlock = ERC5564DeployBlock;
 
   // Set up stealth address details
