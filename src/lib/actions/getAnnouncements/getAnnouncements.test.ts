@@ -5,18 +5,18 @@ import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 
 describe('getAnnouncements', async () => {
-  const { stealthClient, ERC5564DeployBlock, ERC5564Address } = setupTestEnv();
+  const { stealthClient, ERC5564DeployBlock, ERC5564Address } =
+    await setupTestEnv();
   const walletClient = setupTestWallet();
 
-  const stealthMetaAddressReceiver =
-    'st:eth:0x020c828476b87a4d391f8b4b98de012125adb5be021a2dc6761cd6265219d901e203860c009a2c71de2a4abdf892804d52d56770599d6407bbdac77c311be98bd7e7';
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  const stealthMetaAddressURI = process.env.TEST_STEALTH_META_ADDRESS_URI!;
   const fromBlock = ERC5564DeployBlock;
 
   // Set up stealth address details
   const { stealthAddress, viewTag, ephemeralPublicKey } =
     generateStealthAddress({
-      stealthMetaAddressURI: stealthMetaAddressReceiver,
+      stealthMetaAddressURI,
       schemeId,
     });
 

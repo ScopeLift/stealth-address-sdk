@@ -23,6 +23,24 @@ yarn add stealth-address-sdk
 bun install stealth-address-sdk
 ```
 
+## Testing
+
+Tests default to using your local [anvil](https://book.getfoundry.sh/anvil/) node
+
+```bash
+anvil
+bun run test
+```
+
+Alternatively, run your tests using a fork of your provided (`TEST_RPC_URL` in `env`) rpc url
+
+```bash
+bun run anvil-fork
+bun run test-fork
+```
+
+Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
+
 ## Quick Start
 
 ### Generating a Stealth Address
