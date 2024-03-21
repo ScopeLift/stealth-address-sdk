@@ -5,6 +5,8 @@ import deployAllContracts from '../../../scripts';
 import type { VALID_CHAIN_IDS } from '../types';
 import { fromHex } from 'viem';
 
+const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
+
 /**
  * Initializes a test environment for testing purposes.
  * Defaults to local anvil node usage or, alternatively, use a remote RPC URL by setting the TEST_RPC_URL environment variable
@@ -51,10 +53,12 @@ const getValidChainId = (chainId: number): VALID_CHAIN_IDS => {
  */
 const getRpcUrl = (): string => {
   if (process.env.USE_FORK) {
+    // Check that the RPC_URL is defined if using a fork
     if (!process.env.RPC_URL) {
       throw new Error('RPC_URL not defined in env');
     }
-    return process.env.RPC_URL;
+    // Use the local node endpoint for the rpc url
+    return LOCAL_ENDPOINT;
   }
 
   return foundry.rpcUrls.default.http[0];
