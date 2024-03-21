@@ -1,6 +1,10 @@
 import { describe, test, expect } from 'bun:test';
 import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
-import { VALID_SCHEME_ID, generateStealthAddress } from '../../..';
+import {
+  VALID_SCHEME_ID,
+  generateRandomStealthMetaAddress,
+  generateStealthAddress,
+} from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 
@@ -10,7 +14,7 @@ describe('getAnnouncements', async () => {
   const walletClient = await setupTestWallet();
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
-  const stealthMetaAddressURI = process.env.TEST_STEALTH_META_ADDRESS_URI!;
+  const { stealthMetaAddressURI } = generateRandomStealthMetaAddress();
   const fromBlock = ERC5564DeployBlock;
 
   // Set up stealth address details
