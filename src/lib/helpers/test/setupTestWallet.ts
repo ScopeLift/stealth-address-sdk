@@ -31,7 +31,7 @@ const getAccount = (chainId: number) => {
   if (chainId === foundry.id) {
     return privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY);
   }
-
+  console.log('using private key from env', process.env.PRIVATE_KEY);
   // Retrieve the private key from the environment variable
   const privKey = process.env.PRIVATE_KEY as `0x${string}` | undefined;
   if (!privKey) {

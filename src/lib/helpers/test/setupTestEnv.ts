@@ -59,13 +59,13 @@ const getChainInfo = async () => {
 };
 
 const fetchChainId = async (): Promise<number> => {
-  if (!process.env.TEST_RPC_URL) {
+  if (!process.env.RPC_URL) {
     console.log('TEST_RPC_URL not defined, so defaulting to using foundry');
     return foundry.id;
   }
 
   try {
-    const response = await fetch(process.env.TEST_RPC_URL, {
+    const response = await fetch(process.env.RPC_URL, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
