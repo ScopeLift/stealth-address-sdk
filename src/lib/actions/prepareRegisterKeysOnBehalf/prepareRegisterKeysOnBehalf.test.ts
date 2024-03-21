@@ -11,7 +11,7 @@ import type { RegisterKeysOnBehalfArgs } from './types';
 
 describe('prepareRegisterKeysOnBehalf', async () => {
   const { stealthClient, ERC6538Address, chainId } = await setupTestEnv();
-  const walletClient = setupTestWallet();
+  const walletClient = await setupTestWallet();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
