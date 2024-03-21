@@ -3,6 +3,9 @@ import { getChain } from '../chains';
 import { createStealthClient } from '../..';
 import deployAllContracts from '../../../scripts';
 import type { VALID_CHAIN_IDS } from '../types';
+import { fromHex } from 'viem';
+
+const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
 
 /**
  * Initializes a test environment for testing purposes.
@@ -11,7 +14,7 @@ import type { VALID_CHAIN_IDS } from '../types';
  */
 const setupTestEnv = async () => {
   // Setup stealth client
-  const { chainId } = getChainInfo();
+  const { chainId } = await getChainInfo();
   const rpcUrl = getRpcUrl();
   const stealthClient = createStealthClient({ rpcUrl, chainId });
 
@@ -48,16 +51,67 @@ const getValidChainId = (chainId: number): VALID_CHAIN_IDS => {
  * Retrieves the TEST RPC URL from env or defaults to foundry http.
  * @returns {string } The RPC URL.
  */
-const getRpcUrl = (): string =>
-  process.env.TEST_RPC_URL ?? foundry.rpcUrls.default.http[0];
+const getRpcUrl = (): string => {
+  if (process.env.USE_FORK) {
+    // Check that the RPC_URL is defined if using a fork
+    if (!process.env.RPC_URL) {
+      throw new Error('RPC_URL not defined in env');
+    }
+    // Use the local node endpoint for the rpc url
+    return LOCAL_ENDPOINT;
+  }
 
-const getChainInfo = () => {
-  // If chainId is not defined, use the foundry chain ID as default
-  const chainId = process.env.TEST_CHAIN_ID
-    ? Number(process.env.TEST_CHAIN_ID)
-    : foundry.id;
-  const validChainId = getValidChainId(Number(chainId));
+  return foundry.rpcUrls.default.http[0];
+};
+
+const getChainInfo = async () => {
+  const chainId = await fetchChainId();
+  const validChainId = getValidChainId(chainId);
   return { chain: getChain(validChainId), chainId: validChainId };
+};
+
+const fetchChainId = async (): Promise<number> => {
+  // If not running fork test script, use the foundry chain ID
+  if (!process.env.USE_FORK) {
+    console.log(
+      `Using foundry chain ID: ${foundry.id}; make sure you ran the fork test script if that's what you wanted`
+    );
+    return foundry.id;
+  }
+
+  if (!process.env.RPC_URL) {
+    throw new Error('RPC_URL not defined in env');
+  }
+
+  try {
+    const response = await fetch(process.env.RPC_URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: 1,
+        jsonrpc: '2.0',
+        method: 'eth_chainId',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    interface ChainIdResponse {
+      version: string;
+      id: number;
+      result: `0x${string}`;
+    }
+    const data = (await response.json()) as ChainIdResponse;
+
+    return fromHex(data.result, 'number');
+  } catch (error) {
+    throw new Error(`Failed to get the chain ID`);
+  }
 };
 
 export { getValidChainId, getRpcUrl, getChainInfo };
