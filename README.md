@@ -33,7 +33,7 @@ bun run test
 Alternatively, run your tests using a fork of your provided (`TEST_RPC_URL` in `env`) rpc url
 
 ```bash
-bun run anvil-remote
+bun run anvil-fork
 bun run test-fork
 ```
 
