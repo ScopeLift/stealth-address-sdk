@@ -29,7 +29,7 @@ const deployContract = async ({
   address: `0x${string}`;
   deployBlock: bigint;
 }> => {
-  const walletClient = setupTestWallet();
+  const walletClient = await setupTestWallet();
 
   const hash = await walletClient.deployContract({
     account: walletClient.account!,

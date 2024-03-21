@@ -19,7 +19,7 @@ type WriteAnnounceArgs = {
 
 describe('watchAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address } = await setupTestEnv();
-  const walletClient = setupTestWallet();
+  const walletClient = await setupTestWallet();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
     setupTestStealthKeys(schemeId);

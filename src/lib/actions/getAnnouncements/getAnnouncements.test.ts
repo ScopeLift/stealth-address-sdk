@@ -7,7 +7,7 @@ import setupTestWallet from '../../helpers/test/setupTestWallet';
 describe('getAnnouncements', async () => {
   const { stealthClient, ERC5564DeployBlock, ERC5564Address } =
     await setupTestEnv();
-  const walletClient = setupTestWallet();
+  const walletClient = await setupTestWallet();
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressURI = process.env.TEST_STEALTH_META_ADDRESS_URI!;

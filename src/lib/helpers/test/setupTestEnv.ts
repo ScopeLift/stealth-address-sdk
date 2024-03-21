@@ -3,6 +3,7 @@ import { getChain } from '../chains';
 import { createStealthClient } from '../..';
 import deployAllContracts from '../../../scripts';
 import type { VALID_CHAIN_IDS } from '../types';
+import { fromHex } from 'viem';
 
 /**
  * Initializes a test environment for testing purposes.
@@ -11,7 +12,7 @@ import type { VALID_CHAIN_IDS } from '../types';
  */
 const setupTestEnv = async () => {
   // Setup stealth client
-  const { chainId } = getChainInfo();
+  const { chainId } = await getChainInfo();
   const rpcUrl = getRpcUrl();
   const stealthClient = createStealthClient({ rpcUrl, chainId });
 
@@ -51,13 +52,47 @@ const getValidChainId = (chainId: number): VALID_CHAIN_IDS => {
 const getRpcUrl = (): string =>
   process.env.TEST_RPC_URL ?? foundry.rpcUrls.default.http[0];
 
-const getChainInfo = () => {
-  // If chainId is not defined, use the foundry chain ID as default
-  const chainId = process.env.TEST_CHAIN_ID
-    ? Number(process.env.TEST_CHAIN_ID)
-    : foundry.id;
-  const validChainId = getValidChainId(Number(chainId));
+const getChainInfo = async () => {
+  const chainId = await fetchChainId();
+  const validChainId = getValidChainId(chainId);
   return { chain: getChain(validChainId), chainId: validChainId };
+};
+
+const fetchChainId = async (): Promise<number> => {
+  if (!process.env.TEST_RPC_URL) {
+    console.log('TEST_RPC_URL not defined, so defaulting to using foundry');
+    return foundry.id;
+  }
+
+  try {
+    const response = await fetch(process.env.TEST_RPC_URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: 1,
+        jsonrpc: '2.0',
+        method: 'eth_chainId',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    interface ChainIdResponse {
+      version: string;
+      id: number;
+      result: `0x${string}`;
+    }
+    const data = (await response.json()) as ChainIdResponse;
+
+    return fromHex(data.result, 'number');
+  } catch (error) {
+    throw new Error(`Failed to get the chain ID`);
+  }
 };
 
 export { getValidChainId, getRpcUrl, getChainInfo };
