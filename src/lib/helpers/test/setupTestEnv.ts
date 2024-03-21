@@ -50,7 +50,7 @@ const getValidChainId = (chainId: number): VALID_CHAIN_IDS => {
  * @returns {string } The RPC URL.
  */
 const getRpcUrl = (): string =>
-  process.env.TEST_RPC_URL ?? foundry.rpcUrls.default.http[0];
+  process.env.RPC_URL ?? foundry.rpcUrls.default.http[0];
 
 const getChainInfo = async () => {
   const chainId = await fetchChainId();
@@ -60,10 +60,15 @@ const getChainInfo = async () => {
 
 const fetchChainId = async (): Promise<number> => {
   // If not running fork test script, use the foundry chain ID
-  if (!process.env.USE_FORK) return foundry.id;
+  if (!process.env.USE_FORK) {
+    console.log(
+      `Using foundry chain ID: ${foundry.id}; make sure you ran the fork test script`
+    );
+    return foundry.id;
+  }
 
   if (!process.env.RPC_URL) {
-    throw new Error('TEST_RPC_URL not defined in env');
+    throw new Error('RPC_URL not defined in env');
   }
 
   try {

@@ -30,7 +30,7 @@ anvil
 bun run test
 ```
 
-Alternatively, run your tests using a fork of your provided (`TEST_RPC_URL` in `env`) rpc url
+Alternatively, run your tests using a fork of your provided (`RPC_URL` in `env`) rpc url
 
 ```bash
 bun run anvil-fork
