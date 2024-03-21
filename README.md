@@ -34,7 +34,10 @@ Alternatively, run your tests using a fork of your provided (`RPC_URL` in `env`)
 
 ```bash
 bun run anvil-fork
+# run all tests
 bun run test-fork
+# or for a specific file
+bun run test-fork FILE={file path}
 ```
 
 Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
