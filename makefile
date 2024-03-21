@@ -13,6 +13,6 @@ anvil-fork:
 test-fork:
 	@echo "Running tests on fork..."
 	# Run tests with environment variables
-	env TEST_CHAIN_ID=$(TEST_CHAIN_ID) TEST_RPC_URL=$(TEST_RPC_URL) bun test src
+	env TEST_RPC_URL=$(TEST_RPC_URL) USE_FORK=true bun test src
 
 .PHONY: all anvil-fork test-fork
