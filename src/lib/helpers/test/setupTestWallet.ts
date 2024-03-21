@@ -3,6 +3,7 @@ import { getChain as _getChain } from '../chains';
 import type { SuperWalletClient } from '../types';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getChainInfo, getRpcUrl } from './setupTestEnv';
+import { foundry } from 'viem/chains';
 
 const ANVIL_DEFAULT_PRIVATE_KEY =
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -27,7 +28,7 @@ const setupTestWallet = async (): Promise<SuperWalletClient> => {
 
 const getAccount = (chainId: number) => {
   // If using foundry anvil, use the default private key
-  if (chainId === 31337) {
+  if (chainId === foundry.id) {
     return privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY);
   }
 
