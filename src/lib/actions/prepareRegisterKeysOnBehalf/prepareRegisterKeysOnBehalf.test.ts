@@ -56,7 +56,7 @@ describe('prepareRegisterKeysOnBehalf', async () => {
     };
 
     const signature = await walletClient.signTypedData({
-      account: walletClient.account!, // Without this, no signer is available supposedly; TODO figure out why
+      account: walletClient.account!,
       primaryType,
       domain,
       types,
