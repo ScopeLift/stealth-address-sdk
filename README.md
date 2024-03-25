@@ -1,17 +1,17 @@
 # Stealth Address SDK
 
-This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
+This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564) and [EIP-6538](https://eips.ethereum.org/EIPS/eip-6538). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
 
 ## Features
 
-- Generate Ethereum stealth addresses
-- Compute stealth address private keys
-- Check stealth address announcements to determine if they are intended for a specific user
+- Generate Ethereum stealth addresses.
+- Compute stealth address private keys.
+- Check stealth address announcements to determine if they are intended for a specific user.
 - Look up the stealth meta address for a registrant
 - Fetch announcements
 - Watch announcements for a user
 - Prepare the payload for announcing stealth address details
-- (Planned) More features to fully support ERC-5564 interactions.
+- Prepare the payload for registering a stealth meta-address on someone's behalf
 
 ## Installation
 
@@ -41,8 +41,6 @@ bun run test-fork
 # or for a specific file
 bun run test-fork FILE={file path}
 ```
-
-Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
 
 ## Quick Start
 
@@ -165,3 +163,7 @@ async function fetchAnnouncementsForUser() {
   return userAnnouncements;
 }
 ```
+
+## License
+
+[MIT](/LICENSE) License
