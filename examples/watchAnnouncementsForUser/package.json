@@ -1,5 +1,5 @@
 {
-  "name": "example-get-announcements",
+  "name": "example-watch-announcements-for-user",
   "private": true,
   "type": "module",
   "dependencies": {
