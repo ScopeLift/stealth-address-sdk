@@ -5,10 +5,10 @@ import { VALID_SCHEME_ID, generateStealthAddress } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 
 describe('prepareAnnounce', async () => {
-  const { stealthClient, ERC5564Address } = setupTestEnv();
-  const walletClient = setupTestWallet();
-  const { stealthMetaAddressURI } = setupTestStealthKeys();
+  const { stealthClient, ERC5564Address } = await setupTestEnv();
+  const walletClient = await setupTestWallet();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const account = walletClient.account?.address!;
 
   const { stealthAddress, ephemeralPublicKey, viewTag } =
