@@ -10,10 +10,9 @@
     "declaration": true,
     "rootDir": "./src",
     "esModuleInterop": true,
-    "resolveJsonModule": true,
 
     /* Bundler mode */
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
     "noEmit": false,
 

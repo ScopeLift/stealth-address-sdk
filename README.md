@@ -1,17 +1,16 @@
 # Stealth Address SDK
 
-This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
+This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564) and [EIP-6538](https://eips.ethereum.org/EIPS/eip-6538). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
 
 ## Features
 
-- Generate Ethereum stealth addresses
-- Compute stealth address private keys
-- Check stealth address announcements to determine if they are intended for a specific user
+- Generate Ethereum stealth addresses.
+- Compute stealth address private keys.
+- Check stealth address announcements to determine if they are intended for a specific user.
 - Look up the stealth meta address for a registrant
 - Fetch announcements
 - Watch announcements for a user
 - Prepare the payload for announcing stealth address details
-- (Planned) More features to fully support ERC-5564 interactions.
 
 ## Installation
 
@@ -21,6 +20,25 @@ npm install stealth-address-sdk
 yarn add stealth-address-sdk
 # or
 bun install stealth-address-sdk
+```
+
+## Testing
+
+Tests default to using your local [anvil](https://book.getfoundry.sh/anvil/) node
+
+```bash
+anvil
+bun run test
+```
+
+Alternatively, run your tests using a fork of your provided (`RPC_URL` in `env`) rpc url
+
+```bash
+bun run anvil-fork
+# run all tests
+bun run test-fork
+# or for a specific file
+bun run test-fork FILE={file path}
 ```
 
 ## Quick Start
@@ -144,3 +162,7 @@ async function fetchAnnouncementsForUser() {
   return userAnnouncements;
 }
 ```
+
+## License
+
+[MIT](/LICENSE) License

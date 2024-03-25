@@ -6,12 +6,12 @@ import type {
   Transport,
   WalletActions,
 } from 'viem';
-import { sepolia, goerli, type Chain } from 'viem/chains';
-export type VALID_CHAIN_IDS = typeof sepolia.id | typeof goerli.id;
+import { sepolia, type Chain, foundry } from 'viem/chains';
+export type VALID_CHAIN_IDS = typeof sepolia.id | typeof foundry.id;
 
 export const VALID_CHAINS: Record<VALID_CHAIN_IDS, Chain> = {
   [sepolia.id]: sepolia,
-  [goerli.id]: goerli,
+  [foundry.id]: foundry,
 };
 
 // A Viem WalletClient with public actions

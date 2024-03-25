@@ -6,9 +6,11 @@
   "module": "dist/index.js",
   "type": "module",
   "scripts": {
+    "anvil-fork": "make anvil-fork",
+    "test-fork": "make test-fork",
+    "test": "bun test src",
     "build": "bun tsc",
     "format": "prettier --write .",
-    "test": "bun test src",
     "watch": "bun test --watch src"
   },
   "devDependencies": {
@@ -19,6 +21,6 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^2.0.0",
-    "viem": "^2.7.16"
+    "viem": "^2.7.13"
   }
 }
