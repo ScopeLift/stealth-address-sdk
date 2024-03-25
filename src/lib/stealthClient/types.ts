@@ -73,6 +73,7 @@ export type StealthActions = {
   prepareRegisterKeysOnBehalf: ({
     ERC6538Address,
     args,
+    account,
   }: PrepareRegisterKeysOnBehalfParams) => Promise<PrepareRegisterKeysOnBehalfReturnType>;
 };
 
