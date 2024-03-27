@@ -11,6 +11,7 @@ This TypeScript SDK provides tools for working with Ethereum stealth addresses a
 - Fetch announcements
 - Watch announcements for a user
 - Prepare the payload for announcing stealth address details
+- Prepare the payload for registering a stealth meta-address on someone's behalf
 
 ## Installation
 
