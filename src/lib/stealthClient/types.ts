@@ -6,6 +6,8 @@ import type {
   GetAnnouncementsReturnType,
   GetStealthMetaAddressParams,
   GetStealthMetaAddressReturnType,
+  PrepareAnnounceParams,
+  PrepareAnnounceReturnType,
   WatchAnnouncementsForUserParams,
   WatchAnnouncementsForUserReturnType,
 } from '../actions/';
@@ -53,6 +55,11 @@ export type StealthActions = {
     viewingPrivateKey,
     pollOptions,
   }: WatchAnnouncementsForUserParams<T>) => Promise<WatchAnnouncementsForUserReturnType>;
+  prepareAnnounce: ({
+    account,
+    args,
+    ERC5564Address,
+  }: PrepareAnnounceParams) => Promise<PrepareAnnounceReturnType>;
 };
 
 export class PublicClientRequiredError extends Error {

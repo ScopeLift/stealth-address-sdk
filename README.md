@@ -9,7 +9,8 @@ This TypeScript SDK provides tools for working with Ethereum stealth addresses a
 - Check stealth address announcements to determine if they are intended for a specific user.
 - Look up the stealth meta address for a registrant
 - Fetch announcements
-- (Planned) More features to fully support ERC-5564 interactions.
+- Watch announcements for a user
+- Prepare the payload for announcing stealth address details
 
 ## Installation
 
@@ -39,8 +40,6 @@ bun run test-fork
 # or for a specific file
 bun run test-fork FILE={file path}
 ```
-
-Ensure that all environment variables demonstrated in teh .env.example are included in your .env file
 
 ## Quick Start
 
