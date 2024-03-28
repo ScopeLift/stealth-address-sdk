@@ -26,8 +26,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
+
+      - name: Start anvil node
+        run: anvil
 
       - name: Run tests
         run: |
