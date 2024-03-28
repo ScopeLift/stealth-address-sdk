@@ -16,8 +16,10 @@ jobs:
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Build contracts
-        run: bun run build
+      - name: Build
+        run: |
+          bun install
+          bun run build
 
   test:
     runs-on: ubuntu-latest
@@ -28,4 +30,6 @@ jobs:
         uses: oven-sh/setup-bun@v1
 
       - name: Run tests
-        run: bun run test
+        run: |
+          bun install
+          bun run test
