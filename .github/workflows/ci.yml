@@ -33,7 +33,7 @@ jobs:
         uses: oven-sh/setup-bun@v1
 
       - name: Start anvil node
-        run: anvil
+        run: anvil &
 
       - name: Run tests
         run: |
