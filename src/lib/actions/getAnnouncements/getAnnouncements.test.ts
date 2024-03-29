@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect, mock } from 'bun:test';
 import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
 import {
   VALID_SCHEME_ID,
@@ -7,6 +7,9 @@ import {
 } from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
+import { resolveBlockNumber } from './getAnnouncements';
+import type { BlockTag } from 'viem';
+import { ResolvedBlockError } from './types';
 
 describe('getAnnouncements', async () => {
   const { stealthClient, ERC5564DeployBlock, ERC5564Address } =
@@ -96,5 +99,43 @@ describe('getAnnouncements', async () => {
     });
 
     expect(invalidAnnouncements.length).toBe(0);
+  });
+
+  test("throws error when can't resolve to block", async () => {
+    const invalidBlockTag = 'invalid_block_tag' as BlockTag; // Cast as BlockTag intentionally to test error handling
+
+    try {
+      await stealthClient.getAnnouncements({
+        ERC5564Address,
+        args: {},
+        toBlock: invalidBlockTag,
+      });
+    } catch (error) {
+      expect(error).toBeInstanceOf(ResolvedBlockError);
+    }
+  });
+
+  test('throws error when toBlock resolves to null', async () => {
+    // Mock resolveBlockNumber to null
+    mock.module('./getAnnouncements', () => ({
+      resolveBlockNumber: async () => null,
+    }));
+
+    try {
+      await stealthClient.getAnnouncements({
+        ERC5564Address,
+        args: {},
+        fromBlock: 'latest', // Intentionally using the latest block to test error handling on first instance of using resolveBlockNumber
+        toBlock: 'latest',
+      });
+
+      // If the function doesn't throw an error, fail the test
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ResolvedBlockError);
+      expect((error as ResolvedBlockError).message).toBe(
+        'Failed to resolve toBlock within fetchLogsInChunks.'
+      );
+    }
   });
 });

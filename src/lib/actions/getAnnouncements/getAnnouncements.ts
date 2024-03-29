@@ -3,10 +3,11 @@ import type { BlockType } from '../types';
 import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import type {
-  AnnouncementLog,
-  GetAnnouncementsParams,
-  GetAnnouncementsReturnType,
+import {
+  type AnnouncementLog,
+  type GetAnnouncementsParams,
+  type GetAnnouncementsReturnType,
+  ResolvedBlockError,
 } from './types';
 
 /**
@@ -99,7 +100,9 @@ const fetchLogsInChunks = async ({
   });
 
   if (!resolvedToBlock) {
-    throw new Error('Failed to resolve toBlock');
+    throw new ResolvedBlockError(
+      'Failed to resolve toBlock within fetchLogsInChunks.'
+    );
   }
 
   let currentBlock = resolvedFromBlock;
@@ -136,7 +139,7 @@ const fetchLogsInChunks = async ({
  *   - `block`: The block number or tag to resolve.
  * @returns {Promise<bigint | null>} The resolved block number as a bigint or null.
  */
-async function resolveBlockNumber({
+export async function resolveBlockNumber({
   publicClient,
   block,
 }: {
@@ -151,7 +154,7 @@ async function resolveBlockNumber({
     const res = await getBlock(publicClient, { blockTag: block });
     return res.number;
   } catch (error) {
-    throw new Error(`Failed to resolve block number: ${error}.`);
+    throw new ResolvedBlockError(`Failed to resolve block: ${error}.`);
   }
 }
 

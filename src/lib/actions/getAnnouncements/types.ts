@@ -25,3 +25,11 @@ export type GetAnnouncementsParams = {
   toBlock?: BlockType;
 };
 export type GetAnnouncementsReturnType = AnnouncementLog[];
+
+export class ResolvedBlockError extends Error {
+  constructor(message: string = 'Failed to resolve block.') {
+    super(message);
+    this.name = 'ResolvedBlockError';
+    Object.setPrototypeOf(this, ResolvedBlockError.prototype);
+  }
+}
