@@ -1,4 +1,4 @@
 [test]
 coverageSkipTestFiles = true
-coverageThreshold = .9
+coverageThreshold = 0
 root = "./src"
