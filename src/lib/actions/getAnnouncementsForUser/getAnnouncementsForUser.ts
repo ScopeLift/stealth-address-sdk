@@ -173,7 +173,7 @@ async function shouldIncludeAnnouncement({
  * @returns {Promise<`0x${string}`>} A promise that resolves to the transaction sender address.
  * @throws {FromValueNotFoundError} If the transaction or sender address cannot be fetched, indicating a potential issue with the transaction lookup.
  */
-async function getTransactionFrom({
+export async function getTransactionFrom({
   publicClient,
   hash,
 }: {

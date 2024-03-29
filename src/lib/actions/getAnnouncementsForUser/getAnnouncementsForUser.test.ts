@@ -1,9 +1,13 @@
-import { expect, test, describe } from 'bun:test';
+import { expect, test, describe, mock } from 'bun:test';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
 import { ERC5564AnnouncerAbi } from '../../abi';
+import type { AnnouncementLog } from '..';
+import { FromValueNotFoundError, TransactionHashRequiredError } from './types';
+import { getTransactionFrom } from './getAnnouncementsForUser';
+import type { PublicClient } from 'viem';
 
 describe('getAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address, ERC5564DeployBlock } =
@@ -161,5 +165,33 @@ describe('getAnnouncementsForUser', async () => {
     console.log(
       `Processed ${largeNumberOfAnnouncements} announcements in ${endTime - startTime} milliseconds.`
     );
+  });
+
+  test('throws TransactionHashRequiredError when transactionHash is null', async () => {
+    const announcementWithoutHash: AnnouncementLog = {
+      ...announcements[0],
+      transactionHash: null,
+    };
+
+    try {
+      await stealthClient.getAnnouncementsForUser({
+        announcements: [announcementWithoutHash],
+        spendingPublicKey,
+        viewingPrivateKey,
+      });
+    } catch (error) {
+      expect(error).toBeInstanceOf(TransactionHashRequiredError);
+    }
+  });
+
+  test('throws FromValueNotFoundError when the "from" value is not found', async () => {
+    const invalidHash = '0xinvalidhash';
+
+    expect(
+      getTransactionFrom({
+        publicClient: walletClient as PublicClient,
+        hash: invalidHash,
+      })
+    ).rejects.toBeInstanceOf(FromValueNotFoundError);
   });
 });
