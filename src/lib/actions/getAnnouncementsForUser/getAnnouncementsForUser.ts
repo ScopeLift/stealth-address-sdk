@@ -84,7 +84,7 @@ async function getAnnouncementsForUser({
  * - `includeList`: Addresses to specifically include in the results.
  * @returns {Promise<ProcessAnnouncementReturnType>} A promise that resolves to the processed announcement if it is relevant, or null otherwise.
  */
-async function processAnnouncement(
+export async function processAnnouncement(
   announcement: AnnouncementLog,
   publicClient: PublicClient,
   {

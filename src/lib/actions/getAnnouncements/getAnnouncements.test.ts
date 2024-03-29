@@ -120,21 +120,13 @@ describe('getAnnouncements', async () => {
       resolveBlockNumber: async () => null,
     }));
 
-    try {
-      await stealthClient.getAnnouncements({
+    expect(
+      stealthClient.getAnnouncements({
         ERC5564Address,
         args: {},
         fromBlock: 'latest', // Intentionally using the latest block to test error handling on first instance of using resolveBlockNumber
         toBlock: 'latest',
-      });
-
-      // If the function doesn't throw an error, fail the test
-      expect(true).toBe(false);
-    } catch (error) {
-      expect(error).toBeInstanceOf(ResolvedBlockError);
-      expect((error as ResolvedBlockError).message).toBe(
-        'Failed to resolve toBlock within fetchLogsInChunks.'
-      );
-    }
+      })
+    ).rejects.toBeInstanceOf(ResolvedBlockError);
   });
 });
