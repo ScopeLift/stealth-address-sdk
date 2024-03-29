@@ -7,7 +7,6 @@ import {
 } from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
-import { resolveBlockNumber } from './getAnnouncements';
 import type { BlockTag } from 'viem';
 import { ResolvedBlockError } from './types';
 
