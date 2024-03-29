@@ -6,6 +6,7 @@ import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
 } from '../../..';
+import { GetStealthMetaAddressError } from './types';
 
 describe('getStealthMetaAddress', async () => {
   const { stealthClient, ERC6538Address } = await setupTestEnv();
@@ -40,5 +41,17 @@ describe('getStealthMetaAddress', async () => {
     });
 
     expect(result).toEqual(stealthMetaAddress);
+  });
+
+  test('should throw an error if the stealth meta address cannot be fetched', async () => {
+    const invalidRegistrant = '0xInvalidRegistrant';
+
+    expect(
+      stealthClient.getStealthMetaAddress({
+        ERC6538Address,
+        registrant: invalidRegistrant,
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+      })
+    ).rejects.toBeInstanceOf(GetStealthMetaAddressError);
   });
 });

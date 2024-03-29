@@ -1,8 +1,9 @@
 import { ERC6538RegistryAbi } from '../..';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import type {
-  GetStealthMetaAddressParams,
-  GetStealthMetaAddressReturnType,
+import {
+  GetStealthMetaAddressError,
+  type GetStealthMetaAddressParams,
+  type GetStealthMetaAddressReturnType,
 } from './types';
 
 /**
@@ -35,7 +36,9 @@ async function getStealthMetaAddress({
       abi: ERC6538RegistryAbi,
     });
   } catch (error) {
-    throw new Error(`Error getting stealth meta address: ${error}`);
+    throw new GetStealthMetaAddressError(
+      `Error getting stealth meta address: ${error}`
+    );
   }
 }
 

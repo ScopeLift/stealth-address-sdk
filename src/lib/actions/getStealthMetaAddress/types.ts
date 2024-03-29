@@ -8,3 +8,11 @@ export type GetStealthMetaAddressParams = {
   schemeId: VALID_SCHEME_ID;
 };
 export type GetStealthMetaAddressReturnType = `0x${string}` | undefined;
+
+export class GetStealthMetaAddressError extends Error {
+  constructor(message: string = 'Error getting stealth meta address.') {
+    super(message);
+    this.name = 'GetStealthMetaAddressError';
+    Object.setPrototypeOf(this, GetStealthMetaAddressError.prototype);
+  }
+}
