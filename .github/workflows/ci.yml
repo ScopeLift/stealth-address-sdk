@@ -48,6 +48,9 @@ jobs:
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
 
+      - name: Start anvil node
+        run: anvil &
+
       - name: Run test coverage
         run: |
           bun install
