@@ -21,6 +21,6 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^2.0.0",
-    "viem": "^2.7.13"
+    "viem": "^2.7.19"
   }
 }
