@@ -8,6 +8,10 @@ import type {
   GetStealthMetaAddressReturnType,
   PrepareAnnounceParams,
   PrepareAnnounceReturnType,
+  PrepareRegisterKeysOnBehalfParams,
+  PrepareRegisterKeysOnBehalfReturnType,
+  PrepareRegisterKeysParams,
+  PrepareRegisterKeysReturnType,
   WatchAnnouncementsForUserParams,
   WatchAnnouncementsForUserReturnType,
 } from '../actions/';
@@ -60,6 +64,17 @@ export type StealthActions = {
     args,
     ERC5564Address,
   }: PrepareAnnounceParams) => Promise<PrepareAnnounceReturnType>;
+  prepareRegisterKeys: ({
+    ERC6538Address,
+    schemeId,
+    stealthMetaAddress,
+    account,
+  }: PrepareRegisterKeysParams) => Promise<PrepareRegisterKeysReturnType>;
+  prepareRegisterKeysOnBehalf: ({
+    ERC6538Address,
+    args,
+    account,
+  }: PrepareRegisterKeysOnBehalfParams) => Promise<PrepareRegisterKeysOnBehalfReturnType>;
 };
 
 export class PublicClientRequiredError extends Error {

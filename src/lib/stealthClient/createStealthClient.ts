@@ -66,6 +66,16 @@ function createStealthClient({
         clientParams: { publicClient },
         ...params,
       }),
+    prepareRegisterKeys: params =>
+      stealthActions.prepareRegisterKeys({
+        clientParams: { publicClient },
+        ...params,
+      }),
+    prepareRegisterKeysOnBehalf: params =>
+      stealthActions.prepareRegisterKeysOnBehalf({
+        clientParams: { publicClient },
+        ...params,
+      }),
   };
 
   return initializedActions;
