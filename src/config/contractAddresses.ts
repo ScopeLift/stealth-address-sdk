@@ -1,6 +1,6 @@
 // Singleton announcer contract addresses
 export enum ERC5564_CONTRACT {
-  SEPOLIA = '0x227733B68Bf2DF7c69C25A611B9378a523Fc4a03',
+  SEPOLIA = '0x55649E01B5Df198D18D95b5cc5051630cfD45564',
 }
 
 // Singleton registry contract addresses

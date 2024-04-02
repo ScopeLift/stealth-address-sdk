@@ -12,8 +12,8 @@ import { PrepareError } from '../types';
  * This function generates the necessary payload for signing and sending a transaction.
  *
  * @param {PrepareRegisterKeysParams} params - Parameters for preparing the key registration.
- * @property {EthAddress} ERC6538Address - The Ethereum address of the ERC5564 contract.
- * @property {VALID_SCHEME_ID} schemeId - The scheme ID as per the ERC5564 specification.
+ * @property {EthAddress} ERC6538Address - The Ethereum address of the ERC6538 contract.
+ * @property {VALID_SCHEME_ID} schemeId - The scheme ID as per the ERC6538 specification.
  * @property {`0x${string}`} stealthMetaAddress - The stealth meta-address to be registered.
  * @property {`0x${string}`} account - The address of the account.
  * @property {ClientParams} [clientParams] - Optional client parameters for direct function usage.
