@@ -5,10 +5,10 @@ import { VALID_SCHEME_ID, parseStealthMetaAddressURI } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 
 describe('prepareRegisterKeys', async () => {
-  const { stealthClient, ERC6538Address } =await setupTestEnv();
+  const { stealthClient, ERC6538Address } = await setupTestEnv();
   const walletClient = await setupTestWallet();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
-  const { stealthMetaAddressURI } =setupTestStealthKeys(schemeId);
+  const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
     schemeId,
