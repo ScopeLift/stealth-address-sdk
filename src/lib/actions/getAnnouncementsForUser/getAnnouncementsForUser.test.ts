@@ -205,3 +205,22 @@ describe('getAnnouncementsForUser', async () => {
     ).rejects.toBeInstanceOf(FromValueNotFoundError);
   });
 });
+
+describe('getAnnouncementsForUser error class tests', () => {
+  test('TransactionHashRequiredError should have the correct message', () => {
+    const errorMessage = 'The transaction hash is required.';
+    const error = new TransactionHashRequiredError();
+
+    expect(error.message).toBe(errorMessage);
+    expect(error.name).toBe('TransactionHashRequiredError');
+  });
+
+  test('FromValueNotFoundError should have the correct message', () => {
+    const errorMessage =
+      'The "from" value could not be retrieved for a transaction.';
+    const error = new FromValueNotFoundError();
+
+    expect(error.message).toBe(errorMessage);
+    expect(error.name).toBe('FromValueNotFoundError');
+  });
+});
