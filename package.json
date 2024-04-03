@@ -1,6 +1,6 @@
 {
-  "name": "stealth-address-sdk",
-  "version": "1.0.4",
+  "name": "@scopelift/stealth-address-sdk",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
