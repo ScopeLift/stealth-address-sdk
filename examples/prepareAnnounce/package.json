@@ -11,7 +11,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "stealth-address-sdk": "link:stealth-address-sdk",
+    "@scopelift/stealth-address-sdk": "latest",
     "viem": "latest",
     "vite": "latest"
   },
