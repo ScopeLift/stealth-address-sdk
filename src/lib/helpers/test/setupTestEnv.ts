@@ -5,7 +5,7 @@ import deployAllContracts from '../../../scripts';
 import type { VALID_CHAIN_IDS } from '../types';
 import { fromHex } from 'viem';
 
-const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
+export const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
 
 /**
  * Initializes a test environment for testing purposes.
@@ -52,7 +52,8 @@ const getValidChainId = (chainId: number): VALID_CHAIN_IDS => {
  * @returns {string } The RPC URL.
  */
 const getRpcUrl = (): string => {
-  if (process.env.USE_FORK) {
+  const useFork = process.env.USE_FORK === 'true';
+  if (useFork) {
     // Check that the RPC_URL is defined if using a fork
     if (!process.env.RPC_URL) {
       throw new Error('RPC_URL not defined in env');
@@ -70,7 +71,7 @@ const getChainInfo = async () => {
   return { chain: getChain(validChainId), chainId: validChainId };
 };
 
-const fetchChainId = async (): Promise<number> => {
+export const fetchChainId = async (): Promise<number> => {
   // If not running fork test script, use the foundry chain ID
   if (!process.env.USE_FORK) {
     console.log(
@@ -83,8 +84,14 @@ const fetchChainId = async (): Promise<number> => {
     throw new Error('RPC_URL not defined in env');
   }
 
+  interface ChainIdResponse {
+    version: string;
+    id: number;
+    result: `0x${string}`;
+  }
+
   try {
-    const response = await fetch(process.env.RPC_URL, {
+    const data = await fetchJson<ChainIdResponse>(process.env.RPC_URL, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -97,22 +104,21 @@ const fetchChainId = async (): Promise<number> => {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    interface ChainIdResponse {
-      version: string;
-      id: number;
-      result: `0x${string}`;
-    }
-    const data = (await response.json()) as ChainIdResponse;
-
     return fromHex(data.result, 'number');
   } catch (error) {
     throw new Error(`Failed to get the chain ID`);
   }
 };
 
-export { getValidChainId, getRpcUrl, getChainInfo };
+const fetchJson = async <T>(url: string, options: any) => {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json() as T;
+};
+
+export { getValidChainId, getRpcUrl, getChainInfo, fetchJson };
 export default setupTestEnv;
