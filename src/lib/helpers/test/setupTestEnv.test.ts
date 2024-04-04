@@ -52,7 +52,9 @@ describe('getValidChainId validation', () => {
   });
 });
 
-describe('fetchChainId', () => {
+describe('fetchChainId', async () => {
+  const { fetchChainId } = await import('./setupTestEnv');
+
   beforeEach(() => {
     // Set the env vars, which are needed to use a fork and not default to using foundry chain id
     process.env.USE_FORK = 'true';
@@ -67,7 +69,6 @@ describe('fetchChainId', () => {
         }),
     }));
 
-    const { fetchChainId } = await import('./setupTestEnv');
     const chainId = await fetchChainId();
     expect(chainId).toBe(1); // '0x1' translates to 1
   });
@@ -77,14 +78,11 @@ describe('fetchChainId', () => {
       fetchJson: () => Promise.reject(new Error('Network failure')),
     }));
 
-    const { fetchChainId } = await import('./setupTestEnv');
-
     expect(fetchChainId()).rejects.toThrow('Failed to get the chain ID');
   });
 
   test('throws error when RPC_URL is not defined', async () => {
     delete process.env.RPC_URL;
-    const { fetchChainId } = await import('./setupTestEnv');
 
     expect(fetchChainId).toThrow('RPC_URL not defined in env');
   });
