@@ -1,15 +1,11 @@
-import { expect, test, describe, mock } from 'bun:test';
+import { expect, test, describe } from 'bun:test';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
 import { ERC5564AnnouncerAbi } from '../../abi';
 import type { AnnouncementLog } from '..';
-import {
-  FromValueNotFoundError,
-  TransactionHashRequiredError,
-  type ProcessAnnouncementParams,
-} from './types';
+import { FromValueNotFoundError, TransactionHashRequiredError } from './types';
 import {
   getTransactionFrom,
   processAnnouncement,
