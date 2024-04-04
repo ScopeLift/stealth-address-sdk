@@ -1,4 +1,4 @@
-import { jest, describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test, mock, beforeEach } from 'bun:test';
 import { LOCAL_ENDPOINT } from './setupTestEnv';
 import { VALID_CHAINS } from '../types';
 
