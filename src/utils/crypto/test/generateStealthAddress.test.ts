@@ -1,4 +1,4 @@
-import { describe, test, expect, mock } from 'bun:test';
+import { describe, test, expect } from 'bun:test';
 import { bytesToHex } from 'viem';
 import {
   generatePrivateKey,
