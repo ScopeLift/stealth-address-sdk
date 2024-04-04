@@ -2,20 +2,21 @@ import {
   VALID_SCHEME_ID,
   checkStealthAddress,
   generateRandomStealthMetaAddress,
-  generateStealthAddress
-} from 'stealth-address-sdk';
+  generateStealthAddress,
+  VALID_SCHEME_ID,
+} from "@scopelift/stealth-address-sdk";
 
 // User's keys (for example purposes, real values should be securely generated and stored)
 const {
   stealthMetaAddressURI,
   spendingPublicKey: userSpendingPublicKey,
-  viewingPrivateKey: userViewingPrivateKey
+  viewingPrivateKey: userViewingPrivateKey,
 } = generateRandomStealthMetaAddress();
 
 // Generate a stealth address
 const { stealthAddress, ephemeralPublicKey, viewTag } = generateStealthAddress({
   schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-  stealthMetaAddressURI
+  stealthMetaAddressURI,
 });
 
 console.log(`Stealth Address: ${stealthAddress}`);
@@ -29,7 +30,7 @@ const isForUser = checkStealthAddress({
   spendingPublicKey: userSpendingPublicKey,
   userStealthAddress: stealthAddress, // User's known stealth address
   viewingPrivateKey: userViewingPrivateKey,
-  viewTag // From the announcement
+  viewTag, // From the announcement
 });
 
 console.log(`Is the announcement for the user? ${isForUser}`);
