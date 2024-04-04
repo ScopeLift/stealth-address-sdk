@@ -30,10 +30,6 @@ function createStealthClient({
 }: StealthClientInitParams): StealthClientReturnType {
   const chain = getChain(chainId);
 
-  if (!chain) {
-    throw new Error(`Invalid chainId: ${chainId}`);
-  }
-
   // Init viem client
   const publicClient = createPublicClient({
     chain,
