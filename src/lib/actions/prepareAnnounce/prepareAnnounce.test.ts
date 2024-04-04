@@ -3,6 +3,7 @@ import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import { VALID_SCHEME_ID, generateStealthAddress } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import { PrepareError } from '../types';
 
 describe('prepareAnnounce', async () => {
   const { stealthClient, ERC5564Address } = await setupTestEnv();
@@ -17,14 +18,16 @@ describe('prepareAnnounce', async () => {
       schemeId,
     });
 
+  const prepareArgs = {
+    schemeId,
+    stealthAddress,
+    ephemeralPublicKey,
+    metadata: viewTag,
+  };
+
   const prepared = await stealthClient.prepareAnnounce({
     account,
-    args: {
-      schemeId,
-      stealthAddress,
-      ephemeralPublicKey,
-      metadata: viewTag,
-    },
+    args: prepareArgs,
     ERC5564Address,
   });
 
@@ -41,6 +44,17 @@ describe('prepareAnnounce', async () => {
   });
 
   const res = await walletClient.waitForTransactionReceipt({ hash });
+
+  test('should throw PrepareError when given invalid params', () => {
+    const invalidERC5564Address = '0xinvalid';
+    expect(
+      stealthClient.prepareAnnounce({
+        account,
+        args: prepareArgs,
+        ERC5564Address: invalidERC5564Address,
+      })
+    ).rejects.toBeInstanceOf(PrepareError);
+  });
 
   test('should successfully announce the stealth address details using the prepare payload', () => {
     expect(res.status).toEqual('success');
