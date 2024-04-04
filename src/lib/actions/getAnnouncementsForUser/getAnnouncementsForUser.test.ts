@@ -10,7 +10,9 @@ import {
   getTransactionFrom,
   processAnnouncement,
 } from './getAnnouncementsForUser';
-import type { PublicClient } from 'viem';
+import { type PublicClient } from 'viem';
+import { getViewTagFromMetadata } from '../../..';
+import type { HexString } from '../../../utils/crypto/types';
 
 describe('getAnnouncementsForUser', async () => {
   const { stealthClient, ERC5564Address, ERC5564DeployBlock } =
@@ -199,6 +201,13 @@ describe('getAnnouncementsForUser', async () => {
         hash: invalidHash,
       })
     ).rejects.toBeInstanceOf(FromValueNotFoundError);
+  });
+
+  test('throws error if view tag does not start with 0x', () => {
+    const metadata = 'invalidmetadata';
+    expect(() => getViewTagFromMetadata(metadata as HexString)).toThrow(
+      'Invalid metadata format'
+    );
   });
 });
 
