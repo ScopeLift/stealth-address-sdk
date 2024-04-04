@@ -116,7 +116,7 @@ function parseStealthMetaAddressURI({
   const parts = stealthMetaAddressURI.split(':');
 
   if (parts.length !== 3 || parts[0] !== 'st') {
-    throw new Error('Invalid stealth meta-address format');
+    throw new Error('Invalid stealth meta-address URI format');
   }
 
   return parts[2] as HexString;
@@ -401,5 +401,6 @@ export {
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI,
   publicKeyToAddress,
+  isValidCompressedPublicKey,
 };
 export default generateStealthAddress;

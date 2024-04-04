@@ -1,10 +1,11 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect, mock } from 'bun:test';
 import { bytesToHex } from 'viem';
 import {
   generatePrivateKey,
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
+  parseStealthMetaAddressURI,
 } from '..';
 import { VALID_SCHEME_ID, type HexString } from '../types';
 
@@ -13,6 +14,61 @@ describe('generateStealthAddress', () => {
     'st:eth:0x033404e82cd2a92321d51e13064ec13a0fb0192a9fdaaca1cfb47b37bd27ec13970390ad5eca026c05ab5cf4d620a2ac65241b11df004ddca360e954db1b26e3846e';
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+
+  test('should throw an error when given a valid uri format, but an invalid stealth meta-address', () => {
+    const invalid = 'st:eth:invalid';
+
+    expect(() =>
+      generateStealthAddress({
+        stealthMetaAddressURI: invalid,
+        schemeId,
+      })
+    ).toThrow(new Error('Invalid stealth meta-address'));
+  });
+
+  test('should throw an error when given an invalid uri format', () => {
+    const invalid = 'invalid';
+
+    expect(() =>
+      generateStealthAddress({
+        stealthMetaAddressURI: invalid,
+        schemeId,
+      })
+    ).toThrow(new Error('Invalid stealth meta-address URI format'));
+  });
+
+  test('should throw an error when given an invalid length stealth meta-address', () => {
+    const stealthMetaAddress = parseStealthMetaAddressURI({
+      stealthMetaAddressURI: validStealthMetaAddressURI,
+      schemeId,
+    });
+    // Intentionally alter the stealth meta-address to have an invalid length
+    const invalid = 'st:eth:' + stealthMetaAddress.slice(7, -1) + '0';
+
+    expect(() =>
+      generateStealthAddress({
+        stealthMetaAddressURI: invalid,
+        schemeId,
+      })
+    ).toThrow(new Error('Invalid stealth meta-address'));
+  });
+
+  test('should throw an error with stealth meta-address leading to invalid public keys', async () => {
+    // stealthMetaAddressURI with invalid public key lengths or prefixes
+    const invalidURIs = [
+      'st:eth:02' + '1'.repeat(63), // Invalid length
+      'st:eth:04' + '1'.repeat(64), // Invalid prefix
+    ];
+
+    invalidURIs.forEach(uri => {
+      expect(() =>
+        generateStealthAddress({
+          stealthMetaAddressURI: uri,
+          schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+        })
+      ).toThrow(new Error('Invalid stealth meta-address'));
+    });
+  });
 
   test('should generate a valid stealth address given a valid stealth meta-address URI', () => {
     // TODO compute the expected stealth address using computeStealthAddress (not yet implemented in the SDK)
