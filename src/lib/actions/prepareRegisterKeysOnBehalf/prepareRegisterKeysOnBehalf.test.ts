@@ -8,6 +8,7 @@ import {
 } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import type { RegisterKeysOnBehalfArgs } from './types';
+import { PrepareError } from '../types';
 
 describe('prepareRegisterKeysOnBehalf', async () => {
   const { stealthClient, ERC6538Address, chainId } = await setupTestEnv();
@@ -92,6 +93,17 @@ describe('prepareRegisterKeysOnBehalf', async () => {
   });
 
   const res = await walletClient.waitForTransactionReceipt({ hash });
+
+  test('should throw PrepareError when given invalid contract address', () => {
+    const invalidERC6538Address = '0xinvalid';
+    expect(
+      stealthClient.prepareRegisterKeysOnBehalf({
+        account,
+        ERC6538Address: invalidERC6538Address,
+        args,
+      })
+    ).rejects.toBeInstanceOf(PrepareError);
+  });
 
   test('should successfully register a stealth meta-address on behalf using the prepare payload', () => {
     expect(res.status).toEqual('success');

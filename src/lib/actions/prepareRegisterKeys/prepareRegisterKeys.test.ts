@@ -3,6 +3,7 @@ import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import { VALID_SCHEME_ID, parseStealthMetaAddressURI } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import { PrepareError } from '../types';
 
 describe('prepareRegisterKeys', async () => {
   const { stealthClient, ERC6538Address } = await setupTestEnv();
@@ -15,12 +16,14 @@ describe('prepareRegisterKeys', async () => {
   });
   const account = walletClient.account?.address!;
 
-  const prepared = await stealthClient.prepareRegisterKeys({
+  const prepareArgs = {
     account,
     ERC6538Address,
     schemeId,
     stealthMetaAddress: stealthMetaAddressToRegister,
-  });
+  };
+
+  const prepared = await stealthClient.prepareRegisterKeys(prepareArgs);
 
   // Prepare tx using viem and the prepared payload
   const request = await walletClient.prepareTransactionRequest({
@@ -35,6 +38,16 @@ describe('prepareRegisterKeys', async () => {
   });
 
   const res = await walletClient.waitForTransactionReceipt({ hash });
+
+  test('should throw PrepareError when given invalid contract address', () => {
+    const invalidERC6538Address = '0xinvalid';
+    expect(
+      stealthClient.prepareRegisterKeys({
+        ...prepareArgs,
+        ERC6538Address: invalidERC6538Address,
+      })
+    ).rejects.toBeInstanceOf(PrepareError);
+  });
 
   test('should successfully register a stealth meta-address using the prepare payload', () => {
     expect(res.status).toEqual('success');
