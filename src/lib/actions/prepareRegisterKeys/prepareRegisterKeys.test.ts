@@ -1,46 +1,66 @@
-import { describe, test, expect } from 'bun:test';
+import { beforeAll, describe, test, expect } from 'bun:test';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
-import { VALID_SCHEME_ID, parseStealthMetaAddressURI } from '../../..';
+import {
+  VALID_SCHEME_ID,
+  parseStealthMetaAddressURI,
+  type PrepareRegisterKeysParams,
+} from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import { PrepareError } from '../types';
+import type { Address, Chain, TransactionReceipt } from 'viem';
+import type { SuperWalletClient } from '../../helpers/types';
+import type { StealthActions } from '../../stealthClient/types';
 
-describe('prepareRegisterKeys', async () => {
-  const { stealthClient, ERC6538Address } = await setupTestEnv();
-  const walletClient = await setupTestWallet();
+describe('prepareRegisterKeys', () => {
+  let stealthClient: StealthActions,
+    ERC6538Address: Address,
+    walletClient: SuperWalletClient,
+    account: Address,
+    chain: Chain;
+
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
     schemeId,
   });
-  const account = walletClient.account?.address!;
-  const chain = walletClient.chain!;
 
-  const prepareArgs = {
-    account,
-    ERC6538Address,
-    schemeId,
-    stealthMetaAddress: stealthMetaAddressToRegister,
-  };
+  // Prepare payload args
+  let prepareArgs: PrepareRegisterKeysParams;
+  // Transaction receipt for writing to the contract with the prepared payload
+  let res: TransactionReceipt;
 
-  const prepared = await stealthClient.prepareRegisterKeys(prepareArgs);
+  beforeAll(async () => {
+    // Set up the test environment
+    ({ stealthClient, ERC6538Address } = await setupTestEnv());
+    walletClient = await setupTestWallet();
+    account = walletClient.account?.address!;
+    chain = walletClient.chain!;
 
-  // Prepare tx using viem and the prepared payload
-  const request = await walletClient.prepareTransactionRequest({
-    ...prepared,
-    chain,
-    account,
+    prepareArgs = {
+      account,
+      ERC6538Address,
+      schemeId,
+      stealthMetaAddress: stealthMetaAddressToRegister,
+    } satisfies PrepareRegisterKeysParams;
+    const prepared = await stealthClient.prepareRegisterKeys(prepareArgs);
+
+    // Prepare tx using viem and the prepared payload
+    const request = await walletClient.prepareTransactionRequest({
+      ...prepared,
+      chain,
+      account,
+    });
+
+    const hash = await walletClient.sendTransaction({
+      ...request,
+      chain,
+      account,
+    });
+
+    res = await walletClient.waitForTransactionReceipt({ hash });
   });
-
-  const hash = await walletClient.sendTransaction({
-    ...request,
-    chain,
-    account,
-  });
-
-  const res = await walletClient.waitForTransactionReceipt({ hash });
-
   test('should throw PrepareError when given invalid contract address', () => {
     const invalidERC6538Address = '0xinvalid';
     expect(
