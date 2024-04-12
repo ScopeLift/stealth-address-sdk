@@ -8,7 +8,7 @@
   "scripts": {
     "anvil-fork": "make anvil-fork",
     "test-fork": "make test-fork",
-    "test": "bun test src",
+    "test": "bun test",
     "build": "bun tsc",
     "format": "prettier --write .",
     "watch": "bun test --watch src"
