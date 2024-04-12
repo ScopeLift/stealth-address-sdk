@@ -99,6 +99,7 @@ const fetchLogsInChunks = async ({
     block: toBlock ?? 'latest',
   });
 
+  console.log('🦄 ~ resolvedToBlock:', resolvedToBlock);
   if (!resolvedToBlock) {
     throw new ResolvedBlockError(
       'Failed to resolve toBlock within fetchLogsInChunks.'
