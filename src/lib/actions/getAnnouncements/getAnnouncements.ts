@@ -1,7 +1,7 @@
 import type { BlockType } from '../types';
 
 import { type PublicClient, parseAbiItem } from 'viem';
-import { getBlock, getLogs } from 'viem/actions';
+import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import {
   type AnnouncementLog,
@@ -99,8 +99,11 @@ const fetchLogsInChunks = async ({
     block: toBlock ?? 'latest',
   });
 
-  console.log('🦄 ~ resolvedToBlock:', resolvedToBlock);
   if (!resolvedToBlock) {
+    // Try to get the latest block
+    try {
+      await getBlockNumber(publicClient);
+    } catch (error) {}
     throw new ResolvedBlockError(
       'Failed to resolve toBlock within fetchLogsInChunks.'
     );
@@ -138,7 +141,7 @@ const fetchLogsInChunks = async ({
  * @param {Object} params - Parameters for resolving the block number.
  *   - `publicClient`: An instance of the viem `PublicClient`.
  *   - `block`: The block number or tag to resolve.
- * @returns {Promise<bigint | null>} The resolved block number as a bigint or null.
+ * @returns {Promise<bigint>} The resolved block number as a bigint or null.
  */
 export async function resolveBlockNumber({
   publicClient,
@@ -146,14 +149,18 @@ export async function resolveBlockNumber({
 }: {
   publicClient: PublicClient;
   block?: BlockType;
-}): Promise<bigint | null> {
+}): Promise<bigint> {
   if (typeof block === 'bigint') {
     return block;
   }
 
   try {
-    const res = await getBlock(publicClient, { blockTag: block });
-    return res.number;
+    const { number } = await getBlock(publicClient, { blockTag: block });
+    // Get the latest block number if null, since it is the pending block
+    if (!number) {
+      return getBlockNumber(publicClient);
+    }
+    return number;
   } catch (error) {
     throw new ResolvedBlockError(`Failed to resolve block: ${error}.`);
   }
