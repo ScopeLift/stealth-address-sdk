@@ -1,4 +1,4 @@
-import { expect, test, describe } from 'bun:test';
+import { expect, test, describe, beforeAll } from 'bun:test';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
@@ -30,35 +30,39 @@ describe('getAnnouncementsForUser', async () => {
       schemeId,
     });
 
-  // Announce the stealth address, ephemeral public key, and view tag
-  const hash = await walletClient.writeContract({
-    address: ERC5564Address,
-    functionName: 'announce',
-    args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
-    abi: ERC5564AnnouncerAbi,
-    chain: walletClient.chain,
-    account: walletClient.account!,
-  });
+  let announcements: AnnouncementLog[] = [];
 
-  console.log('Waiting for announcement transaction to be mined...');
-  // Wait for the transaction to be mined
-  const res = await walletClient.waitForTransactionReceipt({
-    hash,
-  });
-  console.log('Announcement transaction mined:', res.transactionHash);
+  beforeAll(async () => {
+    // Announce the stealth address, ephemeral public key, and view tag
+    const hash = await walletClient.writeContract({
+      address: ERC5564Address,
+      functionName: 'announce',
+      args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
+      abi: ERC5564AnnouncerAbi,
+      chain: walletClient.chain,
+      account: walletClient.account!,
+    });
 
-  // Fetch relevant announcements to check against
-  console.log('fetching announcements...');
-  const announcements = await stealthClient.getAnnouncements({
-    ERC5564Address,
-    args: {
-      schemeId: BigInt(schemeId),
-      stealthAddress,
-      caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
-    },
-    fromBlock,
+    console.log('Waiting for announcement transaction to be mined...');
+    // Wait for the transaction to be mined
+    const res = await walletClient.waitForTransactionReceipt({
+      hash,
+    });
+    console.log('Announcement transaction mined:', res.transactionHash);
+
+    // Fetch relevant announcements to check against
+    console.log('fetching announcements...');
+    announcements = await stealthClient.getAnnouncements({
+      ERC5564Address,
+      args: {
+        schemeId: BigInt(schemeId),
+        stealthAddress,
+        caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
+      },
+      fromBlock,
+    });
+    console.log('relevant announcements fetched for testing');
   });
-  console.log('relevant announcements fetched for testing');
 
   test('filters announcements correctly for the user', async () => {
     // Fetch announcements for the specific user
