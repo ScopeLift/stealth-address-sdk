@@ -46,8 +46,6 @@ const deployContract = async ({
     throw new Error(`Failed to deploy ${name} contract`);
   }
 
-  console.log(`${name} contract deployed to: ${contractAddress}`);
-
   return { address: contractAddress, deployBlock: blockNumber };
 };
 

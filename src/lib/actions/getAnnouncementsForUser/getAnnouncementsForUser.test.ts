@@ -59,15 +59,12 @@ describe('getAnnouncementsForUser', () => {
       account: walletClient.account!,
     });
 
-    console.log('Waiting for announcement transaction to be mined...');
     // Wait for the transaction to be mined
-    const res = await walletClient.waitForTransactionReceipt({
+    await walletClient.waitForTransactionReceipt({
       hash,
     });
-    console.log('Announcement transaction mined:', res.transactionHash);
 
     // Fetch relevant announcements to check against
-    console.log('fetching announcements...');
     announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
@@ -78,7 +75,6 @@ describe('getAnnouncementsForUser', () => {
       fromBlock: ERC5564DeployBlock,
       toBlock: 'latest',
     });
-    console.log('relevant announcements fetched for testing');
   });
 
   test('filters announcements correctly for the user', async () => {

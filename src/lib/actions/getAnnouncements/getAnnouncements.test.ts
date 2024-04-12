@@ -47,12 +47,10 @@ describe('getAnnouncements', () => {
       account: walletClient.account!,
     });
 
-    console.log('Waiting for announcement transaction to be mined...');
     // Wait for the transaction to be mined
-    const res = await walletClient.waitForTransactionReceipt({
+    await walletClient.waitForTransactionReceipt({
       hash,
     });
-    console.log('Announcement transaction mined:', res.transactionHash);
   });
 
   afterEach(() => {

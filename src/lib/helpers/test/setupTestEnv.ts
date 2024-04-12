@@ -73,12 +73,7 @@ const getChainInfo = async () => {
 
 export const fetchChainId = async (): Promise<number> => {
   // If not running fork test script, use the foundry chain ID
-  if (!process.env.USE_FORK) {
-    console.log(
-      `Using foundry chain ID: ${foundry.id}; make sure you ran the fork test script if that's what you wanted`
-    );
-    return foundry.id;
-  }
+  if (!process.env.USE_FORK) return foundry.id;
 
   if (!process.env.RPC_URL) {
     throw new Error('RPC_URL not defined in env');
