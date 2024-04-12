@@ -100,10 +100,6 @@ const fetchLogsInChunks = async ({
   });
 
   if (!resolvedToBlock) {
-    // Try to get the latest block
-    try {
-      await getBlockNumber(publicClient);
-    } catch (error) {}
     throw new ResolvedBlockError(
       'Failed to resolve toBlock within fetchLogsInChunks.'
     );
