@@ -15,6 +15,7 @@ describe('prepareRegisterKeys', async () => {
     schemeId,
   });
   const account = walletClient.account?.address!;
+  const chain = walletClient.chain!;
 
   const prepareArgs = {
     account,
@@ -28,13 +29,14 @@ describe('prepareRegisterKeys', async () => {
   // Prepare tx using viem and the prepared payload
   const request = await walletClient.prepareTransactionRequest({
     ...prepared,
-    chain: walletClient.chain,
-    account: walletClient.account,
+    chain,
+    account,
   });
 
   const hash = await walletClient.sendTransaction({
     ...request,
-    chain: walletClient.chain,
+    chain,
+    account,
   });
 
   const res = await walletClient.waitForTransactionReceipt({ hash });

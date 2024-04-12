@@ -20,6 +20,7 @@ describe('prepareRegisterKeysOnBehalf', async () => {
     schemeId,
   });
   const account = walletClient.account?.address!;
+  const chain = walletClient.chain!;
 
   const generateSignature = async () => {
     // Get the registrant's current nonce for the signature
@@ -83,13 +84,14 @@ describe('prepareRegisterKeysOnBehalf', async () => {
   // Prepare tx using viem and the prepared payload
   const request = await walletClient.prepareTransactionRequest({
     ...prepared,
-    chain: walletClient.chain,
-    account: walletClient.account,
+    chain,
+    account,
   });
 
   const hash = await walletClient.sendTransaction({
     ...request,
-    chain: walletClient.chain,
+    chain,
+    account,
   });
 
   const res = await walletClient.waitForTransactionReceipt({ hash });
