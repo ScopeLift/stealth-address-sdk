@@ -7,7 +7,6 @@ import {
   type AnnouncementLog,
   type GetAnnouncementsParams,
   type GetAnnouncementsReturnType,
-  ResolvedBlockError,
 } from './types';
 
 /**
@@ -99,13 +98,6 @@ const fetchLogsInChunks = async ({
     block: toBlock ?? 'latest',
   });
 
-  console.log('🦄 ~ resolvedToBlock:', resolvedToBlock);
-  if (!resolvedToBlock) {
-    throw new ResolvedBlockError(
-      'Failed to resolve toBlock within fetchLogsInChunks.'
-    );
-  }
-
   let currentBlock = resolvedFromBlock;
   const allLogs = [];
 
@@ -151,17 +143,12 @@ export async function resolveBlockNumber({
     return block;
   }
 
-  try {
-    const { number } = await getBlock(publicClient, { blockTag: block });
-    // Get the latest block number if null, since it is the pending block
-    console.log('🦄 ~ number:', number);
-    if (!number) {
-      return getBlockNumber(publicClient);
-    }
-    return number;
-  } catch (error) {
-    throw new ResolvedBlockError(`Failed to resolve block: ${error}.`);
+  const { number } = await getBlock(publicClient, { blockTag: block });
+  // Get the latest block number if null, since it is the pending block
+  if (!number) {
+    return getBlockNumber(publicClient);
   }
+  return number;
 }
 
 export default getAnnouncements;
