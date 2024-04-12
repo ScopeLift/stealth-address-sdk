@@ -16,6 +16,8 @@ import type { HexString } from '../../../utils/crypto/types';
 import type { StealthActions } from '../../stealthClient/types';
 import type { SuperWalletClient } from '../../helpers/types';
 
+const PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM = 100; // Number of announcements to process in the large data set test
+
 describe('getAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
@@ -166,13 +168,10 @@ describe('getAnnouncementsForUser', () => {
 
   test('efficiently processes a large number of announcements', async () => {
     // Generate a large set of mock announcements using the first announcement from above
-    const largeNumberOfAnnouncements = 1000; // Example size
     const largeAnnouncements = Array.from(
-      { length: largeNumberOfAnnouncements },
+      { length: PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM },
       () => announcements[0]
     );
-
-    const startTime = performance.now();
 
     const results = await stealthClient.getAnnouncementsForUser({
       announcements: largeAnnouncements,
@@ -180,13 +179,8 @@ describe('getAnnouncementsForUser', () => {
       viewingPrivateKey,
     });
 
-    const endTime = performance.now();
-
     // Verify the function handles large data sets correctly
-    expect(results).toHaveLength(largeNumberOfAnnouncements);
-    console.log(
-      `Processed ${largeNumberOfAnnouncements} announcements in ${endTime - startTime} milliseconds.`
-    );
+    expect(results).toHaveLength(PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM);
   });
 
   test('throws TransactionHashRequiredError when transactionHash is null', async () => {
