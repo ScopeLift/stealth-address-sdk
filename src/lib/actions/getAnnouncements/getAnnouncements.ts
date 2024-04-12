@@ -154,6 +154,7 @@ export async function resolveBlockNumber({
   try {
     const { number } = await getBlock(publicClient, { blockTag: block });
     // Get the latest block number if null, since it is the pending block
+    console.log('🦄 ~ number:', number);
     if (!number) {
       return getBlockNumber(publicClient);
     }
