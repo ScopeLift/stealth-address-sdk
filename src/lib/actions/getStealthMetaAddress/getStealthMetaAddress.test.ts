@@ -11,7 +11,7 @@ import type { StealthActions } from '../../stealthClient/types';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { Address } from 'viem';
 
-describe('getStealthMetaAddress', async () => {
+describe('getStealthMetaAddress', () => {
   let stealthClient: StealthActions,
     ERC6538Address: Address,
     walletClient: SuperWalletClient,

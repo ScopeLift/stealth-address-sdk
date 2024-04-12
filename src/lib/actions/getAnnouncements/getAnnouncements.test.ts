@@ -11,7 +11,7 @@ import type { StealthActions } from '../../stealthClient/types';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { Address } from 'viem';
 
-describe('getAnnouncements', async () => {
+describe('getAnnouncements', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
   let fromBlock: bigint;
