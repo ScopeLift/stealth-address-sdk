@@ -56,7 +56,7 @@ describe('getAnnouncementsForUser', () => {
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC5564AnnouncerAbi,
       chain: walletClient.chain,
-      account: walletClient.account,
+      account: walletClient.account!,
     });
 
     console.log('Waiting for announcement transaction to be mined...');
