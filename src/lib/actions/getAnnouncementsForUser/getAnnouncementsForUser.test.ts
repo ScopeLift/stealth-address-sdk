@@ -18,31 +18,36 @@ import type { SuperWalletClient } from '../../helpers/types';
 
 describe('getAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
-  let announcements: AnnouncementLog[] = [];
   let walletClient: SuperWalletClient;
-  let fromBlock: bigint;
 
-  // Set up stealth address details
-  const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
-  const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
-    setupTestStealthKeys(schemeId);
+  let stealthAddress: HexString,
+    ephemeralPublicKey: HexString,
+    viewTag: HexString;
+  let spendingPublicKey: HexString,
+    viewingPrivateKey: HexString,
+    stealthMetaAddressURI: string;
 
-  // Set up stealth address details
-  const { stealthAddress, ephemeralPublicKey, viewTag } =
-    generateStealthAddress({
-      stealthMetaAddressURI,
-      schemeId,
-    });
+  let announcements: AnnouncementLog[] = [];
 
   beforeAll(async () => {
+    // Set up the test environment
     const {
       stealthClient: client,
       ERC5564Address,
-      ERC5564DeployBlock: deployBlock,
+      ERC5564DeployBlock,
     } = await setupTestEnv();
     walletClient = await setupTestWallet();
     stealthClient = client;
-    fromBlock = deployBlock;
+
+    // Set up the stealth keys and generate a stealth address
+    const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+    ({ stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
+      setupTestStealthKeys(schemeId));
+
+    ({ stealthAddress, ephemeralPublicKey, viewTag } = generateStealthAddress({
+      stealthMetaAddressURI,
+      schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+    }));
 
     // Announce the stealth address, ephemeral public key, and view tag
     const hash = await walletClient.writeContract({
@@ -51,7 +56,7 @@ describe('getAnnouncementsForUser', () => {
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC5564AnnouncerAbi,
       chain: walletClient.chain,
-      account: walletClient.account!,
+      account: walletClient.account,
     });
 
     console.log('Waiting for announcement transaction to be mined...');
@@ -70,7 +75,7 @@ describe('getAnnouncementsForUser', () => {
         stealthAddress,
         caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
       },
-      fromBlock,
+      fromBlock: ERC5564DeployBlock,
     });
     console.log('relevant announcements fetched for testing');
   });
