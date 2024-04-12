@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect, beforeAll } from 'bun:test';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import {
@@ -7,31 +7,39 @@ import {
   generateRandomStealthMetaAddress,
 } from '../../..';
 import { GetStealthMetaAddressError } from './types';
+import type { StealthActions } from '../../stealthClient/types';
+import type { SuperWalletClient } from '../../helpers/types';
+import type { Address } from 'viem';
 
 describe('getStealthMetaAddress', async () => {
-  const { stealthClient, ERC6538Address } = await setupTestEnv();
-  const walletClient = await setupTestWallet();
+  let stealthClient: StealthActions,
+    ERC6538Address: Address,
+    walletClient: SuperWalletClient,
+    registrant: Address;
 
   // Generate a random stealth meta address just for testing purposes
+  const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddress } = generateRandomStealthMetaAddress();
 
-  // Register the stealth meta address
-  const registrant = walletClient.account?.address!;
-  const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+  beforeAll(async () => {
+    // Set up the test environment
+    ({ stealthClient, ERC6538Address } = await setupTestEnv());
+    walletClient = await setupTestWallet();
 
-  const hash = await walletClient.writeContract({
-    address: ERC6538Address,
-    functionName: 'registerKeys',
-    args: [BigInt(schemeId), stealthMetaAddress],
-    abi: ERC6538RegistryAbi,
-    chain: walletClient.chain,
-    account: walletClient.account!,
+    // Register the stealth meta address
+    registrant = walletClient.account?.address!;
+
+    const hash = await walletClient.writeContract({
+      address: ERC6538Address,
+      functionName: 'registerKeys',
+      args: [BigInt(schemeId), stealthMetaAddress],
+      abi: ERC6538RegistryAbi,
+      chain: walletClient.chain,
+      account: registrant,
+    });
+
+    await walletClient.waitForTransactionReceipt({ hash });
   });
-
-  console.log('Waiting for registration transaction to be mined...');
-  const res = await walletClient.waitForTransactionReceipt({ hash });
-
-  console.log('Registration transaction mined:', res.transactionHash);
 
   test('should return the stealth meta address for a given registrant and scheme ID', async () => {
     const result = await stealthClient.getStealthMetaAddress({
