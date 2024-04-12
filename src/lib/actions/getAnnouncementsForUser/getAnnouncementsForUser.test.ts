@@ -13,15 +13,19 @@ import {
 import { type PublicClient } from 'viem';
 import { getViewTagFromMetadata } from '../../..';
 import type { HexString } from '../../../utils/crypto/types';
+import type { StealthActions } from '../../stealthClient/types';
+import type { SuperWalletClient } from '../../helpers/types';
 
-describe('getAnnouncementsForUser', async () => {
-  const { stealthClient, ERC5564Address, ERC5564DeployBlock } =
-    await setupTestEnv();
-  const walletClient = await setupTestWallet();
+describe('getAnnouncementsForUser', () => {
+  let stealthClient: StealthActions;
+  let announcements: AnnouncementLog[] = [];
+  let walletClient: SuperWalletClient;
+  let fromBlock: bigint;
+
+  // Set up stealth address details
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI, spendingPublicKey, viewingPrivateKey } =
     setupTestStealthKeys(schemeId);
-  const fromBlock = ERC5564DeployBlock;
 
   // Set up stealth address details
   const { stealthAddress, ephemeralPublicKey, viewTag } =
@@ -30,9 +34,16 @@ describe('getAnnouncementsForUser', async () => {
       schemeId,
     });
 
-  let announcements: AnnouncementLog[] = [];
-
   beforeAll(async () => {
+    const {
+      stealthClient: client,
+      ERC5564Address,
+      ERC5564DeployBlock: deployBlock,
+    } = await setupTestEnv();
+    walletClient = await setupTestWallet();
+    stealthClient = client;
+    fromBlock = deployBlock;
+
     // Announce the stealth address, ephemeral public key, and view tag
     const hash = await walletClient.writeContract({
       address: ERC5564Address,
