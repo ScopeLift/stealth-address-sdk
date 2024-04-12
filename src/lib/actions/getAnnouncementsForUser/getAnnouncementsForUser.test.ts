@@ -76,6 +76,7 @@ describe('getAnnouncementsForUser', () => {
         caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
       },
       fromBlock: ERC5564DeployBlock,
+      toBlock: 'latest',
     });
     console.log('relevant announcements fetched for testing');
   });
