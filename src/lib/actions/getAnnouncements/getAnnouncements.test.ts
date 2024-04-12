@@ -7,7 +7,6 @@ import {
 } from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
-import type { BlockTag } from 'viem';
 
 describe('getAnnouncements', async () => {
   const { stealthClient, ERC5564DeployBlock, ERC5564Address } =
