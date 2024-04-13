@@ -26,7 +26,7 @@ async function prepareAnnounce({
   ERC5564Address,
   args,
   account,
-  clientParams,
+  clientParams
 }: PrepareAnnounceParams): Promise<PrepareAnnounceReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
   const { schemeId, stealthAddress, ephemeralPublicKey, metadata } = args;
@@ -35,13 +35,13 @@ async function prepareAnnounce({
     schemeIdBigInt,
     stealthAddress,
     ephemeralPublicKey,
-    metadata,
+    metadata
   ];
 
   const data = encodeFunctionData({
     abi: ERC5564AnnouncerAbi,
     functionName: 'announce',
-    args: writeArgs,
+    args: writeArgs
   });
 
   try {
@@ -50,7 +50,7 @@ async function prepareAnnounce({
       address: ERC5564Address,
       abi: ERC5564AnnouncerAbi,
       functionName: 'announce',
-      args: writeArgs,
+      args: writeArgs
     });
   } catch (error) {
     throw new PrepareError(`Failed to prepare contract call: ${error}`);
@@ -59,7 +59,7 @@ async function prepareAnnounce({
   return {
     to: ERC5564Address,
     account,
-    data,
+    data
   };
 }
 export default prepareAnnounce;

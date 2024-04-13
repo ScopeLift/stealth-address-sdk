@@ -3,7 +3,7 @@ import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
 import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
-  generateStealthAddress,
+  generateStealthAddress
 } from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
@@ -23,7 +23,7 @@ describe('getAnnouncements', () => {
   const { stealthAddress, viewTag, ephemeralPublicKey } =
     generateStealthAddress({
       stealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
 
   // Set up the test environment and announce the stealth address
@@ -31,7 +31,7 @@ describe('getAnnouncements', () => {
     const {
       stealthClient: client,
       ERC5564Address,
-      ERC5564DeployBlock,
+      ERC5564DeployBlock
     } = await setupTestEnv();
     walletClient = await setupTestWallet();
     stealthClient = client;
@@ -44,12 +44,12 @@ describe('getAnnouncements', () => {
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC556AnnouncerAbi,
       chain: walletClient.chain,
-      account: walletClient.account!,
+      account: walletClient.account!
     });
 
     // Wait for the transaction to be mined
     await walletClient.waitForTransactionReceipt({
-      hash,
+      hash
     });
   });
 
@@ -61,7 +61,7 @@ describe('getAnnouncements', () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {},
-      fromBlock,
+      fromBlock
     });
 
     expect(announcements.length).toBeGreaterThan(0);
@@ -71,9 +71,9 @@ describe('getAnnouncements', () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
-        stealthAddress,
+        stealthAddress
       },
-      fromBlock,
+      fromBlock
     });
 
     expect(announcements[0].stealthAddress).toBe(stealthAddress);
@@ -82,9 +82,9 @@ describe('getAnnouncements', () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
-        caller: walletClient.account?.address,
+        caller: walletClient.account?.address
       },
-      fromBlock,
+      fromBlock
     });
 
     expect(announcements[0].caller).toBe(walletClient.account?.address!);
@@ -94,9 +94,9 @@ describe('getAnnouncements', () => {
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
-        schemeId: BigInt(schemeId),
+        schemeId: BigInt(schemeId)
       },
-      fromBlock,
+      fromBlock
     });
 
     expect(announcements[0].schemeId).toBe(BigInt(schemeId));
@@ -106,9 +106,9 @@ describe('getAnnouncements', () => {
     const invalidAnnouncements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
-        schemeId: invalidSchemeId,
+        schemeId: invalidSchemeId
       },
-      fromBlock,
+      fromBlock
     });
 
     expect(invalidAnnouncements.length).toBe(0);

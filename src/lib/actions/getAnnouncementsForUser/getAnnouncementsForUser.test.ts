@@ -8,7 +8,7 @@ import type { AnnouncementLog } from '..';
 import { FromValueNotFoundError, TransactionHashRequiredError } from './types';
 import {
   getTransactionFrom,
-  processAnnouncement,
+  processAnnouncement
 } from './getAnnouncementsForUser';
 import { type PublicClient } from 'viem';
 import { getViewTagFromMetadata } from '../../..';
@@ -36,7 +36,7 @@ describe('getAnnouncementsForUser', () => {
     const {
       stealthClient: client,
       ERC5564Address,
-      ERC5564DeployBlock,
+      ERC5564DeployBlock
     } = await setupTestEnv();
     walletClient = await setupTestWallet();
     stealthClient = client;
@@ -48,7 +48,7 @@ describe('getAnnouncementsForUser', () => {
 
     ({ stealthAddress, ephemeralPublicKey, viewTag } = generateStealthAddress({
       stealthMetaAddressURI,
-      schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+      schemeId: VALID_SCHEME_ID.SCHEME_ID_1
     }));
 
     // Announce the stealth address, ephemeral public key, and view tag
@@ -58,12 +58,12 @@ describe('getAnnouncementsForUser', () => {
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC5564AnnouncerAbi,
       chain: walletClient.chain,
-      account: walletClient.account!,
+      account: walletClient.account!
     });
 
     // Wait for the transaction to be mined
     await walletClient.waitForTransactionReceipt({
-      hash,
+      hash
     });
 
     // Fetch relevant announcements to check against
@@ -72,10 +72,10 @@ describe('getAnnouncementsForUser', () => {
       args: {
         schemeId: BigInt(schemeId),
         stealthAddress,
-        caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
+        caller: walletClient.account?.address // Just an example; the caller is the address of the wallet since it called announce
       },
       fromBlock: ERC5564DeployBlock,
-      toBlock: 'latest',
+      toBlock: 'latest'
     });
   });
 
@@ -84,7 +84,7 @@ describe('getAnnouncementsForUser', () => {
     const results = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey,
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     expect(results[0].stealthAddress).toEqual(stealthAddress);
@@ -93,7 +93,7 @@ describe('getAnnouncementsForUser', () => {
     const results2 = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey: '0x',
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     expect(results2.length).toBe(0);
@@ -102,7 +102,7 @@ describe('getAnnouncementsForUser', () => {
     const results3 = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey,
-      viewingPrivateKey: '0x',
+      viewingPrivateKey: '0x'
     });
 
     expect(results3.length).toBe(0);
@@ -118,7 +118,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      excludeList: [fromAddressToTest],
+      excludeList: [fromAddressToTest]
     });
 
     expect(excludeListResults.length).toBe(0);
@@ -128,7 +128,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      excludeList: [someOtherAddress],
+      excludeList: [someOtherAddress]
     });
 
     expect(excludeListResults2[0].stealthAddress).toEqual(stealthAddress);
@@ -138,7 +138,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      includeList: [fromAddressToTest],
+      includeList: [fromAddressToTest]
     });
 
     expect(includeListResults[0].stealthAddress).toEqual(stealthAddress);
@@ -148,7 +148,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      includeList: [someOtherAddress],
+      includeList: [someOtherAddress]
     });
 
     expect(includeListResults2.length).toBe(0);
@@ -160,7 +160,7 @@ describe('getAnnouncementsForUser', () => {
         spendingPublicKey,
         viewingPrivateKey,
         includeList: [fromAddressToTest],
-        excludeList: [fromAddressToTest],
+        excludeList: [fromAddressToTest]
       });
 
     expect(includeAndExcludeListResults.length).toBe(0);
@@ -170,13 +170,13 @@ describe('getAnnouncementsForUser', () => {
     // Generate a large set of mock announcements using the first announcement from above
     const largeAnnouncements = Array.from(
       { length: PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM },
-      () => announcements[0],
+      () => announcements[0]
     );
 
     const results = await stealthClient.getAnnouncementsForUser({
       announcements: largeAnnouncements,
       spendingPublicKey,
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     // Verify the function handles large data sets correctly
@@ -186,7 +186,7 @@ describe('getAnnouncementsForUser', () => {
   test('throws TransactionHashRequiredError when transactionHash is null', async () => {
     const announcementWithoutHash: AnnouncementLog = {
       ...announcements[0],
-      transactionHash: null,
+      transactionHash: null
     };
 
     expect(
@@ -197,9 +197,9 @@ describe('getAnnouncementsForUser', () => {
           spendingPublicKey,
           viewingPrivateKey,
           excludeList: new Set([]),
-          includeList: new Set([]),
-        },
-      ),
+          includeList: new Set([])
+        }
+      )
     ).rejects.toBeInstanceOf(TransactionHashRequiredError);
   });
 
@@ -209,15 +209,15 @@ describe('getAnnouncementsForUser', () => {
     expect(
       getTransactionFrom({
         publicClient: walletClient as PublicClient,
-        hash: invalidHash,
-      }),
+        hash: invalidHash
+      })
     ).rejects.toBeInstanceOf(FromValueNotFoundError);
   });
 
   test('throws error if view tag does not start with 0x', () => {
     const metadata = 'invalidmetadata';
     expect(() => getViewTagFromMetadata(metadata as HexString)).toThrow(
-      'Invalid metadata format',
+      'Invalid metadata format'
     );
   });
 });

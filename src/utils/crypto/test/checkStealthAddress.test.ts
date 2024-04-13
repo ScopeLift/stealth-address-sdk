@@ -4,7 +4,7 @@ import {
   checkStealthAddress,
   generateStealthAddress,
   parseKeysFromStealthMetaAddress,
-  parseStealthMetaAddressURI,
+  parseStealthMetaAddressURI
 } from '..';
 import { bytesToHex } from 'viem';
 
@@ -14,7 +14,7 @@ describe('checkStealthAddress', () => {
     'st:eth:0x02f1f006a160b934c1d71479ce7d57f1c4ec10018230e35ca10ab65db68e8f037b0305d4725c7784262a38af11a9aef490b1307b82b17866f08d66c38db04c946ab1';
   const stealthMetaAddress = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
   const viewingPrivateKey =
     '0x2f8fcb2d1e06f52695e06a792b6d59c80a81ad70fc11b03b5236eed5cff09670';
@@ -22,12 +22,12 @@ describe('checkStealthAddress', () => {
   const { stealthAddress, ephemeralPublicKey, viewTag } =
     generateStealthAddress({
       stealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
 
   const { spendingPublicKey } = parseKeysFromStealthMetaAddress({
     stealthMetaAddress,
-    schemeId,
+    schemeId
   });
 
   test('successfully identifies an announcement for the user', () => {
@@ -37,7 +37,7 @@ describe('checkStealthAddress', () => {
       spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: stealthAddress,
       viewingPrivateKey,
-      viewTag,
+      viewTag
     });
 
     expect(isForUser).toBe(true);
@@ -51,7 +51,7 @@ describe('checkStealthAddress', () => {
       spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: stealthAddress,
       viewingPrivateKey,
-      viewTag: mismatchedViewTag,
+      viewTag: mismatchedViewTag
     });
 
     expect(isForUser).toBe(false);
@@ -65,7 +65,7 @@ describe('checkStealthAddress', () => {
       spendingPublicKey: bytesToHex(spendingPublicKey),
       userStealthAddress: differentStealthAddress,
       viewingPrivateKey,
-      viewTag,
+      viewTag
     });
 
     expect(isForUser).toBe(false);

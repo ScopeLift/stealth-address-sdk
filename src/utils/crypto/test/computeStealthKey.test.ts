@@ -3,7 +3,7 @@ import {
   computeStealthKey,
   generatePrivateKey,
   generateStealthAddress,
-  VALID_SCHEME_ID,
+  VALID_SCHEME_ID
 } from '..';
 import { publicKeyToAddress } from 'viem/accounts';
 import { getPublicKey, CURVE, utils } from '@noble/secp256k1';
@@ -28,38 +28,38 @@ describe('generateStealthAddress and computeStealthKey', () => {
     const generatedStealthAddressResult = generateStealthAddress({
       ephemeralPrivateKey,
       schemeId,
-      stealthMetaAddressURI,
+      stealthMetaAddressURI
     });
 
     const computedStealthPrivateKeyHex = computeStealthKey({
       ephemeralPublicKey: generatedStealthAddressResult.ephemeralPublicKey,
       schemeId,
       spendingPrivateKey,
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     const computedStealthPublicKey = getPublicKey(
       hexToBytes(computedStealthPrivateKeyHex),
-      false,
+      false
     );
 
     const computedStealthAddress = publicKeyToAddress(
-      bytesToHex(computedStealthPublicKey),
+      bytesToHex(computedStealthPublicKey)
     );
 
     // Validate the generated stealth address matches the computed stealth address
     expect(generatedStealthAddressResult.stealthAddress).toEqual(
-      computedStealthAddress,
+      computedStealthAddress
     );
   });
 });
 
 describe('adding private keys', () => {
   const privateKey1 = BigInt(
-    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0',
+    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0'
   );
   const privateKey2 = BigInt(
-    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0',
+    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0'
   );
   const curveOrder = BigInt(CURVE.n);
 
@@ -72,7 +72,7 @@ describe('adding private keys', () => {
 
     // Check validity without modulo operation
     const isValidWithoutModulo = utils.isValidPrivateKey(
-      formatPrivKey(exceededScalar),
+      formatPrivKey(exceededScalar)
     );
     expect(isValidWithoutModulo).toBe(false);
 
@@ -81,7 +81,7 @@ describe('adding private keys', () => {
 
     // Check validity with modulo operation
     const isValidWithModulo = utils.isValidPrivateKey(
-      formatPrivKey(correctedScalar),
+      formatPrivKey(correctedScalar)
     );
     expect(isValidWithModulo).toBe(true);
 
@@ -96,7 +96,7 @@ describe('adding private keys', () => {
 
     const sumWithModulo = addPriv({
       a: privateKey1,
-      b: privateKey2,
+      b: privateKey2
     });
     // The sum is within the curve's order, which is valid
     expect(sumWithModulo).toBeLessThanOrEqual(curveOrder);

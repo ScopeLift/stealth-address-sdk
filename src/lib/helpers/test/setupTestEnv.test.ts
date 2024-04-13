@@ -47,7 +47,7 @@ describe('getValidChainId validation', () => {
   test('invalid chain ID throws error', () => {
     const invalidChainId = 9999;
     expect(() => getValidChainId(invalidChainId)).toThrow(
-      `Invalid chain ID: ${invalidChainId}`,
+      `Invalid chain ID: ${invalidChainId}`
     );
   });
 });
@@ -65,8 +65,8 @@ describe('fetchChainId', async () => {
     mock.module('./setupTestEnv', () => ({
       fetchJson: () =>
         Promise.resolve({
-          result: '0x1',
-        }),
+          result: '0x1'
+        })
     }));
 
     const chainId = await fetchChainId();
@@ -75,7 +75,7 @@ describe('fetchChainId', async () => {
 
   test('fetch failure throws error', async () => {
     mock.module('./setupTestEnv', () => ({
-      fetchJson: () => Promise.reject(new Error('Network failure')),
+      fetchJson: () => Promise.reject(new Error('Network failure'))
     }));
 
     expect(fetchChainId()).rejects.toThrow('Failed to get the chain ID');

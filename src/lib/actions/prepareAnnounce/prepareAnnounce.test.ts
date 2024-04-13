@@ -20,14 +20,14 @@ describe('prepareAnnounce', () => {
   const { stealthAddress, ephemeralPublicKey, viewTag } =
     generateStealthAddress({
       stealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
 
   const prepareArgs = {
     schemeId,
     stealthAddress,
     ephemeralPublicKey,
-    metadata: viewTag,
+    metadata: viewTag
   };
 
   // Transaction receipt for writing to the contract with the prepared payload
@@ -43,20 +43,20 @@ describe('prepareAnnounce', () => {
     const prepared = await stealthClient.prepareAnnounce({
       account,
       args: prepareArgs,
-      ERC5564Address,
+      ERC5564Address
     });
 
     // Prepare tx using viem and the prepared payload
     const request = await walletClient.prepareTransactionRequest({
       ...prepared,
       chain,
-      account,
+      account
     });
 
     const hash = await walletClient.sendTransaction({
       ...request,
       chain,
-      account,
+      account
     });
 
     res = await walletClient.waitForTransactionReceipt({ hash });
@@ -68,8 +68,8 @@ describe('prepareAnnounce', () => {
       stealthClient.prepareAnnounce({
         account,
         args: prepareArgs,
-        ERC5564Address: invalidERC5564Address,
-      }),
+        ERC5564Address: invalidERC5564Address
+      })
     ).rejects.toBeInstanceOf(PrepareError);
   });
 

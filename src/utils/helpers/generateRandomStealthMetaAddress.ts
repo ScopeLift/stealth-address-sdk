@@ -23,7 +23,7 @@ function generateRandomStealthMetaAddress() {
     stealthMetaAddress,
     stealthMetaAddressURI,
     viewingPrivateKey: bytesToHex(viewingPrivateKey),
-    viewingPublicKey,
+    viewingPublicKey
   };
 }
 

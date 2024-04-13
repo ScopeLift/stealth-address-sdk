@@ -35,7 +35,8 @@
       "indentWidth": 2,
       "indentStyle": "space",
       "quoteStyle": "single",
-      "arrowParentheses": "asNeeded"
+      "arrowParentheses": "asNeeded",
+      "trailingComma": "none"
     }
   }
 }

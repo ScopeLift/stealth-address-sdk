@@ -2,7 +2,7 @@ import { getAddress, type PublicClient } from 'viem';
 import {
   checkStealthAddress,
   getViewTagFromMetadata,
-  type EthAddress,
+  type EthAddress
 } from '../../..';
 import {
   TransactionHashRequiredError,
@@ -10,7 +10,7 @@ import {
   type GetAnnouncementsForUserReturnType,
   FromValueNotFoundError,
   type ProcessAnnouncementParams,
-  type ProcessAnnouncementReturnType,
+  type ProcessAnnouncementReturnType
 } from './types';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
@@ -34,16 +34,16 @@ async function getAnnouncementsForUser({
   viewingPrivateKey,
   clientParams,
   excludeList = [],
-  includeList = [],
+  includeList = []
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
 
   // Validate excludeList and includeList
   const _excludeList = new Set(
-    [...new Set(excludeList).values()].map(address => getAddress(address)),
+    [...new Set(excludeList).values()].map(address => getAddress(address))
   );
   const _includeList = new Set(
-    [...new Set(includeList).values()].map(address => getAddress(address)),
+    [...new Set(includeList).values()].map(address => getAddress(address))
   );
 
   const processedAnnouncements = await Promise.allSettled(
@@ -53,9 +53,9 @@ async function getAnnouncementsForUser({
         viewingPrivateKey,
         clientParams,
         excludeList: _excludeList,
-        includeList: _includeList,
-      }),
-    ),
+        includeList: _includeList
+      })
+    )
   );
 
   const relevantAnnouncements = processedAnnouncements.reduce<
@@ -65,7 +65,7 @@ async function getAnnouncementsForUser({
       result.status === 'fulfilled' && result.value !== null
         ? [...acc, result.value]
         : acc,
-    [],
+    []
   );
 
   return relevantAnnouncements;
@@ -91,14 +91,14 @@ export async function processAnnouncement(
     spendingPublicKey,
     viewingPrivateKey,
     excludeList,
-    includeList,
-  }: ProcessAnnouncementParams,
+    includeList
+  }: ProcessAnnouncementParams
 ): Promise<ProcessAnnouncementReturnType> {
   const {
     ephemeralPubKey: ephemeralPublicKey,
     metadata,
     stealthAddress: userStealthAddress,
-    transactionHash: hash,
+    transactionHash: hash
   } = announcement;
 
   const viewTag = getViewTagFromMetadata(metadata);
@@ -109,7 +109,7 @@ export async function processAnnouncement(
     userStealthAddress,
     viewingPrivateKey,
     viewTag,
-    schemeId: Number(announcement.schemeId),
+    schemeId: Number(announcement.schemeId)
   });
 
   // If the announcement is not intended for the user, return null
@@ -121,7 +121,7 @@ export async function processAnnouncement(
     hash,
     excludeList,
     includeList,
-    publicClient,
+    publicClient
   });
 
   if (!shouldInclude) return null;
@@ -145,7 +145,7 @@ async function shouldIncludeAnnouncement({
   hash,
   excludeList,
   includeList,
-  publicClient,
+  publicClient
 }: {
   hash: `0x${string}`;
   excludeList: Set<EthAddress>;
@@ -175,7 +175,7 @@ async function shouldIncludeAnnouncement({
  */
 export async function getTransactionFrom({
   publicClient,
-  hash,
+  hash
 }: {
   publicClient: PublicClient;
   hash: `0x${string}`;

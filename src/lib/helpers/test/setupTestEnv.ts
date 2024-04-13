@@ -22,7 +22,7 @@ const setupTestEnv = async () => {
   const {
     erc5564ContractAddress: ERC5564Address,
     erc6538ContractAddress: ERC6538Address,
-    erc5564DeployBlock: ERC5564DeployBlock,
+    erc5564DeployBlock: ERC5564DeployBlock
   } = await deployAllContracts();
 
   return {
@@ -30,7 +30,7 @@ const setupTestEnv = async () => {
     ERC5564Address,
     ERC5564DeployBlock,
     ERC6538Address,
-    stealthClient,
+    stealthClient
   };
 };
 
@@ -90,13 +90,13 @@ export const fetchChainId = async (): Promise<number> => {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         id: 1,
         jsonrpc: '2.0',
-        method: 'eth_chainId',
-      }),
+        method: 'eth_chainId'
+      })
     });
 
     return fromHex(data.result, 'number');

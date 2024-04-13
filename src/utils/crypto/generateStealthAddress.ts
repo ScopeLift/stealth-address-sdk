@@ -2,7 +2,7 @@ import {
   getPublicKey as getPublicKeySecp256k1,
   getSharedSecret,
   ProjectivePoint,
-  utils,
+  utils
 } from '@noble/secp256k1';
 import {
   type GenerateStealthAddressReturnType,
@@ -10,13 +10,13 @@ import {
   type HexString,
   VALID_SCHEME_ID,
   type EthAddress,
-  type IGenerateStealthAddressParams,
+  type IGenerateStealthAddressParams
 } from './types';
 import {
   publicKeyToAddress as publicKeyToAddressViem,
   keccak256,
   bytesToHex,
-  hexToBytes,
+  hexToBytes
 } from 'viem/utils';
 
 /**
@@ -38,11 +38,11 @@ import {
 function generateStealthAddress({
   stealthMetaAddressURI,
   schemeId = VALID_SCHEME_ID.SCHEME_ID_1,
-  ephemeralPrivateKey,
+  ephemeralPrivateKey
 }: IGenerateStealthAddressParams): GenerateStealthAddressReturnType {
   const stealthMetaAddress = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
 
   if (!validateStealthMetaAddress({ stealthMetaAddress, schemeId })) {
@@ -51,26 +51,26 @@ function generateStealthAddress({
 
   const ephemeralPrivateKeyToUse = generatePrivateKey({
     ephemeralPrivateKey,
-    schemeId,
+    schemeId
   });
 
   // Compute the ephemeral public key from the ephemeral private key
   const ephemeralPublicKey = getPublicKey({
     privateKey: ephemeralPrivateKeyToUse,
     compressed: true,
-    schemeId,
+    schemeId
   });
 
   const { spendingPublicKey, viewingPublicKey } =
     parseKeysFromStealthMetaAddress({
       stealthMetaAddress,
-      schemeId,
+      schemeId
     });
 
   const sharedSecret = computeSharedSecret({
     ephemeralPrivateKey: ephemeralPrivateKeyToUse,
     recipientViewingPublicKey: viewingPublicKey,
-    schemeId,
+    schemeId
   });
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
@@ -80,18 +80,18 @@ function generateStealthAddress({
   const stealthPublicKey = getStealthPublicKey({
     spendingPublicKey,
     hashedSharedSecret,
-    schemeId,
+    schemeId
   });
 
   const stealthAddress = publicKeyToAddress({
     publicKey: stealthPublicKey,
-    schemeId,
+    schemeId
   });
 
   return {
     stealthAddress,
     ephemeralPublicKey: bytesToHex(ephemeralPublicKey),
-    viewTag,
+    viewTag
   };
 }
 
@@ -106,7 +106,7 @@ function generateStealthAddress({
  */
 function parseStealthMetaAddressURI({
   stealthMetaAddressURI,
-  schemeId,
+  schemeId
 }: {
   stealthMetaAddressURI: string;
   schemeId: VALID_SCHEME_ID;
@@ -132,7 +132,7 @@ function parseStealthMetaAddressURI({
  */
 function validateStealthMetaAddress({
   stealthMetaAddress,
-  schemeId,
+  schemeId
 }: {
   stealthMetaAddress: string;
   schemeId: VALID_SCHEME_ID;
@@ -157,7 +157,7 @@ function validateStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength,
+    singlePublicKeyHexLength
   ) as HexString;
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -193,7 +193,7 @@ function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
  */
 function parseKeysFromStealthMetaAddress({
   stealthMetaAddress,
-  schemeId,
+  schemeId
 }: {
   stealthMetaAddress: HexString;
   schemeId: VALID_SCHEME_ID;
@@ -204,7 +204,7 @@ function parseKeysFromStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength,
+    singlePublicKeyHexLength
   );
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -215,7 +215,7 @@ function parseKeysFromStealthMetaAddress({
     spendingPublicKey:
       ProjectivePoint.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
     viewingPublicKey:
-      ProjectivePoint.fromHex(viewingPublicKeyHex).toRawBytes(true), // Compressed
+      ProjectivePoint.fromHex(viewingPublicKeyHex).toRawBytes(true) // Compressed
   };
 }
 
@@ -231,7 +231,7 @@ function parseKeysFromStealthMetaAddress({
 function computeSharedSecret({
   ephemeralPrivateKey,
   recipientViewingPublicKey,
-  schemeId,
+  schemeId
 }: {
   ephemeralPrivateKey: Uint8Array;
   recipientViewingPublicKey: Uint8Array;
@@ -253,7 +253,7 @@ function computeSharedSecret({
  */
 function getHashedSharedSecret({
   sharedSecret,
-  schemeId,
+  schemeId
 }: {
   sharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
@@ -282,7 +282,7 @@ function handleSchemeId(schemeId: VALID_SCHEME_ID) {
  */
 function generatePrivateKey({
   ephemeralPrivateKey,
-  schemeId,
+  schemeId
 }: {
   ephemeralPrivateKey?: Uint8Array;
   schemeId: VALID_SCHEME_ID;
@@ -311,7 +311,7 @@ function generatePrivateKey({
 function getPublicKey({
   privateKey,
   compressed,
-  schemeId,
+  schemeId
 }: {
   privateKey: Uint8Array;
   compressed: boolean;
@@ -331,7 +331,7 @@ function getPublicKey({
  */
 function getViewTag({
   hashedSharedSecret,
-  schemeId,
+  schemeId
 }: {
   hashedSharedSecret: Hex;
   schemeId: VALID_SCHEME_ID;
@@ -354,7 +354,7 @@ function getViewTag({
 function getStealthPublicKey({
   spendingPublicKey,
   hashedSharedSecret,
-  schemeId,
+  schemeId
 }: {
   spendingPublicKey: Uint8Array;
   hashedSharedSecret: HexString;
@@ -362,7 +362,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(
-    hexToBytes(hashedSharedSecret),
+    hexToBytes(hashedSharedSecret)
   );
   return ProjectivePoint.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
@@ -379,7 +379,7 @@ function getStealthPublicKey({
  */
 function publicKeyToAddress({
   publicKey,
-  schemeId,
+  schemeId
 }: {
   publicKey: Hex;
   schemeId: VALID_SCHEME_ID;
@@ -387,7 +387,7 @@ function publicKeyToAddress({
   handleSchemeId(schemeId);
   // Use viem to convert the public key to an address
   return publicKeyToAddressViem(
-    typeof publicKey !== 'string' ? bytesToHex(publicKey) : publicKey,
+    typeof publicKey !== 'string' ? bytesToHex(publicKey) : publicKey
   );
 }
 
@@ -401,6 +401,6 @@ export {
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI,
   publicKeyToAddress,
-  isValidCompressedPublicKey,
+  isValidCompressedPublicKey
 };
 export default generateStealthAddress;

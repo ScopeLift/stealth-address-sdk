@@ -13,7 +13,7 @@ import type {
   PrepareRegisterKeysParams,
   PrepareRegisterKeysReturnType,
   WatchAnnouncementsForUserParams,
-  WatchAnnouncementsForUserReturnType,
+  WatchAnnouncementsForUserReturnType
 } from '../actions/';
 
 export type ClientParams =
@@ -37,19 +37,19 @@ export type StealthActions = {
     ERC5564Address,
     args,
     fromBlock,
-    toBlock,
+    toBlock
   }: GetAnnouncementsParams) => Promise<GetAnnouncementsReturnType>;
   getStealthMetaAddress: ({
     ERC6538Address,
     registrant,
-    schemeId,
+    schemeId
   }: GetStealthMetaAddressParams) => Promise<GetStealthMetaAddressReturnType>;
   getAnnouncementsForUser: ({
     announcements,
     spendingPublicKey,
     viewingPrivateKey,
     excludeList,
-    includeList,
+    includeList
   }: GetAnnouncementsForUserParams) => Promise<GetAnnouncementsReturnType>;
   watchAnnouncementsForUser: <T>({
     ERC5564Address,
@@ -57,23 +57,23 @@ export type StealthActions = {
     handleLogsForUser,
     spendingPublicKey,
     viewingPrivateKey,
-    pollOptions,
+    pollOptions
   }: WatchAnnouncementsForUserParams<T>) => Promise<WatchAnnouncementsForUserReturnType>;
   prepareAnnounce: ({
     account,
     args,
-    ERC5564Address,
+    ERC5564Address
   }: PrepareAnnounceParams) => Promise<PrepareAnnounceReturnType>;
   prepareRegisterKeys: ({
     ERC6538Address,
     schemeId,
     stealthMetaAddress,
-    account,
+    account
   }: PrepareRegisterKeysParams) => Promise<PrepareRegisterKeysReturnType>;
   prepareRegisterKeysOnBehalf: ({
     ERC6538Address,
     args,
-    account,
+    account
   }: PrepareRegisterKeysOnBehalfParams) => Promise<PrepareRegisterKeysOnBehalfReturnType>;
 };
 

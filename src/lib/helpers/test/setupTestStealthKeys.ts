@@ -6,7 +6,7 @@ function setupTestStealthKeys(schemeId: VALID_SCHEME_ID) {
     spendingPublicKey,
     stealthMetaAddressURI,
     viewingPrivateKey,
-    viewingPublicKey,
+    viewingPublicKey
   } = generateRandomStealthMetaAddress();
 
   return {
@@ -14,7 +14,7 @@ function setupTestStealthKeys(schemeId: VALID_SCHEME_ID) {
     spendingPrivateKey,
     viewingPublicKey,
     viewingPrivateKey,
-    stealthMetaAddressURI,
+    stealthMetaAddressURI
   };
 }
 

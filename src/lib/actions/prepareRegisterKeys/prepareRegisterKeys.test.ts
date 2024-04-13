@@ -4,7 +4,7 @@ import setupTestWallet from '../../helpers/test/setupTestWallet';
 import {
   VALID_SCHEME_ID,
   parseStealthMetaAddressURI,
-  type PrepareRegisterKeysParams,
+  type PrepareRegisterKeysParams
 } from '../../..';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import { PrepareError } from '../types';
@@ -23,7 +23,7 @@ describe('prepareRegisterKeys', () => {
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
 
   // Prepare payload args
@@ -42,7 +42,7 @@ describe('prepareRegisterKeys', () => {
       account,
       ERC6538Address,
       schemeId,
-      stealthMetaAddress: stealthMetaAddressToRegister,
+      stealthMetaAddress: stealthMetaAddressToRegister
     } satisfies PrepareRegisterKeysParams;
     const prepared = await stealthClient.prepareRegisterKeys(prepareArgs);
 
@@ -50,13 +50,13 @@ describe('prepareRegisterKeys', () => {
     const request = await walletClient.prepareTransactionRequest({
       ...prepared,
       chain,
-      account,
+      account
     });
 
     const hash = await walletClient.sendTransaction({
       ...request,
       chain,
-      account,
+      account
     });
 
     res = await walletClient.waitForTransactionReceipt({ hash });
@@ -66,8 +66,8 @@ describe('prepareRegisterKeys', () => {
     expect(
       stealthClient.prepareRegisterKeys({
         ...prepareArgs,
-        ERC6538Address: invalidERC6538Address,
-      }),
+        ERC6538Address: invalidERC6538Address
+      })
     ).rejects.toBeInstanceOf(PrepareError);
   });
 

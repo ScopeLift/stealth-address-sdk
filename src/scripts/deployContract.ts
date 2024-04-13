@@ -2,7 +2,7 @@ import {
   ERC5564AnnouncerAbi,
   ERC5564_CONTRACT,
   ERC6538_CONTRACT,
-  ERC6538RegistryAbi,
+  ERC6538RegistryAbi
 } from '..';
 import setupTestWallet from '../lib/helpers/test/setupTestWallet';
 
@@ -19,7 +19,7 @@ const deployContract = async ({
   address,
   abi,
   bytecode,
-  name,
+  name
 }: {
   address: ERC5564_CONTRACT | ERC6538_CONTRACT;
   abi: typeof ERC5564AnnouncerAbi | typeof ERC6538RegistryAbi;
@@ -36,7 +36,7 @@ const deployContract = async ({
     chain: walletClient.chain!,
     abi,
     bytecode,
-    gas: BigInt(1_000_000),
+    gas: BigInt(1_000_000)
   });
 
   const { contractAddress, blockNumber } =

@@ -4,7 +4,7 @@ import setupTestWallet from '../../helpers/test/setupTestWallet';
 import {
   ERC6538RegistryAbi,
   VALID_SCHEME_ID,
-  generateRandomStealthMetaAddress,
+  generateRandomStealthMetaAddress
 } from '../../..';
 import { GetStealthMetaAddressError } from './types';
 import type { StealthActions } from '../../stealthClient/types';
@@ -35,7 +35,7 @@ describe('getStealthMetaAddress', () => {
       args: [BigInt(schemeId), stealthMetaAddress],
       abi: ERC6538RegistryAbi,
       chain: walletClient.chain,
-      account: registrant,
+      account: registrant
     });
 
     await walletClient.waitForTransactionReceipt({ hash });
@@ -45,7 +45,7 @@ describe('getStealthMetaAddress', () => {
     const result = await stealthClient.getStealthMetaAddress({
       ERC6538Address,
       registrant,
-      schemeId,
+      schemeId
     });
 
     expect(result).toEqual(stealthMetaAddress);
@@ -58,8 +58,8 @@ describe('getStealthMetaAddress', () => {
       stealthClient.getStealthMetaAddress({
         ERC6538Address,
         registrant: invalidRegistrant,
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-      }),
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1
+      })
     ).rejects.toBeInstanceOf(GetStealthMetaAddressError);
   });
 });

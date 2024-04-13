@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import createStealthClient, {
-  handleViemPublicClient,
+  handleViemPublicClient
 } from './createStealthClient';
 import { PublicClientRequiredError, type ClientParams } from './types';
 import { createPublicClient, http } from 'viem';
@@ -14,8 +14,8 @@ describe('createStealthClient', () => {
     expect(() =>
       createStealthClient({
         chainId: invalidChainId as VALID_CHAIN_IDS, // Cast as valid chain to trigger error
-        rpcUrl: LOCAL_ENDPOINT,
-      }),
+        rpcUrl: LOCAL_ENDPOINT
+      })
     ).toThrow(new Error('Invalid chainId: 9999'));
   });
 });
@@ -24,14 +24,14 @@ describe('handleViemPublicClient', () => {
   test('throws error when clientParams is undefined', () => {
     expect(() => handleViemPublicClient(undefined)).toThrow(
       new PublicClientRequiredError(
-        'publicClient or chainId and rpcUrl must be provided',
-      ),
+        'publicClient or chainId and rpcUrl must be provided'
+      )
     );
   });
   test('returns publicClient when provided', () => {
     const mockPublicClient = createPublicClient({
       chain: foundry,
-      transport: http(LOCAL_ENDPOINT),
+      transport: http(LOCAL_ENDPOINT)
     });
     const client = handleViemPublicClient({ publicClient: mockPublicClient });
     expect(client).toBe(mockPublicClient);
@@ -42,10 +42,10 @@ describe('handleViemPublicClient', () => {
     expect(() =>
       handleViemPublicClient({
         chainId: undefined as unknown as VALID_CHAIN_IDS, // Cast as valid chain to trigger error
-        rpcUrl: exampleRpcUrl,
-      }),
+        rpcUrl: exampleRpcUrl
+      })
     ).toThrow(
-      new PublicClientRequiredError('public client could not be created.'),
+      new PublicClientRequiredError('public client could not be created.')
     );
   });
 
@@ -57,8 +57,8 @@ describe('handleViemPublicClient', () => {
     // Attempting to call the function with incorrectParams should lead to the expected error
     expect(() => handleViemPublicClient(incorrectParams)).toThrow(
       new PublicClientRequiredError(
-        'Either publicClient or both chainId and rpcUrl must be provided',
-      ),
+        'Either publicClient or both chainId and rpcUrl must be provided'
+      )
     );
   });
 });

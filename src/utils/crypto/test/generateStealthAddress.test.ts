@@ -5,7 +5,7 @@ import {
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
-  parseStealthMetaAddressURI,
+  parseStealthMetaAddressURI
 } from '..';
 import { VALID_SCHEME_ID, type HexString } from '../types';
 
@@ -21,8 +21,8 @@ describe('generateStealthAddress', () => {
     expect(() =>
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
-        schemeId,
-      }),
+        schemeId
+      })
     ).toThrow(new Error('Invalid stealth meta-address'));
   });
 
@@ -32,15 +32,15 @@ describe('generateStealthAddress', () => {
     expect(() =>
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
-        schemeId,
-      }),
+        schemeId
+      })
     ).toThrow(new Error('Invalid stealth meta-address URI format'));
   });
 
   test('should throw an error when given an invalid length stealth meta-address', () => {
     const stealthMetaAddress = parseStealthMetaAddressURI({
       stealthMetaAddressURI: validStealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
     // Intentionally alter the stealth meta-address to have an invalid length
     const invalid = 'st:eth:' + stealthMetaAddress.slice(7, -1) + '0';
@@ -48,8 +48,8 @@ describe('generateStealthAddress', () => {
     expect(() =>
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
-        schemeId,
-      }),
+        schemeId
+      })
     ).toThrow(new Error('Invalid stealth meta-address'));
   });
 
@@ -57,15 +57,15 @@ describe('generateStealthAddress', () => {
     // stealthMetaAddressURI with invalid public key lengths or prefixes
     const invalidURIs = [
       'st:eth:02' + '1'.repeat(63), // Invalid length
-      'st:eth:04' + '1'.repeat(64), // Invalid prefix
+      'st:eth:04' + '1'.repeat(64) // Invalid prefix
     ];
 
     invalidURIs.forEach(uri => {
       expect(() =>
         generateStealthAddress({
           stealthMetaAddressURI: uri,
-          schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-        }),
+          schemeId: VALID_SCHEME_ID.SCHEME_ID_1
+        })
       ).toThrow(new Error('Invalid stealth meta-address'));
     });
   });
@@ -74,7 +74,7 @@ describe('generateStealthAddress', () => {
     // TODO compute the expected stealth address using computeStealthAddress (not yet implemented in the SDK)
     const result = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
 
     expect(result.stealthAddress).toBeDefined();
@@ -85,19 +85,19 @@ describe('generateStealthAddress', () => {
     const firstPrivateKey = generatePrivateKey({ schemeId });
     const secondPrivateKey = generatePrivateKey({
       ephemeralPrivateKey: firstPrivateKey,
-      schemeId,
+      schemeId
     });
 
     const result = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
       schemeId,
-      ephemeralPrivateKey: firstPrivateKey,
+      ephemeralPrivateKey: firstPrivateKey
     });
 
     const result2 = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
       schemeId,
-      ephemeralPrivateKey: secondPrivateKey,
+      ephemeralPrivateKey: secondPrivateKey
     });
 
     expect(result.stealthAddress).toBe(result2.stealthAddress);
@@ -112,14 +112,14 @@ describe('generateStealthAddress', () => {
 
     const result = parseKeysFromStealthMetaAddress({
       stealthMetaAddress,
-      schemeId,
+      schemeId
     });
 
     expect(bytesToHex(result.spendingPublicKey)).toBe(
-      expectedSpendingPublicKeyHex,
+      expectedSpendingPublicKeyHex
     );
     expect(bytesToHex(result.viewingPublicKey)).toBe(
-      expectedViewingPublicKeyHex,
+      expectedViewingPublicKeyHex
     );
   });
 
@@ -131,7 +131,7 @@ describe('generateStealthAddress', () => {
 
     const result = getViewTag({
       hashedSharedSecret,
-      schemeId,
+      schemeId
     });
 
     expect(result).toBe(expectedViewTag);

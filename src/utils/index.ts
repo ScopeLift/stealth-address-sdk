@@ -5,12 +5,12 @@ export {
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
-  parseStealthMetaAddressURI,
+  parseStealthMetaAddressURI
 } from './crypto';
 
 export {
   generateRandomStealthMetaAddress,
-  getViewTagFromMetadata,
+  getViewTagFromMetadata
 } from './helpers';
 
 export {
@@ -18,5 +18,5 @@ export {
   type GenerateStealthAddressReturnType,
   type ICheckStealthAddressParams,
   type IGenerateStealthAddressParams,
-  VALID_SCHEME_ID,
+  VALID_SCHEME_ID
 } from './crypto/types';

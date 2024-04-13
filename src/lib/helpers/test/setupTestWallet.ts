@@ -22,7 +22,7 @@ const setupTestWallet = async (): Promise<SuperWalletClient> => {
   return createWalletClient({
     account,
     chain,
-    transport: http(rpcUrl),
+    transport: http(rpcUrl)
   }).extend(publicActions);
 };
 
@@ -36,7 +36,7 @@ const getAccount = (chainId: number) => {
   const privKey = process.env.PRIVATE_KEY as `0x${string}` | undefined;
   if (!privKey) {
     throw new Error(
-      'Missing PRIVATE_KEY environment variable; make sure to set it when using a remote RPC URL.',
+      'Missing PRIVATE_KEY environment variable; make sure to set it when using a remote RPC URL.'
     );
   }
   return privateKeyToAccount(privKey);

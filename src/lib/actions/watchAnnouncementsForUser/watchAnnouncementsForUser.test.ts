@@ -4,7 +4,7 @@ import {
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
   VALID_SCHEME_ID,
-  generateStealthAddress,
+  generateStealthAddress
 } from '../../..';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
@@ -25,7 +25,7 @@ type WriteAnnounceArgs = {
 const announce = async ({
   walletClient,
   ERC5564Address,
-  args,
+  args
 }: {
   walletClient: SuperWalletClient;
   ERC5564Address: Address;
@@ -39,16 +39,16 @@ const announce = async ({
       args.schemeId,
       args.stealthAddress,
       args.ephemeralPublicKey,
-      args.viewTag,
+      args.viewTag
     ],
     abi: ERC5564AnnouncerAbi,
     chain: walletClient.chain,
-    account: walletClient.account!,
+    account: walletClient.account!
   });
 
   // Wait for the transaction receipt
   await walletClient.waitForTransactionReceipt({
-    hash,
+    hash
   });
 
   return hash;
@@ -83,7 +83,7 @@ describe('watchAnnouncementsForUser', () => {
       ERC5564Address,
       args: {
         schemeId: schemeIdBigInt,
-        caller: walletClient.account?.address, // Watch announcements for the user, who is also the caller here as an example
+        caller: walletClient.account?.address // Watch announcements for the user, who is also the caller here as an example
       },
       handleLogsForUser: logs => {
         // Add the new announcements to the list
@@ -95,15 +95,15 @@ describe('watchAnnouncementsForUser', () => {
       spendingPublicKey,
       viewingPrivateKey,
       pollOptions: {
-        pollingInterval: WATCH_POLLING_INTERVAL, // Override the default polling interval for testing
-      },
+        pollingInterval: WATCH_POLLING_INTERVAL // Override the default polling interval for testing
+      }
     });
 
     // Set up the stealth address to announce
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId,
+        schemeId
       });
 
     // Sequentially announce NUM_ACCOUNCEMENT times
@@ -115,8 +115,8 @@ describe('watchAnnouncementsForUser', () => {
           schemeId: schemeIdBigInt,
           stealthAddress,
           ephemeralPublicKey,
-          viewTag,
-        },
+          viewTag
+        }
       });
     }
 
@@ -140,7 +140,7 @@ describe('watchAnnouncementsForUser', () => {
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId,
+        schemeId
       });
 
     const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
@@ -163,8 +163,8 @@ describe('watchAnnouncementsForUser', () => {
         schemeId: BigInt(schemeId),
         stealthAddress,
         ephemeralPublicKey: newEphemeralPublicKey,
-        viewTag,
-      },
+        viewTag
+      }
     });
 
     await delay();

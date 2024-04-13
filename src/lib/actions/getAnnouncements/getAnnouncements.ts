@@ -6,7 +6,7 @@ import { handleViemPublicClient } from '../../stealthClient/createStealthClient'
 import {
   type AnnouncementLog,
   type GetAnnouncementsParams,
-  type GetAnnouncementsReturnType,
+  type GetAnnouncementsReturnType
 } from './types';
 
 /**
@@ -25,20 +25,20 @@ async function getAnnouncements({
   ERC5564Address,
   args,
   fromBlock,
-  toBlock,
+  toBlock
 }: GetAnnouncementsParams): Promise<GetAnnouncementsReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
 
   const fetchParams = {
     address: ERC5564Address,
-    args,
+    args
   };
 
   const logs = await fetchLogsInChunks({
     publicClient,
     fetchParams,
     fromBlock,
-    toBlock,
+    toBlock
   });
 
   // Extract the relevant data from the logs
@@ -51,7 +51,7 @@ async function getAnnouncements({
       caller: args.caller,
       ephemeralPubKey: args.ephemeralPubKey,
       metadata: args.metadata,
-      ...log,
+      ...log
     };
   });
 
@@ -74,7 +74,7 @@ const fetchLogsInChunks = async ({
   fetchParams,
   fromBlock,
   toBlock,
-  chunkSize = 5000, // Default chunk size, can be adjusted
+  chunkSize = 5000 // Default chunk size, can be adjusted
 }: {
   publicClient: PublicClient;
   fetchParams: {
@@ -90,12 +90,12 @@ const fetchLogsInChunks = async ({
   const resolvedFromBlock =
     (await resolveBlockNumber({
       publicClient,
-      block: fromBlock ?? 'earliest',
+      block: fromBlock ?? 'earliest'
     })) || BigInt(0);
 
   const resolvedToBlock = await resolveBlockNumber({
     publicClient,
-    block: toBlock ?? 'latest',
+    block: toBlock ?? 'latest'
   });
 
   let currentBlock = resolvedFromBlock;
@@ -111,11 +111,11 @@ const fetchLogsInChunks = async ({
     const logs = await getLogs(publicClient, {
       ...fetchParams,
       event: parseAbiItem(
-        'event Announcement(uint256 indexed schemeId,address indexed stealthAddress,address indexed caller,bytes ephemeralPubKey,bytes metadata)',
+        'event Announcement(uint256 indexed schemeId,address indexed stealthAddress,address indexed caller,bytes ephemeralPubKey,bytes metadata)'
       ),
       fromBlock: currentBlock,
       toBlock: endBlock,
-      strict: true,
+      strict: true
     });
     allLogs.push(...logs);
     currentBlock = endBlock + BigInt(1);
@@ -134,7 +134,7 @@ const fetchLogsInChunks = async ({
  */
 export async function resolveBlockNumber({
   publicClient,
-  block,
+  block
 }: {
   publicClient: PublicClient;
   block?: BlockType;

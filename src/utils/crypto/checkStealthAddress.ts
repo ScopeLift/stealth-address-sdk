@@ -5,7 +5,7 @@ import {
   getStealthPublicKey,
   getViewTag,
   handleSchemeId,
-  publicKeyToAddress,
+  publicKeyToAddress
 } from '.';
 import { hexToBytes } from 'viem';
 
@@ -27,13 +27,13 @@ function checkStealthAddress({
   spendingPublicKey,
   userStealthAddress,
   viewingPrivateKey,
-  viewTag,
+  viewTag
 }: ICheckStealthAddressParams) {
   handleSchemeId(schemeId);
 
   const sharedSecret = getSharedSecret(
     hexToBytes(viewingPrivateKey),
-    hexToBytes(ephemeralPublicKey),
+    hexToBytes(ephemeralPublicKey)
   );
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
@@ -48,13 +48,13 @@ function checkStealthAddress({
   const stealthPublicKey = getStealthPublicKey({
     spendingPublicKey: hexToBytes(spendingPublicKey),
     hashedSharedSecret,
-    schemeId,
+    schemeId
   });
 
   // Derive the stealth address from the stealth public key
   const stealthAddress = publicKeyToAddress({
     publicKey: stealthPublicKey,
-    schemeId,
+    schemeId
   });
 
   // Compare derived stealth address with the user's stealth address

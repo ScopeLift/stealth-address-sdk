@@ -3,7 +3,7 @@ import { handleViemPublicClient } from '../../stealthClient/createStealthClient'
 import {
   GetStealthMetaAddressError,
   type GetStealthMetaAddressParams,
-  type GetStealthMetaAddressReturnType,
+  type GetStealthMetaAddressReturnType
 } from './types';
 
 /**
@@ -25,7 +25,7 @@ async function getStealthMetaAddress({
   clientParams,
   ERC6538Address,
   registrant,
-  schemeId,
+  schemeId
 }: GetStealthMetaAddressParams): Promise<GetStealthMetaAddressReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
   try {
@@ -33,11 +33,11 @@ async function getStealthMetaAddress({
       address: ERC6538Address,
       functionName: 'stealthMetaAddressOf',
       args: [registrant, BigInt(schemeId)],
-      abi: ERC6538RegistryAbi,
+      abi: ERC6538RegistryAbi
     });
   } catch (error) {
     throw new GetStealthMetaAddressError(
-      `Error getting stealth meta address: ${error}`,
+      `Error getting stealth meta address: ${error}`
     );
   }
 }
