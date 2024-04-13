@@ -1,7 +1,7 @@
 import {
   createStealthClient,
   ERC5564_CONTRACT,
-  VALID_SCHEME_ID,
+  VALID_SCHEME_ID
 } from 'stealth-address-sdk';
 
 // Initialize your environment variables or configuration
@@ -24,13 +24,13 @@ const unwatch = await stealthClient.watchAnnouncementsForUser({
   ERC5564Address,
   args: {
     schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1), // Your scheme ID
-    caller: '0xYourCallingContractAddress', // Use the address of your calling contract if applicable
+    caller: '0xYourCallingContractAddress' // Use the address of your calling contract if applicable
   },
   spendingPublicKey,
   viewingPrivateKey,
   handleLogsForUser: logs => {
     console.log(logs);
-  }, // Your callback function to handle incoming logs
+  } // Your callback function to handle incoming logs
 });
 
 // Stop watching for announcements

@@ -2,7 +2,7 @@ import {
   createStealthClient,
   getStealthMetaAddress,
   VALID_SCHEME_ID,
-  ERC6538_CONTRACT,
+  ERC6538_CONTRACT
 } from 'stealth-address-sdk';
 
 // Example stealth client parameters
@@ -24,7 +24,7 @@ const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
 const stealthMetaAddress = await stealthClient.getStealthMetaAddress({
   ERC6538Address,
   registrant,
-  schemeId,
+  schemeId
 });
 
 // Alternatively, you can use the getStealthMetaAddress function directly
@@ -33,5 +33,5 @@ const again = await getStealthMetaAddress({
   clientParams: { rpcUrl, chainId },
   ERC6538Address,
   registrant,
-  schemeId,
+  schemeId
 });

@@ -1,7 +1,7 @@
 import {
   ERC5564_CONTRACT,
   VALID_SCHEME_ID,
-  createStealthClient,
+  createStealthClient
 } from 'stealth-address-sdk';
 
 // Example parameters
@@ -37,11 +37,11 @@ async function fetchAnnouncementsForUser() {
     ERC5564Address,
     args: {
       schemeId,
-      caller,
+      caller
       // Additional args for filtering, if necessary
     },
     fromBlock, // Optional fromBlock parameter (defaults to 0, which can be slow for many blocks)
-    toBlock: 'latest', // Optional toBlock parameter (defaults to latest)
+    toBlock: 'latest' // Optional toBlock parameter (defaults to latest)
   });
 
   // Example call to getAnnouncementsForUser action on the stealth client
@@ -51,7 +51,7 @@ async function fetchAnnouncementsForUser() {
     spendingPublicKey,
     viewingPrivateKey,
     includeList: ['0xSomeEthAddress, 0xSomeOtherEthAddress'], // Optional include list to only include announcements for specific "from" addresses
-    excludeList: ['0xEthAddressToExclude'], // Optional exclude list to exclude announcements for specific "from" addresses
+    excludeList: ['0xEthAddressToExclude'] // Optional exclude list to exclude announcements for specific "from" addresses
   });
 
   return userAnnouncements;

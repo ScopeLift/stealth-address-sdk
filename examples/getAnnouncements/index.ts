@@ -2,7 +2,7 @@ import {
   ERC5564_CONTRACT,
   VALID_SCHEME_ID,
   createStealthClient,
-  getAnnouncements,
+  getAnnouncements
 } from 'stealth-address-sdk';
 
 // Example parameters
@@ -33,10 +33,10 @@ async function fetchAnnouncements() {
     ERC5564Address,
     args: {
       schemeId,
-      caller,
+      caller
       // Additional args for filtering, if necessary
     },
-    fromBlock,
+    fromBlock
     // toBlock: 'latest',
   });
 
@@ -48,8 +48,8 @@ async function fetchAnnouncements() {
     args: {
       schemeId,
       caller,
-      stealthAddress,
-    },
+      stealthAddress
+    }
   });
 
   console.log('Fetched announcements:', announcements);
