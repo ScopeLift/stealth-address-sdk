@@ -14,9 +14,8 @@
     "watch": "bun test --watch src"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.6.4",
     "@types/bun": "latest",
-    "eslint": "^8.56.0",
-    "prettier": "^3.2.4",
     "typescript": "^5.3.3"
   },
   "dependencies": {
