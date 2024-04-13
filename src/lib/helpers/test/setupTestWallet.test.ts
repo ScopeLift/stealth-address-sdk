@@ -27,7 +27,7 @@ describe('setupTestWallet', async () => {
     const account = getAccount(chainId);
     expect(account.address).toBeDefined();
     expect(account.address).not.toBe(
-      privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY).address
+      privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY).address,
     );
     delete process.env.PRIVATE_KEY;
   });
@@ -49,7 +49,7 @@ describe('setupTestWallet', async () => {
     }));
 
     expect(setupTestWallet()).rejects.toThrow(
-      'Missing PRIVATE_KEY environment variable; make sure to set it when using a remote RPC URL.'
+      'Missing PRIVATE_KEY environment variable; make sure to set it when using a remote RPC URL.',
     );
   });
 });

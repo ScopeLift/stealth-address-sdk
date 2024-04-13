@@ -40,26 +40,26 @@ describe('generateStealthAddress and computeStealthKey', () => {
 
     const computedStealthPublicKey = getPublicKey(
       hexToBytes(computedStealthPrivateKeyHex),
-      false
+      false,
     );
 
     const computedStealthAddress = publicKeyToAddress(
-      bytesToHex(computedStealthPublicKey)
+      bytesToHex(computedStealthPublicKey),
     );
 
     // Validate the generated stealth address matches the computed stealth address
     expect(generatedStealthAddressResult.stealthAddress).toEqual(
-      computedStealthAddress
+      computedStealthAddress,
     );
   });
 });
 
 describe('adding private keys', () => {
   const privateKey1 = BigInt(
-    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0'
+    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0',
   );
   const privateKey2 = BigInt(
-    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0'
+    '0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DEDFE92F46681B20A0',
   );
   const curveOrder = BigInt(CURVE.n);
 
@@ -72,7 +72,7 @@ describe('adding private keys', () => {
 
     // Check validity without modulo operation
     const isValidWithoutModulo = utils.isValidPrivateKey(
-      formatPrivKey(exceededScalar)
+      formatPrivKey(exceededScalar),
     );
     expect(isValidWithoutModulo).toBe(false);
 
@@ -81,7 +81,7 @@ describe('adding private keys', () => {
 
     // Check validity with modulo operation
     const isValidWithModulo = utils.isValidPrivateKey(
-      formatPrivKey(correctedScalar)
+      formatPrivKey(correctedScalar),
     );
     expect(isValidWithModulo).toBe(true);
 

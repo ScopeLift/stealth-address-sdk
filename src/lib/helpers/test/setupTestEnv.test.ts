@@ -47,7 +47,7 @@ describe('getValidChainId validation', () => {
   test('invalid chain ID throws error', () => {
     const invalidChainId = 9999;
     expect(() => getValidChainId(invalidChainId)).toThrow(
-      `Invalid chain ID: ${invalidChainId}`
+      `Invalid chain ID: ${invalidChainId}`,
     );
   });
 });

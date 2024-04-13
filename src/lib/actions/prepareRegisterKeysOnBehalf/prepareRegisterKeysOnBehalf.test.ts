@@ -120,7 +120,7 @@ describe('prepareRegisterKeysOnBehalf', () => {
         account,
         ERC6538Address: invalidERC6538Address,
         args,
-      })
+      }),
     ).rejects.toBeInstanceOf(PrepareError);
   });
 

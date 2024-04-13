@@ -157,7 +157,7 @@ function validateStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyHexLength,
   ) as HexString;
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -204,7 +204,7 @@ function parseKeysFromStealthMetaAddress({
   const singlePublicKeyHexLength = 66; // Length for compressed keys
   const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyHexLength,
   );
   const viewingPublicKeyHex =
     cleanedStealthMetaAddress.length === 132
@@ -362,7 +362,7 @@ function getStealthPublicKey({
 }) {
   handleSchemeId(schemeId);
   const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(
-    hexToBytes(hashedSharedSecret)
+    hexToBytes(hashedSharedSecret),
   );
   return ProjectivePoint.fromHex(spendingPublicKey)
     .add(hashedSharedSecretPoint)
@@ -387,7 +387,7 @@ function publicKeyToAddress({
   handleSchemeId(schemeId);
   // Use viem to convert the public key to an address
   return publicKeyToAddressViem(
-    typeof publicKey !== 'string' ? bytesToHex(publicKey) : publicKey
+    typeof publicKey !== 'string' ? bytesToHex(publicKey) : publicKey,
   );
 }
 

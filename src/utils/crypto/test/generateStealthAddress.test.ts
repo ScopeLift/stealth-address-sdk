@@ -22,7 +22,7 @@ describe('generateStealthAddress', () => {
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
         schemeId,
-      })
+      }),
     ).toThrow(new Error('Invalid stealth meta-address'));
   });
 
@@ -33,7 +33,7 @@ describe('generateStealthAddress', () => {
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
         schemeId,
-      })
+      }),
     ).toThrow(new Error('Invalid stealth meta-address URI format'));
   });
 
@@ -49,7 +49,7 @@ describe('generateStealthAddress', () => {
       generateStealthAddress({
         stealthMetaAddressURI: invalid,
         schemeId,
-      })
+      }),
     ).toThrow(new Error('Invalid stealth meta-address'));
   });
 
@@ -65,7 +65,7 @@ describe('generateStealthAddress', () => {
         generateStealthAddress({
           stealthMetaAddressURI: uri,
           schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-        })
+        }),
       ).toThrow(new Error('Invalid stealth meta-address'));
     });
   });
@@ -116,10 +116,10 @@ describe('generateStealthAddress', () => {
     });
 
     expect(bytesToHex(result.spendingPublicKey)).toBe(
-      expectedSpendingPublicKeyHex
+      expectedSpendingPublicKeyHex,
     );
     expect(bytesToHex(result.viewingPublicKey)).toBe(
-      expectedViewingPublicKeyHex
+      expectedViewingPublicKeyHex,
     );
   });
 

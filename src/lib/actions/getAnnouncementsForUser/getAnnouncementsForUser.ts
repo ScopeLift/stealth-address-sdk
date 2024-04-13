@@ -40,10 +40,10 @@ async function getAnnouncementsForUser({
 
   // Validate excludeList and includeList
   const _excludeList = new Set(
-    [...new Set(excludeList).values()].map(address => getAddress(address))
+    [...new Set(excludeList).values()].map(address => getAddress(address)),
   );
   const _includeList = new Set(
-    [...new Set(includeList).values()].map(address => getAddress(address))
+    [...new Set(includeList).values()].map(address => getAddress(address)),
   );
 
   const processedAnnouncements = await Promise.allSettled(
@@ -54,8 +54,8 @@ async function getAnnouncementsForUser({
         clientParams,
         excludeList: _excludeList,
         includeList: _includeList,
-      })
-    )
+      }),
+    ),
   );
 
   const relevantAnnouncements = processedAnnouncements.reduce<
@@ -65,7 +65,7 @@ async function getAnnouncementsForUser({
       result.status === 'fulfilled' && result.value !== null
         ? [...acc, result.value]
         : acc,
-    []
+    [],
   );
 
   return relevantAnnouncements;
@@ -92,7 +92,7 @@ export async function processAnnouncement(
     viewingPrivateKey,
     excludeList,
     includeList,
-  }: ProcessAnnouncementParams
+  }: ProcessAnnouncementParams,
 ): Promise<ProcessAnnouncementReturnType> {
   const {
     ephemeralPubKey: ephemeralPublicKey,

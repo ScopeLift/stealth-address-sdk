@@ -25,7 +25,7 @@ export type ProcessAnnouncementReturnType = AnnouncementLog | null;
 
 export class FromValueNotFoundError extends Error {
   constructor(
-    message: string = 'The "from" value could not be retrieved for a transaction.'
+    message: string = 'The "from" value could not be retrieved for a transaction.',
   ) {
     super(message);
     this.name = 'FromValueNotFoundError';

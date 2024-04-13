@@ -33,7 +33,7 @@ function checkStealthAddress({
 
   const sharedSecret = getSharedSecret(
     hexToBytes(viewingPrivateKey),
-    hexToBytes(ephemeralPublicKey)
+    hexToBytes(ephemeralPublicKey),
   );
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });

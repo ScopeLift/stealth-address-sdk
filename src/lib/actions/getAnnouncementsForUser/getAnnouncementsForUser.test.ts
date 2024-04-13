@@ -170,7 +170,7 @@ describe('getAnnouncementsForUser', () => {
     // Generate a large set of mock announcements using the first announcement from above
     const largeAnnouncements = Array.from(
       { length: PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM },
-      () => announcements[0]
+      () => announcements[0],
     );
 
     const results = await stealthClient.getAnnouncementsForUser({
@@ -198,8 +198,8 @@ describe('getAnnouncementsForUser', () => {
           viewingPrivateKey,
           excludeList: new Set([]),
           includeList: new Set([]),
-        }
-      )
+        },
+      ),
     ).rejects.toBeInstanceOf(TransactionHashRequiredError);
   });
 
@@ -210,14 +210,14 @@ describe('getAnnouncementsForUser', () => {
       getTransactionFrom({
         publicClient: walletClient as PublicClient,
         hash: invalidHash,
-      })
+      }),
     ).rejects.toBeInstanceOf(FromValueNotFoundError);
   });
 
   test('throws error if view tag does not start with 0x', () => {
     const metadata = 'invalidmetadata';
     expect(() => getViewTagFromMetadata(metadata as HexString)).toThrow(
-      'Invalid metadata format'
+      'Invalid metadata format',
     );
   });
 });

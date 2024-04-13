@@ -67,7 +67,7 @@ describe('prepareRegisterKeys', () => {
       stealthClient.prepareRegisterKeys({
         ...prepareArgs,
         ERC6538Address: invalidERC6538Address,
-      })
+      }),
     ).rejects.toBeInstanceOf(PrepareError);
   });
 

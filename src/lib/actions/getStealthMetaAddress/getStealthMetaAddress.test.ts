@@ -59,7 +59,7 @@ describe('getStealthMetaAddress', () => {
         ERC6538Address,
         registrant: invalidRegistrant,
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-      })
+      }),
     ).rejects.toBeInstanceOf(GetStealthMetaAddressError);
   });
 });

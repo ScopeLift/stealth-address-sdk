@@ -69,7 +69,7 @@ describe('prepareAnnounce', () => {
         account,
         args: prepareArgs,
         ERC5564Address: invalidERC5564Address,
-      })
+      }),
     ).rejects.toBeInstanceOf(PrepareError);
   });
 

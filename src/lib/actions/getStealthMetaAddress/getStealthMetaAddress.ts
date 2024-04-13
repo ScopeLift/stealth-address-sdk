@@ -37,7 +37,7 @@ async function getStealthMetaAddress({
     });
   } catch (error) {
     throw new GetStealthMetaAddressError(
-      `Error getting stealth meta address: ${error}`
+      `Error getting stealth meta address: ${error}`,
     );
   }
 }

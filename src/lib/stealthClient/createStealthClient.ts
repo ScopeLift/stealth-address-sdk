@@ -80,7 +80,7 @@ function createStealthClient({
 const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
   if (!clientParams) {
     throw new PublicClientRequiredError(
-      'publicClient or chainId and rpcUrl must be provided'
+      'publicClient or chainId and rpcUrl must be provided',
     );
   }
 
@@ -97,13 +97,13 @@ const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
       });
     } catch (error) {
       throw new PublicClientRequiredError(
-        'public client could not be created.'
+        'public client could not be created.',
       );
     }
   }
 
   throw new PublicClientRequiredError(
-    'Either publicClient or both chainId and rpcUrl must be provided'
+    'Either publicClient or both chainId and rpcUrl must be provided',
   );
 };
 

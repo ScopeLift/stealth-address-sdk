@@ -16,7 +16,7 @@ function computeStealthKey({
 
   const sharedSecret = getSharedSecret(
     hexToBytes(viewingPrivateKey),
-    hexToBytes(ephemeralPublicKey)
+    hexToBytes(ephemeralPublicKey),
   );
 
   const hashedSharedSecret = getHashedSharedSecret({ sharedSecret, schemeId });
@@ -30,8 +30,9 @@ function computeStealthKey({
     b: hashedSecretBigInt,
   });
 
-  const stealthPrivateKeyHex =
-    `0x${stealthPrivateKeyBigInt.toString(16).padStart(64, '0')}` as HexString;
+  const stealthPrivateKeyHex = `0x${stealthPrivateKeyBigInt
+    .toString(16)
+    .padStart(64, '0')}` as HexString;
 
   return stealthPrivateKeyHex;
 }
