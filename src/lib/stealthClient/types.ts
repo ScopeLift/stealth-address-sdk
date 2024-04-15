@@ -1,5 +1,4 @@
 import type { PublicClient } from 'viem';
-import type { VALID_CHAIN_IDS } from '../helpers/types';
 import type {
   GetAnnouncementsForUserParams,
   GetAnnouncementsParams,
@@ -15,6 +14,7 @@ import type {
   WatchAnnouncementsForUserParams,
   WatchAnnouncementsForUserReturnType
 } from '../actions/';
+import type { VALID_CHAIN_IDS } from '../helpers/types';
 
 export type ClientParams =
   | {
@@ -78,7 +78,7 @@ export type StealthActions = {
 };
 
 export class PublicClientRequiredError extends Error {
-  constructor(message: string = 'publicClient is required') {
+  constructor(message = 'publicClient is required') {
     super(message);
     this.name = 'PublicClientRequiredError';
     Object.setPrototypeOf(this, PublicClientRequiredError.prototype);

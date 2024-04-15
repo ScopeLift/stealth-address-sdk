@@ -1,10 +1,10 @@
-import { getSharedSecret, CURVE } from '@noble/secp256k1';
-import type { HexString, IComputeStealthKeyParams } from './types';
+import { CURVE, getSharedSecret } from '@noble/secp256k1';
+import { hexToBytes } from 'viem';
 import {
   getHashedSharedSecret,
   handleSchemeId
 } from './generateStealthAddress';
-import { hexToBytes } from 'viem';
+import type { HexString, IComputeStealthKeyParams } from './types';
 
 function computeStealthKey({
   ephemeralPublicKey,

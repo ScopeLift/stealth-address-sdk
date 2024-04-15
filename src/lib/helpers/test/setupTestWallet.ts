@@ -1,9 +1,9 @@
-import { createWalletClient, http, publicActions } from 'viem';
+import { http, createWalletClient, publicActions } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { foundry } from 'viem/chains';
 import { getChain as _getChain } from '../chains';
 import type { SuperWalletClient } from '../types';
-import { privateKeyToAccount } from 'viem/accounts';
 import { getChainInfo, getRpcUrl } from './setupTestEnv';
-import { foundry } from 'viem/chains';
 
 export const ANVIL_DEFAULT_PRIVATE_KEY =
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';

@@ -1,16 +1,16 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Address, TransactionReceipt } from 'viem';
 import {
   ERC6538RegistryAbi,
   VALID_SCHEME_ID,
   parseStealthMetaAddressURI
 } from '../../..';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
-import type { RegisterKeysOnBehalfArgs } from './types';
-import { PrepareError } from '../types';
-import type { Address, TransactionReceipt } from 'viem';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { StealthActions } from '../../stealthClient/types';
+import { PrepareError } from '../types';
+import type { RegisterKeysOnBehalfArgs } from './types';
 
 describe('prepareRegisterKeysOnBehalf', () => {
   let stealthClient: StealthActions,

@@ -1,15 +1,15 @@
-import { describe, test, expect, mock, afterEach, beforeAll } from 'bun:test';
-import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test';
+import type { Address } from 'viem';
 import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
   generateStealthAddress
 } from '../../..';
+import ERC556AnnouncerAbi from '../../abi/ERC5564Announcer';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
-import type { StealthActions } from '../../stealthClient/types';
 import type { SuperWalletClient } from '../../helpers/types';
-import type { Address } from 'viem';
+import type { StealthActions } from '../../stealthClient/types';
 
 describe('getAnnouncements', () => {
   let stealthClient: StealthActions;

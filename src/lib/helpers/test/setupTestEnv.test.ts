@@ -1,6 +1,6 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-import { LOCAL_ENDPOINT } from './setupTestEnv';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { VALID_CHAINS } from '../types';
+import { LOCAL_ENDPOINT } from './setupTestEnv';
 
 describe('setupTestEnv with different environment configurations', () => {
   test('should use local node endpoint url when USE_FORK is true and RPC_URL is defined', async () => {

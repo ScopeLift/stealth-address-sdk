@@ -1,19 +1,19 @@
-import { getAddress, type PublicClient } from 'viem';
+import { type PublicClient, getAddress } from 'viem';
 import {
+  type EthAddress,
   checkStealthAddress,
-  getViewTagFromMetadata,
-  type EthAddress
+  getViewTagFromMetadata
 } from '../../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
-  TransactionHashRequiredError,
+  FromValueNotFoundError,
   type GetAnnouncementsForUserParams,
   type GetAnnouncementsForUserReturnType,
-  FromValueNotFoundError,
   type ProcessAnnouncementParams,
-  type ProcessAnnouncementReturnType
+  type ProcessAnnouncementReturnType,
+  TransactionHashRequiredError
 } from './types';
-import type { AnnouncementLog } from '../getAnnouncements/types';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 
 /**
  * @description Fetches and processes a list of announcements to determine which are relevant for the user.

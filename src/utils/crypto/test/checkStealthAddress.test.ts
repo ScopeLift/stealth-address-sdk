@@ -1,4 +1,5 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { bytesToHex } from 'viem';
 import {
   VALID_SCHEME_ID,
   checkStealthAddress,
@@ -6,7 +7,6 @@ import {
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI
 } from '..';
-import { bytesToHex } from 'viem';
 
 describe('checkStealthAddress', () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;

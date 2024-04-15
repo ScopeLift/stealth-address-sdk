@@ -1,13 +1,13 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { CURVE, getPublicKey, utils } from '@noble/secp256k1';
+import { bytesToHex, hexToBytes } from 'viem';
+import { publicKeyToAddress } from 'viem/accounts';
 import {
+  VALID_SCHEME_ID,
   computeStealthKey,
   generatePrivateKey,
-  generateStealthAddress,
-  VALID_SCHEME_ID
+  generateStealthAddress
 } from '..';
-import { publicKeyToAddress } from 'viem/accounts';
-import { getPublicKey, CURVE, utils } from '@noble/secp256k1';
-import { bytesToHex, hexToBytes } from 'viem';
 import { addPriv } from '../computeStealthKey';
 
 const formatPrivKey = (privateKey: bigint) =>

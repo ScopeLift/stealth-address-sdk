@@ -1,8 +1,8 @@
 import {
+  VALID_SCHEME_ID,
   checkStealthAddress,
   generateRandomStealthMetaAddress,
-  generateStealthAddress,
-  VALID_SCHEME_ID
+  generateStealthAddress
 } from 'stealth-address-sdk';
 
 // User's keys (for example purposes, real values should be securely generated and stored)

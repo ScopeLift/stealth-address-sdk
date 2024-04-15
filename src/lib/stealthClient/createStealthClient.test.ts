@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
+import { http, createPublicClient } from 'viem';
+import { foundry } from 'viem/chains';
+import { LOCAL_ENDPOINT } from '../helpers/test/setupTestEnv';
+import type { VALID_CHAIN_IDS } from '../helpers/types';
 import createStealthClient, {
   handleViemPublicClient
 } from './createStealthClient';
-import { PublicClientRequiredError, type ClientParams } from './types';
-import { createPublicClient, http } from 'viem';
-import { foundry } from 'viem/chains';
-import { LOCAL_ENDPOINT } from '../helpers/test/setupTestEnv';
-import { type VALID_CHAIN_IDS } from '../helpers/types';
+import { type ClientParams, PublicClientRequiredError } from './types';
 
 describe('createStealthClient', () => {
   test('throws error when invalid chain id is provided', () => {

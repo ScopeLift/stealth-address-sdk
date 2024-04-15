@@ -1,4 +1,4 @@
-import { utils, getPublicKey } from '@noble/secp256k1';
+import { getPublicKey, utils } from '@noble/secp256k1';
 import { bytesToHex } from 'viem';
 import type { HexString } from '../crypto/types';
 

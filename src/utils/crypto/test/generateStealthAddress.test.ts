@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { bytesToHex } from 'viem';
 import {
   generatePrivateKey,
@@ -7,7 +7,7 @@ import {
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI
 } from '..';
-import { VALID_SCHEME_ID, type HexString } from '../types';
+import { type HexString, VALID_SCHEME_ID } from '../types';
 
 describe('generateStealthAddress', () => {
   const validStealthMetaAddressURI =

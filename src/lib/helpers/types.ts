@@ -6,7 +6,7 @@ import type {
   Transport,
   WalletActions
 } from 'viem';
-import { sepolia, type Chain, foundry } from 'viem/chains';
+import { type Chain, foundry, sepolia } from 'viem/chains';
 export type VALID_CHAIN_IDS = typeof sepolia.id | typeof foundry.id;
 
 export const VALID_CHAINS: Record<VALID_CHAIN_IDS, Chain> = {

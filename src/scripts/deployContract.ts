@@ -1,8 +1,8 @@
-import {
+import type {
   ERC5564AnnouncerAbi,
   ERC5564_CONTRACT,
-  ERC6538_CONTRACT,
-  ERC6538RegistryAbi
+  ERC6538RegistryAbi,
+  ERC6538_CONTRACT
 } from '..';
 import setupTestWallet from '../lib/helpers/test/setupTestWallet';
 

@@ -2,8 +2,8 @@ import type {
   WatchAnnouncementsForUserParams,
   WatchAnnouncementsForUserReturnType
 } from '..';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import { ERC5564AnnouncerAbi, getAnnouncementsForUser } from '../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 
 /**
  * Watches for announcement events relevant to the user.

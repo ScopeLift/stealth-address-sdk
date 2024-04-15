@@ -1,9 +1,9 @@
+import { fromHex } from 'viem';
 import { foundry } from 'viem/chains';
-import { getChain } from '../chains';
 import { createStealthClient } from '../..';
 import deployAllContracts from '../../../scripts';
+import { getChain } from '../chains';
 import type { VALID_CHAIN_IDS } from '../types';
-import { fromHex } from 'viem';
 
 export const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
 

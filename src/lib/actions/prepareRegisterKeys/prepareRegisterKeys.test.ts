@@ -1,16 +1,16 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
-import {
-  VALID_SCHEME_ID,
-  parseStealthMetaAddressURI,
-  type PrepareRegisterKeysParams
-} from '../../..';
-import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
-import { PrepareError } from '../types';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import type { Address, Chain, TransactionReceipt } from 'viem';
+import {
+  type PrepareRegisterKeysParams,
+  VALID_SCHEME_ID,
+  parseStealthMetaAddressURI
+} from '../../..';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
+import { PrepareError } from '../types';
 
 describe('prepareRegisterKeys', () => {
   let stealthClient: StealthActions,

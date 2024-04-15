@@ -1,15 +1,15 @@
-import { describe, test, expect, beforeAll } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Address } from 'viem';
 import {
   ERC6538RegistryAbi,
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress
 } from '../../..';
-import { GetStealthMetaAddressError } from './types';
-import type { StealthActions } from '../../stealthClient/types';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
-import type { Address } from 'viem';
+import type { StealthActions } from '../../stealthClient/types';
+import { GetStealthMetaAddressError } from './types';
 
 describe('getStealthMetaAddress', () => {
   let stealthClient: StealthActions,

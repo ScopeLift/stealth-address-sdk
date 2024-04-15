@@ -1,8 +1,8 @@
 import {
-  createStealthClient,
-  getStealthMetaAddress,
+  ERC6538_CONTRACT,
   VALID_SCHEME_ID,
-  ERC6538_CONTRACT
+  createStealthClient,
+  getStealthMetaAddress
 } from 'stealth-address-sdk';
 
 // Example stealth client parameters

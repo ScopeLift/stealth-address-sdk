@@ -1,5 +1,5 @@
 import { getSharedSecret } from '@noble/secp256k1';
-import type { ICheckStealthAddressParams } from './types';
+import { hexToBytes } from 'viem';
 import {
   getHashedSharedSecret,
   getStealthPublicKey,
@@ -7,7 +7,7 @@ import {
   handleSchemeId,
   publicKeyToAddress
 } from '.';
-import { hexToBytes } from 'viem';
+import type { ICheckStealthAddressParams } from './types';
 
 /**
  * @description Checks if a given announcement is intended for the user.

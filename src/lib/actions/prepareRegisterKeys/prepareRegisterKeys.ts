@@ -1,11 +1,11 @@
+import { encodeFunctionData } from 'viem';
+import { ERC6538RegistryAbi } from '../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import { PrepareError } from '../types';
 import type {
   PrepareRegisterKeysParams,
   PrepareRegisterKeysReturnType
 } from './types';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { ERC6538RegistryAbi } from '../..';
-import { encodeFunctionData } from 'viem';
-import { PrepareError } from '../types';
 
 /**
  * Prepares the payload for registering keys (setting the stealth meta-address) by simulating the contract call.

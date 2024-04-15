@@ -1,7 +1,7 @@
-import { beforeEach, mock, describe, test, expect, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { privateKeyToAccount } from 'viem/accounts';
-import { ANVIL_DEFAULT_PRIVATE_KEY } from './setupTestWallet';
 import { VALID_CHAINS } from '../types';
+import { ANVIL_DEFAULT_PRIVATE_KEY } from './setupTestWallet';
 
 describe('setupTestWallet', async () => {
   const { setupTestWallet, getAccount } = await import('./setupTestWallet');

@@ -1,23 +1,23 @@
 import {
+  ProjectivePoint,
   getPublicKey as getPublicKeySecp256k1,
   getSharedSecret,
-  ProjectivePoint,
   utils
 } from '@noble/secp256k1';
 import {
+  bytesToHex,
+  hexToBytes,
+  keccak256,
+  publicKeyToAddress as publicKeyToAddressViem
+} from 'viem/utils';
+import {
+  type EthAddress,
   type GenerateStealthAddressReturnType,
   type Hex,
   type HexString,
-  VALID_SCHEME_ID,
-  type EthAddress,
-  type IGenerateStealthAddressParams
+  type IGenerateStealthAddressParams,
+  VALID_SCHEME_ID
 } from './types';
-import {
-  publicKeyToAddress as publicKeyToAddressViem,
-  keccak256,
-  bytesToHex,
-  hexToBytes
-} from 'viem/utils';
 
 /**
  * @description Generates a stealth address from a given stealth meta-address.

@@ -1,11 +1,11 @@
+import { encodeFunctionData } from 'viem';
+import { ERC6538RegistryAbi } from '../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import { PrepareError } from '../types';
 import type {
   PrepareRegisterKeysOnBehalfParams,
   PrepareRegisterKeysOnBehalfReturnType
 } from './types';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { ERC6538RegistryAbi } from '../..';
-import { encodeFunctionData } from 'viem';
-import { PrepareError } from '../types';
 
 async function prepareRegisterKeysOnBehalf({
   ERC6538Address,

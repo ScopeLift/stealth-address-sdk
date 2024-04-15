@@ -1,16 +1,16 @@
-import { describe, test, expect, afterAll, beforeAll } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import type { Address } from 'viem';
 import {
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
   VALID_SCHEME_ID,
   generateStealthAddress
 } from '../../..';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
+import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
-import type { Address } from 'viem';
-import { type SuperWalletClient } from '../../helpers/types';
 
 const NUM_ACCOUNCEMENTS = 3;
 const WATCH_POLLING_INTERVAL = 1000;
@@ -70,7 +70,7 @@ describe('watchAnnouncementsForUser', () => {
     setupTestStealthKeys(schemeId);
 
   // Track the new announcements to see if they are being watched
-  let newAnnouncements: AnnouncementLog[] = [];
+  const newAnnouncements: AnnouncementLog[] = [];
   let unwatch: () => void;
 
   beforeAll(async () => {

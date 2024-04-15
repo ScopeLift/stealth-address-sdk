@@ -1,8 +1,8 @@
-import type { PrepareAnnounceParams, PrepareAnnounceReturnType } from './types';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { ERC5564AnnouncerAbi } from '../..';
 import { encodeFunctionData } from 'viem';
+import { ERC5564AnnouncerAbi } from '../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import { PrepareError } from '../types';
+import type { PrepareAnnounceParams, PrepareAnnounceReturnType } from './types';
 
 /**
  * Prepares the payload for announcing a stealth address to the ERC5564 contract.

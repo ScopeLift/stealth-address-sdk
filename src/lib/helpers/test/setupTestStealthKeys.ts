@@ -1,4 +1,7 @@
-import { VALID_SCHEME_ID, generateRandomStealthMetaAddress } from '../../..';
+import {
+  type VALID_SCHEME_ID,
+  generateRandomStealthMetaAddress
+} from '../../..';
 
 function setupTestStealthKeys(schemeId: VALID_SCHEME_ID) {
   const {

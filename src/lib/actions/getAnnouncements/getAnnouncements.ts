@@ -3,10 +3,10 @@ import type { BlockType } from '../types';
 import { type PublicClient, parseAbiItem } from 'viem';
 import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import {
-  type AnnouncementLog,
-  type GetAnnouncementsParams,
-  type GetAnnouncementsReturnType
+import type {
+  AnnouncementLog,
+  GetAnnouncementsParams,
+  GetAnnouncementsReturnType
 } from './types';
 
 /**
