@@ -7,10 +7,11 @@ import {
 // Example parameters
 const chainId = 11155111; // Example chain ID for Sepolia
 const rpcUrl = process.env.RPC_URL; // Your env rpc url that aligns with the chainId;
+if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 const fromBlock = BigInt(12345678); // Example ERC5564 announcer contract deploy block for Sepolia, or the block in which the user registered their stealth meta address (as an example)
 
 // Initialize the stealth client
-const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
+const stealthClient = createStealthClient({ chainId, rpcUrl });
 
 // Use the address of your calling contract if applicable
 const caller = '0xYourCallingContractAddress';

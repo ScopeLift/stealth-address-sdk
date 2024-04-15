@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test';
-import type { Address } from 'viem';
+import type { Account, Address } from 'viem';
 import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
@@ -16,6 +16,7 @@ describe('getAnnouncements', () => {
   let walletClient: SuperWalletClient;
   let fromBlock: bigint;
   let ERC5564Address: Address;
+  let account: Account | undefined;
 
   // Set up stealth address details
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -36,6 +37,9 @@ describe('getAnnouncements', () => {
     walletClient = await setupTestWallet();
     stealthClient = client;
     fromBlock = ERC5564DeployBlock;
+    account = walletClient.account;
+
+    if (!account) throw new Error('No account found');
 
     // Announce the stealth address, ephemeral public key, and view tag
     const hash = await walletClient.writeContract({
@@ -44,7 +48,7 @@ describe('getAnnouncements', () => {
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC556AnnouncerAbi,
       chain: walletClient.chain,
-      account: walletClient.account!
+      account
     });
 
     // Wait for the transaction to be mined
@@ -79,6 +83,8 @@ describe('getAnnouncements', () => {
     expect(announcements[0].stealthAddress).toBe(stealthAddress);
   });
   test('fetches specific announcements successfully using caller', async () => {
+    if (!account) throw new Error('No account found');
+
     const announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
@@ -87,7 +93,7 @@ describe('getAnnouncements', () => {
       fromBlock
     });
 
-    expect(announcements[0].caller).toBe(walletClient.account?.address!);
+    expect(announcements[0].caller).toBe(account.address);
   });
 
   test('fetches specific announcements successfully using schemeId', async () => {

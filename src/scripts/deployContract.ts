@@ -30,10 +30,13 @@ const deployContract = async ({
   deployBlock: bigint;
 }> => {
   const walletClient = await setupTestWallet();
+  if (!walletClient.account || !walletClient.chain) {
+    throw new Error('No account or chain found');
+  }
 
   const hash = await walletClient.deployContract({
-    account: walletClient.account!,
-    chain: walletClient.chain!,
+    account: walletClient.account,
+    chain: walletClient.chain,
     abi,
     bytecode,
     gas: BigInt(1_000_000)

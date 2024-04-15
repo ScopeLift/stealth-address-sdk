@@ -14,7 +14,7 @@ describe('setupTestEnv with different environment configurations', () => {
 
   test('throws error when USE_FORK is true and RPC_URL is not defined', async () => {
     process.env.USE_FORK = 'true';
-    delete process.env.RPC_URL;
+    process.env.RPC_URL = undefined;
     const { getRpcUrl } = await import('./setupTestEnv');
 
     expect(getRpcUrl).toThrow('RPC_URL not defined in env');
@@ -82,7 +82,7 @@ describe('fetchChainId', async () => {
   });
 
   test('throws error when RPC_URL is not defined', async () => {
-    delete process.env.RPC_URL;
+    process.env.RPC_URL = undefined;
 
     expect(fetchChainId).toThrow('RPC_URL not defined in env');
   });

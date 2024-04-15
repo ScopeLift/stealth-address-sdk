@@ -13,9 +13,9 @@ import { PrepareError } from '../types';
 import type { RegisterKeysOnBehalfArgs } from './types';
 
 describe('prepareRegisterKeysOnBehalf', () => {
-  let stealthClient: StealthActions,
-    account: Address,
-    args: RegisterKeysOnBehalfArgs;
+  let stealthClient: StealthActions;
+  let account: Address | undefined;
+  let args: RegisterKeysOnBehalfArgs;
 
   // Transaction receipt for writing to the contract with the prepared payload
   let res: TransactionReceipt;
@@ -34,10 +34,12 @@ describe('prepareRegisterKeysOnBehalf', () => {
       stealthMetaAddressURI,
       schemeId
     });
-    account = walletClient.account?.address!;
-    const chain = walletClient.chain!;
+    account = walletClient.account?.address;
+    if (!account) throw new Error('No account found');
+    const chain = walletClient.chain;
+    if (!chain) throw new Error('No chain found');
 
-    const generateSignature = async () => {
+    const generateSignature = async (account: Address) => {
       // Get the registrant's current nonce for the signature
       const nonce = await walletClient.readContract({
         address: ERC6538Address,
@@ -87,7 +89,7 @@ describe('prepareRegisterKeysOnBehalf', () => {
       registrant: account,
       schemeId,
       stealthMetaAddress: stealthMetaAddressToRegister,
-      signature: await generateSignature()
+      signature: await generateSignature(account)
     } satisfies RegisterKeysOnBehalfArgs;
 
     const prepared = await stealthClient.prepareRegisterKeysOnBehalf({
@@ -113,6 +115,8 @@ describe('prepareRegisterKeysOnBehalf', () => {
   });
 
   test('should throw PrepareError when given invalid contract address', () => {
+    if (!account) throw new Error('No account found');
+
     const invalidERC6538Address = '0xinvalid';
 
     expect(

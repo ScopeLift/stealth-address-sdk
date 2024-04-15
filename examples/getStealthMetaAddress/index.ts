@@ -8,9 +8,10 @@ import {
 // Example stealth client parameters
 const chainId = 11155111; // Example chain ID for Sepolia
 const rpcUrl = process.env.RPC_URL; // Use your env rpc url that aligns with the chainId;
+if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 
 // Initialize the stealth client
-const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
+const stealthClient = createStealthClient({ chainId, rpcUrl });
 
 // Example getting the singleton registry contract address for Sepolia
 const ERC6538Address = ERC6538_CONTRACT.SEPOLIA;

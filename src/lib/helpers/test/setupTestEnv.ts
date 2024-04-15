@@ -101,11 +101,11 @@ export const fetchChainId = async (): Promise<number> => {
 
     return fromHex(data.result, 'number');
   } catch (error) {
-    throw new Error(`Failed to get the chain ID`);
+    throw new Error('Failed to get the chain ID');
   }
 };
 
-const fetchJson = async <T>(url: string, options: any) => {
+const fetchJson = async <T>(url: string, options: FetchRequestInit) => {
   const response = await fetch(url, options);
 
   if (!response.ok) {

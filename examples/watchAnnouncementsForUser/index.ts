@@ -6,7 +6,8 @@ import {
 
 // Initialize your environment variables or configuration
 const chainId = 11155111; // Example chain ID
-const rpcUrl = process.env.RPC_URL!; // Your Ethereum RPC URL
+const rpcUrl = process.env.RPC_URL; // Your Ethereum RPC URL
+if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 
 // User's keys and stealth address details
 const spendingPublicKey = '0xUserSpendingPublicKey';

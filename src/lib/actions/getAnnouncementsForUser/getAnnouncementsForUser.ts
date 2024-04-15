@@ -63,7 +63,7 @@ async function getAnnouncementsForUser({
   >(
     (acc, result) =>
       result.status === 'fulfilled' && result.value !== null
-        ? [...acc, result.value]
+        ? acc.concat(result.value)
         : acc,
     []
   );

@@ -31,6 +31,8 @@ const announce = async ({
   ERC5564Address: Address;
   args: WriteAnnounceArgs;
 }) => {
+  if (!walletClient.account) throw new Error('No account found');
+
   // Write to the announcement contract
   const hash = await walletClient.writeContract({
     address: ERC5564Address,
@@ -43,7 +45,7 @@ const announce = async ({
     ],
     abi: ERC5564AnnouncerAbi,
     chain: walletClient.chain,
-    account: walletClient.account!
+    account: walletClient.account
   });
 
   // Wait for the transaction receipt
@@ -59,9 +61,9 @@ const delay = async () =>
   await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL));
 
 describe('watchAnnouncementsForUser', () => {
-  let stealthClient: StealthActions,
-    walletClient: SuperWalletClient,
-    ERC5564Address: Address;
+  let stealthClient: StealthActions;
+  let walletClient: SuperWalletClient;
+  let ERC5564Address: Address;
 
   // Set up keys
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -88,9 +90,9 @@ describe('watchAnnouncementsForUser', () => {
       handleLogsForUser: logs => {
         // Add the new announcements to the list
         // Should be just one log for each call of the announce function
-        logs.forEach(log => {
+        for (const log of logs) {
           newAnnouncements.push(log);
-        });
+        }
       },
       spendingPublicKey,
       viewingPrivateKey,

@@ -79,6 +79,7 @@ const fetchLogsInChunks = async ({
   publicClient: PublicClient;
   fetchParams: {
     address: `0x${string}`;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO handle better
     args: any;
     fromBlock?: BlockType;
     toBlock?: BlockType;

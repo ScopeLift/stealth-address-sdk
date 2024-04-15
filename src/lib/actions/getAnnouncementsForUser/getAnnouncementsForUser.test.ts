@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
-import type { PublicClient } from 'viem';
+import type { Account, PublicClient } from 'viem';
 import type { AnnouncementLog } from '..';
 import { getViewTagFromMetadata } from '../../..';
 import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
@@ -21,13 +21,14 @@ const PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM = 100; // Number of announcement
 describe('getAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
+  let account: Account | undefined;
 
-  let stealthAddress: HexString,
-    ephemeralPublicKey: HexString,
-    viewTag: HexString;
-  let spendingPublicKey: HexString,
-    viewingPrivateKey: HexString,
-    stealthMetaAddressURI: string;
+  let stealthAddress: HexString;
+  let ephemeralPublicKey: HexString;
+  let viewTag: HexString;
+  let spendingPublicKey: HexString;
+  let viewingPrivateKey: HexString;
+  let stealthMetaAddressURI: string;
 
   let announcements: AnnouncementLog[] = [];
 
@@ -39,6 +40,10 @@ describe('getAnnouncementsForUser', () => {
       ERC5564DeployBlock
     } = await setupTestEnv();
     walletClient = await setupTestWallet();
+    account = walletClient.account;
+    const chain = walletClient.chain;
+    if (!account) throw new Error('No account found');
+    if (!chain) throw new Error('No chain found');
     stealthClient = client;
 
     // Set up the stealth keys and generate a stealth address
@@ -57,8 +62,8 @@ describe('getAnnouncementsForUser', () => {
       functionName: 'announce',
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC5564AnnouncerAbi,
-      chain: walletClient.chain,
-      account: walletClient.account!
+      chain,
+      account
     });
 
     // Wait for the transaction to be mined
@@ -109,8 +114,10 @@ describe('getAnnouncementsForUser', () => {
   });
 
   test('handles include and exclude lists correctly', async () => {
+    if (!account) throw new Error('No account found');
+
     // Just an example: the 'from' address of the announcement to use for filtering
-    const fromAddressToTest = walletClient.account?.address!;
+    const fromAddressToTest = account.address;
     const someOtherAddress = '0xD945323b7E5071598868989838414e679F29C0AB';
 
     // Test with an exclude list that should filter out the announcement

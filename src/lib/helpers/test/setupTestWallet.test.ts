@@ -8,15 +8,15 @@ describe('setupTestWallet', async () => {
 
   // Clean up the environment variables before each test
   beforeEach(() => {
-    delete process.env.USE_FORK;
-    delete process.env.RPC_URL;
-    delete process.env.PRIVATE_KEY;
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
+    process.env.PRIVATE_KEY = undefined;
   });
 
   afterEach(() => {
-    delete process.env.USE_FORK;
-    delete process.env.RPC_URL;
-    delete process.env.PRIVATE_KEY;
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
+    process.env.PRIVATE_KEY = undefined;
   });
 
   test('uses PRIVATE_KEY environment variable when not using foundry', () => {
@@ -29,7 +29,6 @@ describe('setupTestWallet', async () => {
     expect(account.address).not.toBe(
       privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY).address
     );
-    delete process.env.PRIVATE_KEY;
   });
 
   test('throws an error when the PRIVATE_KEY environment variable is not set', async () => {

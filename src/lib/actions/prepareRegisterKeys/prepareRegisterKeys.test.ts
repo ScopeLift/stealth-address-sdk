@@ -13,11 +13,11 @@ import type { StealthActions } from '../../stealthClient/types';
 import { PrepareError } from '../types';
 
 describe('prepareRegisterKeys', () => {
-  let stealthClient: StealthActions,
-    ERC6538Address: Address,
-    walletClient: SuperWalletClient,
-    account: Address,
-    chain: Chain;
+  let stealthClient: StealthActions;
+  let ERC6538Address: Address;
+  let walletClient: SuperWalletClient;
+  let account: Address | undefined;
+  let chain: Chain | undefined;
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
@@ -35,8 +35,10 @@ describe('prepareRegisterKeys', () => {
     // Set up the test environment
     ({ stealthClient, ERC6538Address } = await setupTestEnv());
     walletClient = await setupTestWallet();
-    account = walletClient.account?.address!;
-    chain = walletClient.chain!;
+    account = walletClient.account?.address;
+    if (!account) throw new Error('No account found');
+    chain = walletClient.chain;
+    if (!chain) throw new Error('No chain found');
 
     prepareArgs = {
       account,

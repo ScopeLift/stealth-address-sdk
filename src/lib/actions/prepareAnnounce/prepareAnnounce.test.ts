@@ -9,11 +9,11 @@ import type { StealthActions } from '../../stealthClient/types';
 import { PrepareError } from '../types';
 
 describe('prepareAnnounce', () => {
-  let stealthClient: StealthActions,
-    ERC5564Address: Address,
-    walletClient: SuperWalletClient,
-    account: Address,
-    chain: Chain;
+  let stealthClient: StealthActions;
+  let ERC5564Address: Address;
+  let walletClient: SuperWalletClient;
+  let account: Address | undefined;
+  let chain: Chain | undefined;
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
@@ -37,8 +37,11 @@ describe('prepareAnnounce', () => {
     // Set up the test environment
     ({ stealthClient, ERC5564Address } = await setupTestEnv());
     walletClient = await setupTestWallet();
-    account = walletClient.account?.address!;
-    chain = walletClient.chain!;
+    account = walletClient.account?.address;
+    chain = walletClient.chain;
+
+    if (!account) throw new Error('No account found');
+    if (!chain) throw new Error('No chain found');
 
     const prepared = await stealthClient.prepareAnnounce({
       account,
@@ -63,6 +66,8 @@ describe('prepareAnnounce', () => {
   });
 
   test('should throw PrepareError when given invalid params', () => {
+    if (!account) throw new Error('No account found');
+
     const invalidERC5564Address = '0xinvalid';
     expect(
       stealthClient.prepareAnnounce({
