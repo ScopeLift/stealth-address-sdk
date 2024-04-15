@@ -10,7 +10,7 @@
     "test-fork": "make test-fork",
     "test": "bun test",
     "build": "bun tsc",
-    "format": "prettier --write .",
+    "format": "npx @biomejs/biome format --write .",
     "watch": "bun test --watch src"
   },
   "devDependencies": {
