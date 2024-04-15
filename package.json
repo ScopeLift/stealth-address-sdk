@@ -9,9 +9,10 @@
     "anvil-fork": "make anvil-fork",
     "test-fork": "make test-fork",
     "test": "bun test",
-    "build": "bun tsc",
+    "build": "npx @biomejs/biome check . && bun tsc",
     "format": "npx @biomejs/biome format --write .",
-    "watch": "bun test --watch src"
+    "watch": "bun test --watch src",
+    "lint": "npx @biomejs/biome lint ."
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
