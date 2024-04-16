@@ -12,7 +12,7 @@ import type { StealthActions } from '../../stealthClient/types';
 import type { Address } from 'viem';
 import { type SuperWalletClient } from '../../helpers/types';
 
-const NUM_ACCOUNCEMENTS = 3;
+const NUM_ANNOUNCEMENTS = 3;
 const WATCH_POLLING_INTERVAL = 1000;
 
 type WriteAnnounceArgs = {
@@ -107,7 +107,7 @@ describe('watchAnnouncementsForUser', () => {
       });
 
     // Sequentially announce NUM_ACCOUNCEMENT times
-    for (let i = 0; i < NUM_ACCOUNCEMENTS; i++) {
+    for (let i = 0; i < NUM_ANNOUNCEMENTS; i++) {
       await announce({
         walletClient,
         ERC5564Address,
@@ -131,7 +131,7 @@ describe('watchAnnouncementsForUser', () => {
   test('should watch announcements for a user', () => {
     // Check if the announcements were watched
     // There should be NUM_ACCOUNCEMENTS announcements because there were NUM_ANNOUNCEMENTS calls to the announce function
-    expect(newAnnouncements.length).toEqual(NUM_ACCOUNCEMENTS);
+    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
   });
 
   test('should correctly not update announcements for a user if announcement does not apply to user', async () => {
@@ -170,6 +170,6 @@ describe('watchAnnouncementsForUser', () => {
     await delay();
 
     // Expect no change in the number of announcements watched
-    expect(newAnnouncements.length).toEqual(NUM_ACCOUNCEMENTS);
+    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
   });
 });
