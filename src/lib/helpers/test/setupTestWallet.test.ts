@@ -29,7 +29,6 @@ describe('setupTestWallet', async () => {
     expect(account.address).not.toBe(
       privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY).address
     );
-    delete process.env.PRIVATE_KEY;
   });
 
   test('throws an error when the PRIVATE_KEY environment variable is not set', async () => {
