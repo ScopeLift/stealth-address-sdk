@@ -1,12 +1,12 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
-import generatePublicKeysFromSignature from '../generateKeysFromSignature';
+import { afterAll, beforeAll, describe, expect, test, mock } from 'bun:test';
+import generateKeysFromSignature from '../generateKeysFromSignature';
 import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import type { HexString } from '../../crypto/types';
 import { signMessage } from 'viem/actions';
 import isValidPublicKey from '../isValidPublicKey';
 
-describe('generatePublicKeysFromSignature', () => {
+describe('generateKeysFromSignature', () => {
   let walletClient: SuperWalletClient;
   let signature: HexString;
 
@@ -22,8 +22,12 @@ describe('generatePublicKeysFromSignature', () => {
     });
   });
 
+  afterAll(() => {
+    mock.restore();
+  });
+
   test('should generate valid public keys from a correct signature', () => {
-    const result = generatePublicKeysFromSignature(signature);
+    const result = generateKeysFromSignature(signature);
 
     expect(isValidPublicKey(result.spendingPublicKey)).toBe(true);
     expect(isValidPublicKey(result.viewingPublicKey)).toBe(true);
@@ -33,19 +37,20 @@ describe('generatePublicKeysFromSignature', () => {
     const invalidSignature = '0x123';
 
     expect(() => {
-      generatePublicKeysFromSignature(invalidSignature);
+      generateKeysFromSignature(invalidSignature);
     }).toThrow('Invalid signature');
   });
 
   test('should throw an error for incorrectly parsed signatures', () => {
-    // Correct length but altered to introduce parsing errors
-    const incorrectSignature: HexString = `0x${signature.slice(
-      2,
-      66
-    )}${signature.slice(66, 130)}`;
+    const notMatchingSignature = '0x123';
+
+    // Mock the output from extractPortions to return an signature that doesn't match the one passed in
+    mock.module('../generateKeysFromSignature', () => ({
+      extractPortions: () => notMatchingSignature
+    }));
 
     expect(() => {
-      generatePublicKeysFromSignature(incorrectSignature);
+      generateKeysFromSignature(signature);
     }).toThrow('Signature incorrectly generated or parsed');
   });
 });
