@@ -193,7 +193,7 @@ function isValidCompressedPublicKey(publicKey: string): boolean {
  * @description Extracts and validates the spending and viewing public keys from a stealth meta-address.
  *
  * @param {object} params - Parameters for extracting keys from a stealth meta-address:
- *   - stealthMetaAddress: The stealth meta-address.
+ *   - stealthMetaAddress: The stealth meta-address as a hex string (prefixed with `0x`).
  *   - schemeId: The scheme identifier.
  * @returns {object} An object containing:
  *   - spendingPublicKey: The extracted spending public key.
@@ -208,22 +208,22 @@ function parseKeysFromStealthMetaAddress({
 }) {
   handleSchemeId(schemeId);
 
+  // Remove the '0x' prefix
   const cleanedStealthMetaAddress = stealthMetaAddress.slice(2);
-  const singlePublicKeyHexLength = 66; // Length for compressed keys
-  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+  const singlePublicKeyLength = 66; // Length for compressed keys
+  const spendingPublicKey = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyLength
   );
-  const viewingPublicKeyHex =
+  const viewingPublicKey =
     cleanedStealthMetaAddress.length === 132
-      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
-      : spendingPublicKeyHex; // Use the same key for spending and viewing if only one is provided
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyLength)
+      : spendingPublicKey; // Use the same key for spending and viewing if only one is provided
 
   return {
     spendingPublicKey:
-      ProjectivePoint.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
-    viewingPublicKey:
-      ProjectivePoint.fromHex(viewingPublicKeyHex).toRawBytes(true) // Compressed
+      ProjectivePoint.fromHex(spendingPublicKey).toRawBytes(true), // Compressed
+    viewingPublicKey: ProjectivePoint.fromHex(viewingPublicKey).toRawBytes(true) // Compressed
   };
 }
 
