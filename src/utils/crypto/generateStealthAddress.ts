@@ -139,6 +139,7 @@ function validateStealthMetaAddress({
 }): boolean {
   handleSchemeId(schemeId);
 
+  // Remove the '0x' prefix if present
   const cleanedStealthMetaAddress = stealthMetaAddress.startsWith('0x')
     ? stealthMetaAddress.substring(2)
     : stealthMetaAddress;
@@ -155,18 +156,18 @@ function validateStealthMetaAddress({
 
   // Validate the format of each public key
   const singlePublicKeyHexLength = 66; // Length for compressed keys
-  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+  const spendingPublicKey = cleanedStealthMetaAddress.slice(
     0,
     singlePublicKeyHexLength
-  ) as HexString;
-  const viewingPublicKeyHex =
+  );
+  const viewingPublicKey =
     cleanedStealthMetaAddress.length === 132
-      ? (cleanedStealthMetaAddress.slice(singlePublicKeyHexLength) as HexString)
-      : (spendingPublicKeyHex as HexString); // Use the same key for spending and viewing if only one is provided
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
+      : spendingPublicKey; // Use the same key for spending and viewing if only one is provided
 
   if (
-    !isValidCompressedPublicKey(spendingPublicKeyHex) ||
-    !isValidCompressedPublicKey(viewingPublicKeyHex)
+    !isValidCompressedPublicKey(spendingPublicKey) ||
+    !isValidCompressedPublicKey(viewingPublicKey)
   ) {
     return false;
   }
@@ -174,10 +175,17 @@ function validateStealthMetaAddress({
   return true;
 }
 
-function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
+/**
+ * @description Validates a compressed public key.
+ * A compressed public key is a 66-character hexadecimal string that starts with '02' or '03'.
+ * The function takes a non '0x' prefixed public key as input.
+ * @param publicKey
+ * @returns
+ */
+function isValidCompressedPublicKey(publicKey: string): boolean {
   return (
-    (publicKeyHex.startsWith('02') || publicKeyHex.startsWith('03')) &&
-    publicKeyHex.length === 66
+    (publicKey.startsWith('02') || publicKey.startsWith('03')) &&
+    publicKey.length === 66
   );
 }
 
