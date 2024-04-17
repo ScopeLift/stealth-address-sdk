@@ -1,5 +1,5 @@
 import type { HexString } from '../crypto/types';
-import { isValidPublicKey } from './isValidPublicKey';
+import isValidPublicKey from './isValidPublicKey';
 
 /**
  * Concatenates the spending and viewing public keys to create a stealth meta address.
