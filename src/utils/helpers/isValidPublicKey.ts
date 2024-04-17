@@ -7,7 +7,7 @@ import type { HexString } from '../crypto/types';
  * @returns True if the public key is valid, false otherwise.
  */
 
-export function isValidPublicKey(publicKey: HexString): boolean {
+function isValidPublicKey(publicKey: HexString): boolean {
   try {
     ProjectivePoint.fromHex(publicKey.slice(2));
     return true;
@@ -15,3 +15,5 @@ export function isValidPublicKey(publicKey: HexString): boolean {
     return false;
   }
 }
+
+export default isValidPublicKey;
