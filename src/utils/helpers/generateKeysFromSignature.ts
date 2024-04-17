@@ -13,22 +13,12 @@ function generateKeysFromSignature(signature: HexString): {
   viewingPublicKey: HexString;
   viewingPrivateKey: HexString;
 } {
-  // Validate signature
-  const isValidSignature = (sig: string) => isHex(sig) && sig.length === 132;
-
   if (!isValidSignature(signature)) {
     throw new Error(`Invalid signature: ${signature}`);
   }
 
-  // Split hex string signature into two 32 byte chunks
-  const startIndex = 2; // first two characters are 0x, so skip these
-  const length = 64; // each 32 byte chunk is in hex, so 64 characters
-  const portion1 = signature.slice(startIndex, startIndex + length);
-  const portion2 = signature.slice(
-    startIndex + length,
-    startIndex + length + length
-  );
-  const lastByte = signature.slice(signature.length - 2);
+  // Extract signature portions
+  const { portion1, portion2, lastByte } = extractPortions(signature);
 
   if (`0x${portion1}${portion2}${lastByte}` !== signature) {
     throw new Error('Signature incorrectly generated or parsed');
@@ -49,6 +39,23 @@ function generateKeysFromSignature(signature: HexString): {
     viewingPublicKey,
     viewingPrivateKey: bytesToHex(viewingPrivateKey)
   };
+}
+
+function isValidSignature(sig: string) {
+  return isHex(sig) && sig.length === 132;
+}
+
+export function extractPortions(signature: HexString) {
+  const startIndex = 2; // first two characters are 0x, so skip these
+  const length = 64; // each 32 byte chunk is in hex, so 64 characters
+  const portion1 = signature.slice(startIndex, startIndex + length);
+  const portion2 = signature.slice(
+    startIndex + length,
+    startIndex + length + length
+  );
+  const lastByte = signature.slice(signature.length - 2);
+
+  return { portion1, portion2, lastByte };
 }
 
 export default generateKeysFromSignature;
