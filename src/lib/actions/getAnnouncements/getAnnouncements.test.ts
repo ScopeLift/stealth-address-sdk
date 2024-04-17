@@ -1,4 +1,5 @@
-import { describe, test, expect, beforeAll } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Account, Address } from 'viem';
 import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
@@ -9,7 +10,6 @@ import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
-import type { Account, Address } from 'viem';
 
 describe('getAnnouncements', () => {
   let stealthClient: StealthActions;
