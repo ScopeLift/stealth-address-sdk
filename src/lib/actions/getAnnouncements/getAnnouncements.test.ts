@@ -1,5 +1,4 @@
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test';
-import type { Account, Address } from 'viem';
+import { describe, test, expect, beforeAll } from 'bun:test';
 import {
   VALID_SCHEME_ID,
   generateRandomStealthMetaAddress,
@@ -10,6 +9,7 @@ import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
+import type { Account, Address } from 'viem';
 
 describe('getAnnouncements', () => {
   let stealthClient: StealthActions;
@@ -55,10 +55,6 @@ describe('getAnnouncements', () => {
     await walletClient.waitForTransactionReceipt({
       hash
     });
-  });
-
-  afterEach(() => {
-    mock.restore();
   });
 
   test('fetches announcements successfully', async () => {
