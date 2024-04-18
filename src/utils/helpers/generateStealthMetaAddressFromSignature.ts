@@ -1,6 +1,6 @@
 import type { HexString } from '../crypto/types';
 import generateKeysFromSignature from './generateKeysFromSignature';
-import getStealthMetaAddressFromKeys from './getStealthMetaAddressFromKeys';
+import generateStealthMetaAddressFromKeys from './generateStealthMetaAddressFromKeys';
 
 /**
  * Generates a stealth meta-address from a signature by:
@@ -9,11 +9,13 @@ import getStealthMetaAddressFromKeys from './getStealthMetaAddressFromKeys';
  * @param signature as a hexadecimal string.
  * @returns The stealth meta-address as a hexadecimal string.
  */
-function getStealthMetaAddressFromSignature(signature: HexString): HexString {
+function generateStealthMetaAddressFromSignature(
+  signature: HexString
+): HexString {
   const { spendingPublicKey, viewingPublicKey } =
     generateKeysFromSignature(signature);
 
-  const stealthMetaAddress = getStealthMetaAddressFromKeys({
+  const stealthMetaAddress = generateStealthMetaAddressFromKeys({
     spendingPublicKey,
     viewingPublicKey
   });
@@ -21,4 +23,4 @@ function getStealthMetaAddressFromSignature(signature: HexString): HexString {
   return stealthMetaAddress;
 }
 
-export default getStealthMetaAddressFromSignature;
+export default generateStealthMetaAddressFromSignature;

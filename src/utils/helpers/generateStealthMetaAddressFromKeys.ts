@@ -7,7 +7,7 @@ import isValidPublicKey from './isValidPublicKey';
  * @param viewingPublicKey
  * @returns The stealth meta address as a hexadecimal string.
  */
-function getStealthMetaAddressFromKeys({
+function generateStealthMetaAddressFromKeys({
   spendingPublicKey,
   viewingPublicKey
 }: {
@@ -29,4 +29,4 @@ function getStealthMetaAddressFromKeys({
   return stealthMetaAddress;
 }
 
-export default getStealthMetaAddressFromKeys;
+export default generateStealthMetaAddressFromKeys;

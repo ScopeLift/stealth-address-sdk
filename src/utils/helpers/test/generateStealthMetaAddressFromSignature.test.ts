@@ -4,7 +4,7 @@ import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import type { HexString } from '../../crypto/types';
-import getStealthMetaAddressFromSignature from '../getStealthMetaAddressFromSignature';
+import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 
 describe('getStealthMetaAddressFromSignature', () => {
   let walletClient: SuperWalletClient;
@@ -23,7 +23,7 @@ describe('getStealthMetaAddressFromSignature', () => {
   });
 
   test('should generate a stealth meta-address from a signature', () => {
-    const result = getStealthMetaAddressFromSignature(signature);
+    const result = generateStealthMetaAddressFromSignature(signature);
 
     expect(result).toBeTruthy();
 
