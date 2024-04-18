@@ -1,9 +1,9 @@
-import { afterAll, beforeAll, describe, expect, test, mock } from 'bun:test';
-import generateKeysFromSignature from '../generateKeysFromSignature';
+import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
+import { signMessage } from 'viem/actions';
 import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import type { HexString } from '../../crypto/types';
-import { signMessage } from 'viem/actions';
+import generateKeysFromSignature from '../generateKeysFromSignature';
 import isValidPublicKey from '../isValidPublicKey';
 
 describe('generateKeysFromSignature', () => {

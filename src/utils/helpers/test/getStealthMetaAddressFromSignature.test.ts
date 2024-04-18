@@ -1,10 +1,10 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import getStealthMetaAddressFromSignature from '../getStealthMetaAddressFromSignature';
-import type { SuperWalletClient } from '../../../lib/helpers/types';
-import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import { signMessage } from 'viem/actions';
-import type { HexString } from '../../crypto/types';
+import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
+import type { SuperWalletClient } from '../../../lib/helpers/types';
 import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
+import type { HexString } from '../../crypto/types';
+import getStealthMetaAddressFromSignature from '../getStealthMetaAddressFromSignature';
 
 describe('getStealthMetaAddressFromSignature', () => {
   let walletClient: SuperWalletClient;

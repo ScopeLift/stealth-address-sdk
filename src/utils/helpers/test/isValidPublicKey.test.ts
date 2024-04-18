@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { isValidPublicKey } from '../isValidPublicKey';
-import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import { toHex } from 'viem';
+import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
+import isValidPublicKey from '../isValidPublicKey';
 
 describe('isValidPublicKey', () => {
   const VALID_STEALTH_META_ADDRESS =

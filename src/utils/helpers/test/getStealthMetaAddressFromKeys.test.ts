@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import getStealthMetaAddressFromKeys from '../getStealthMetaAddressFromKeys';
-import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import { toHex } from 'viem';
+import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
+import getStealthMetaAddressFromKeys from '../getStealthMetaAddressFromKeys';
 
 const STEALTH_META_ADDRESS =
   '0x033404e82cd2a92321d51e13064ec13a0fb0192a9fdaaca1cfb47b37bd27ec13970390ad5eca026c05ab5cf4d620a2ac65241b11df004ddca360e954db1b26e3846e';

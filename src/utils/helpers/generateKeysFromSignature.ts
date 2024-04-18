@@ -1,6 +1,6 @@
+import { getPublicKey } from '@noble/secp256k1';
 import { bytesToHex, hexToBytes, isHex, keccak256 } from 'viem';
 import type { HexString } from '../crypto/types';
-import { getPublicKey } from '@noble/secp256k1';
 
 /**
  * Generates spending and viewing public and private keys from a signature.
