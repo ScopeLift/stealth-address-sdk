@@ -11,7 +11,7 @@ import { getStealthMetaAddressFromSignature } from "@scopelift/stealth-address-s
  * It's deterministic in that the same stealth meta-address is generated for the same user, chain id, and message
  * It utilizes Viem's walletClient for wallet interaction
  *
- * @returns The component renders a button to handle both wallet connection and stealth meta-address generation
+ * @returns The component renders a button to first handle connecting the wallet, and a subsequent button to handle stealth meta-address generation
  *
  * @example
  * To run this example, ensure you have set up your environment variable VITE_RPC_URL.
@@ -56,8 +56,7 @@ const Example = () => {
 
   const handleSignAndGetStealthMetaAddress = async () => {
     const signature = await signMessage();
-    const stealthMetaAddress =
-      await getStealthMetaAddressFromSignature(signature);
+    const stealthMetaAddress = getStealthMetaAddressFromSignature(signature);
     setStealthMetaAddress(stealthMetaAddress);
   };
 
