@@ -4,7 +4,7 @@ import { Address, createWalletClient, custom } from "viem";
 import { sepolia } from "viem/chains";
 import "viem/window";
 
-import { getStealthMetaAddressFromSignature } from "@scopelift/stealth-address-sdk";
+import { generateStealthMetaAddressFromSignature } from "@scopelift/stealth-address-sdk";
 
 /**
  * This React component demonstrates the process of generating a stealth meta-address deterministically using a user-signed message
@@ -56,7 +56,8 @@ const Example = () => {
 
   const handleSignAndGetStealthMetaAddress = async () => {
     const signature = await signMessage();
-    const stealthMetaAddress = getStealthMetaAddressFromSignature(signature);
+    const stealthMetaAddress =
+      generateStealthMetaAddressFromSignature(signature);
     setStealthMetaAddress(stealthMetaAddress);
   };
 
