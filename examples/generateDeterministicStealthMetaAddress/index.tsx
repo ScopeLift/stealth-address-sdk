@@ -14,14 +14,11 @@ import { generateStealthMetaAddressFromSignature } from "@scopelift/stealth-addr
  * @returns The component renders a button to first handle connecting the wallet, and a subsequent button to handle stealth meta-address generation
  *
  * @example
- * To run this example, ensure you have set up your environment variable VITE_RPC_URL.
- * Run the development server using Vite, `vite run dev`.
+ * To run the development server: `bun run dev`.
  */
 const Example = () => {
-  // Initialize your environment variables or configuration
+  // Initialize your configuration
   const chain = sepolia; // Example Viem chain
-  const rpcUrl = import.meta.env.VITE_RPC_URL; // Your Ethereum RPC URL
-  if (!rpcUrl) throw new Error("RPC URL is required");
 
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
@@ -40,11 +37,11 @@ const Example = () => {
 
   const signMessage = async () => {
     // An example message to sign for generating the stealth meta-address
-    // Usually this message includes the chain id to mitigate replay attacks
+    // Usually this message includes the chain id to mitigate replay attacks across different chains
     // The message that is signed should clearly communicate to the user what they are signing and why
     const MESSAGE_TO_SIGN = `Generate Stealth Meta-Address on ${chain.id} chain`;
 
-    if (!account) throw new Error("Account is required");
+    if (!account) throw new Error("A connected account is required");
 
     const signature = await walletClient.signMessage({
       account,
@@ -54,10 +51,11 @@ const Example = () => {
     return signature;
   };
 
-  const handleSignAndGetStealthMetaAddress = async () => {
+  const handleSignAndGenStealthMetaAddress = async () => {
     const signature = await signMessage();
     const stealthMetaAddress =
       generateStealthMetaAddressFromSignature(signature);
+
     setStealthMetaAddress(stealthMetaAddress);
   };
 
@@ -65,7 +63,7 @@ const Example = () => {
     return (
       <>
         {!stealthMetaAddress ? (
-          <button onClick={handleSignAndGetStealthMetaAddress}>
+          <button onClick={handleSignAndGenStealthMetaAddress}>
             Generate Stealth Meta-Address
           </button>
         ) : (
