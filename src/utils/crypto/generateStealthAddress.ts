@@ -100,7 +100,7 @@ function generateStealthAddress({
  * Validates the structure and format of the stealth meta-address.
  *
  * @param {object} params - Parameters for parsing the stealth meta-address URI:
- *   - stealthMetaAddressURI: The URI containing the stealth meta-address.
+ *   - stealthMetaAddressURI: The URI containing the stealth meta-address, or alternatively, the stealth meta-address itself.
  *   - schemeId: The scheme identifier.
  * @returns {HexString} The extracted stealth meta-address.
  */
@@ -108,10 +108,14 @@ function parseStealthMetaAddressURI({
   stealthMetaAddressURI,
   schemeId
 }: {
-  stealthMetaAddressURI: string;
+  stealthMetaAddressURI: string | HexString;
   schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
+
+  // If the stealth meta-address is provided directly
+  if (stealthMetaAddressURI.startsWith('0x'))
+    return stealthMetaAddressURI as HexString;
 
   const parts = stealthMetaAddressURI.split(':');
 
