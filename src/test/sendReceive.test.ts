@@ -12,6 +12,9 @@ import { getAccount, getKeys, getSignature, getWalletClients } from './helpers';
 
 /**
  * @description Tests for sending and receiving a payment
+ * Sending means generating a stealth address using the sdk, then sending funds to that stealth address; the sending account is the account that sends the funds
+ * Withdrawing means computing the stealth address private key using the sdk, then withdrawing funds from the stealth address; the receiving account is the account that receives the funds
+ *
  * The tests need to be run using foundry because the tests utilize the default anvil private keys
  */
 
