@@ -2,12 +2,15 @@ import {
   http,
   type WalletClient,
   createWalletClient,
-  publicActions
+  publicActions,
+  type Account,
+  type Client,
+  type Address
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getRpcUrl } from '../../lib/helpers/test/setupTestEnv';
 import setupTestWallet from '../../lib/helpers/test/setupTestWallet';
-import { VALID_CHAINS } from '../../lib/helpers/types';
+import { VALID_CHAINS, type SuperWalletClient } from '../../lib/helpers/types';
 import { generateKeysFromSignature } from '../../utils/helpers';
 
 // Default private key for testing; the setupTestWallet function uses the first anvil default key, so the below will be different
@@ -42,8 +45,6 @@ export const getKeys = async ({
 /* Sets up the sending and receiving wallet clients for testing */
 export const getWalletClients = async () => {
   const sendingWalletClient = await setupTestWallet();
-  if (!sendingWalletClient.account)
-    throw new Error('Sending wallet client account not found');
 
   const chain = sendingWalletClient.chain;
   if (!chain) throw new Error('Chain not found');
@@ -53,7 +54,7 @@ export const getWalletClients = async () => {
 
   const rpcUrl = getRpcUrl();
 
-  const receivingWalletClient = createWalletClient({
+  const receivingWalletClient: SuperWalletClient = createWalletClient({
     account: privateKeyToAccount(ANVIL_DEFAULT_PRIVATE_KEY_2),
     chain,
     transport: http(rpcUrl)
@@ -62,7 +63,106 @@ export const getWalletClients = async () => {
   return { sendingWalletClient, receivingWalletClient };
 };
 
-export const getAccount = (walletClient: WalletClient) => {
+export const getAccount = (walletClient: WalletClient | Client) => {
   if (!walletClient.account) throw new Error('Account not found');
   return walletClient.account;
+};
+
+/* Gets the wallet clients, accounts, and keys for the sending and receiving wallets */
+export const getWalletClientsAndKeys = async () => {
+  const { sendingWalletClient, receivingWalletClient } =
+    await getWalletClients();
+
+  const sendingAccount = getAccount(sendingWalletClient);
+  const receivingAccount = getAccount(receivingWalletClient);
+
+  const receivingAccountKeys = await getKeys({
+    walletClient: receivingWalletClient
+  });
+
+  return {
+    sendingWalletClient,
+    receivingWalletClient,
+    sendingAccount,
+    receivingAccount,
+    receivingAccountKeys
+  };
+};
+
+/* Set up the initial balance details for the sending and receiving wallets */
+export const setupInitialBalances = async ({
+  sendingWalletClient,
+  receivingWalletClient
+}: {
+  sendingWalletClient: SuperWalletClient;
+  receivingWalletClient: SuperWalletClient;
+}) => {
+  const sendingAccount = getAccount(sendingWalletClient);
+  const receivingAccount = getAccount(receivingWalletClient);
+  const sendingWalletStartingBalance = await sendingWalletClient.getBalance({
+    address: sendingAccount.address
+  });
+  const receivingWalletStartingBalance = await receivingWalletClient.getBalance(
+    {
+      address: receivingAccount.address
+    }
+  );
+
+  return {
+    sendingWalletStartingBalance,
+    receivingWalletStartingBalance
+  };
+};
+
+/* Send ETH and wait for the transaction to be confirmed */
+export const sendEth = async ({
+  sendingWalletClient,
+  to,
+  value
+}: {
+  sendingWalletClient: SuperWalletClient;
+  to: Address;
+  value: bigint;
+}) => {
+  const account = getAccount(sendingWalletClient);
+  const hash = await sendingWalletClient.sendTransaction({
+    value,
+    to,
+    account,
+    chain: sendingWalletClient.chain
+  });
+
+  const receipt = await sendingWalletClient.getTransactionReceipt({
+    hash
+  });
+
+  const gasPriceSend = receipt.effectiveGasPrice;
+  const gasEstimate = receipt.gasUsed * gasPriceSend;
+
+  await sendingWalletClient.waitForTransactionReceipt({ hash });
+
+  return { hash, gasEstimate };
+};
+
+/* Get the ending balances for the sending and receiving wallets */
+export const getEndingBalances = async ({
+  sendingWalletClient,
+  receivingWalletClient
+}: {
+  sendingWalletClient: SuperWalletClient;
+  receivingWalletClient: SuperWalletClient;
+}) => {
+  const sendingAccount = getAccount(sendingWalletClient);
+  const receivingAccount = getAccount(receivingWalletClient);
+  const sendingWalletEndingBalance = await sendingWalletClient.getBalance({
+    address: sendingAccount.address
+  });
+  const receivingWalletEndingBalance = await receivingWalletClient.getBalance({
+    address: receivingAccount.address
+  });
+
+  return {
+    sendingWalletEndingBalance,
+    receivingWalletEndingBalance
+  };
 };
