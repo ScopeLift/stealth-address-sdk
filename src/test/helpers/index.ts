@@ -1,16 +1,15 @@
 import {
   http,
+  type Address,
+  type Client,
   type WalletClient,
   createWalletClient,
-  publicActions,
-  type Account,
-  type Client,
-  type Address
+  publicActions
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getRpcUrl } from '../../lib/helpers/test/setupTestEnv';
 import setupTestWallet from '../../lib/helpers/test/setupTestWallet';
-import { VALID_CHAINS, type SuperWalletClient } from '../../lib/helpers/types';
+import { type SuperWalletClient, VALID_CHAINS } from '../../lib/helpers/types';
 import { generateKeysFromSignature } from '../../utils/helpers';
 
 // Default private key for testing; the setupTestWallet function uses the first anvil default key, so the below will be different
