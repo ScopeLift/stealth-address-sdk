@@ -12,7 +12,7 @@ import { getAccount, getKeys, getSignature, getWalletClients } from './helpers';
 
 /**
  * @description Tests for sending and receiving a payment
- * The tests need to be run using foundry
+ * The tests need to be run using foundry because the tests utilize the default anvil private keys
  */
 
 describe('Send and receive payment', () => {
