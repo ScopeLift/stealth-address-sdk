@@ -1,13 +1,13 @@
-import { expect, describe, beforeAll, test } from 'bun:test';
-import { createWalletClient, http, parseEther, publicActions } from 'viem';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import { http, createWalletClient, parseEther, publicActions } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getRpcUrl } from '../lib/helpers/test/setupTestEnv';
-import { generateStealthMetaAddressFromSignature } from '../utils/helpers';
 import {
   VALID_SCHEME_ID,
   computeStealthKey,
   generateStealthAddress
 } from '../utils';
+import { generateStealthMetaAddressFromSignature } from '../utils/helpers';
 import { getAccount, getKeys, getSignature, getWalletClients } from './helpers';
 
 /**

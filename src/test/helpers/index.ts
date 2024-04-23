@@ -1,14 +1,14 @@
 import {
-  createWalletClient,
   http,
-  publicActions,
-  type WalletClient
+  type WalletClient,
+  createWalletClient,
+  publicActions
 } from 'viem';
-import { generateKeysFromSignature } from '../../utils/helpers';
+import { privateKeyToAccount } from 'viem/accounts';
 import { getRpcUrl } from '../../lib/helpers/test/setupTestEnv';
 import setupTestWallet from '../../lib/helpers/test/setupTestWallet';
 import { VALID_CHAINS } from '../../lib/helpers/types';
-import { privateKeyToAccount } from 'viem/accounts';
+import { generateKeysFromSignature } from '../../utils/helpers';
 
 // Default private key for testing; the setupTestWallet function uses the first anvil default key, so the below will be different
 const ANVIL_DEFAULT_PRIVATE_KEY_2 =
