@@ -9,7 +9,7 @@ import {
   ERC5564_CONTRACT,
   generateStealthAddress,
   VALID_SCHEME_ID,
-} from 'stealth-address-sdk';
+} from '@scopelift/stealth-address-sdk';
 
 /**
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.

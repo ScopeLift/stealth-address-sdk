@@ -1,8 +1,8 @@
 import {
-  ERC5564_CONTRACT,
-  VALID_SCHEME_ID,
-  createStealthClient,
-} from 'stealth-address-sdk';
+	ERC5564_CONTRACT,
+	VALID_SCHEME_ID,
+	createStealthClient,
+} from "@scopelift/stealth-address-sdk";
 
 // Example parameters
 const chainId = 11155111; // Example chain ID for Sepolia
@@ -13,7 +13,7 @@ const fromBlock = BigInt(12345678); // Example ERC5564 announcer contract deploy
 const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
 
 // Use the address of your calling contract if applicable
-const caller = '0xYourCallingContractAddress';
+const caller = "0xYourCallingContractAddress";
 
 // Your scheme id
 const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
@@ -30,31 +30,31 @@ const spendingPublicKey = process.env.SPENDING_PUBLIC_KEY as `0x${string}`;
 const viewingPrivateKey = process.env.VIEWING_PRIVATE_KEY as `0x${string}`;
 
 async function fetchAnnouncementsForUser() {
-  // Example call to getAnnouncements action on the stealth client to get all potential announcements
-  // Use your preferred method to get announcements if different, and
-  // adjust parameters according to your requirements
-  const announcements = await stealthClient.getAnnouncements({
-    ERC5564Address,
-    args: {
-      schemeId,
-      caller,
-      // Additional args for filtering, if necessary
-    },
-    fromBlock, // Optional fromBlock parameter (defaults to 0, which can be slow for many blocks)
-    toBlock: 'latest', // Optional toBlock parameter (defaults to latest)
-  });
+	// Example call to getAnnouncements action on the stealth client to get all potential announcements
+	// Use your preferred method to get announcements if different, and
+	// adjust parameters according to your requirements
+	const announcements = await stealthClient.getAnnouncements({
+		ERC5564Address,
+		args: {
+			schemeId,
+			caller,
+			// Additional args for filtering, if necessary
+		},
+		fromBlock, // Optional fromBlock parameter (defaults to 0, which can be slow for many blocks)
+		toBlock: "latest", // Optional toBlock parameter (defaults to latest)
+	});
 
-  // Example call to getAnnouncementsForUser action on the stealth client
-  // Adjust parameters according to your requirements
-  const userAnnouncements = await stealthClient.getAnnouncementsForUser({
-    announcements,
-    spendingPublicKey,
-    viewingPrivateKey,
-    includeList: ['0xSomeEthAddress, 0xSomeOtherEthAddress'], // Optional include list to only include announcements for specific "from" addresses
-    excludeList: ['0xEthAddressToExclude'], // Optional exclude list to exclude announcements for specific "from" addresses
-  });
+	// Example call to getAnnouncementsForUser action on the stealth client
+	// Adjust parameters according to your requirements
+	const userAnnouncements = await stealthClient.getAnnouncementsForUser({
+		announcements,
+		spendingPublicKey,
+		viewingPrivateKey,
+		includeList: ["0xSomeEthAddress, 0xSomeOtherEthAddress"], // Optional include list to only include announcements for specific "from" addresses
+		excludeList: ["0xEthAddressToExclude"], // Optional exclude list to exclude announcements for specific "from" addresses
+	});
 
-  return userAnnouncements;
+	return userAnnouncements;
 }
 
 fetchAnnouncementsForUser().catch(console.error);
