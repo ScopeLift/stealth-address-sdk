@@ -1,8 +1,8 @@
 import {
-  ERC6538_CONTRACT,
   createStealthClient,
+  getStealthMetaAddress,
   VALID_SCHEME_ID,
-  getStealthMetaAddress
+  ERC6538_CONTRACT
 } from '@scopelift/stealth-address-sdk';
 
 // Example stealth client parameters

@@ -1,8 +1,8 @@
 import {
-  VALID_SCHEME_ID,
   checkStealthAddress,
   generateRandomStealthMetaAddress,
-  generateStealthAddress
+  generateStealthAddress,
+  VALID_SCHEME_ID
 } from '@scopelift/stealth-address-sdk';
 
 // User's keys (for example purposes, real values should be securely generated and stored)
