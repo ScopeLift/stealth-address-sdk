@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@scopelift/stealth-address-sdk": "^0.1.0"
+    "@scopelift/stealth-address-sdk": "latest"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
