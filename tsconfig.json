@@ -21,8 +21,8 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "examples"],
+  "exclude": ["node_modules", "dist", "examples"]
 }
