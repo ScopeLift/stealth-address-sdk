@@ -8,6 +8,19 @@ on:
       - main
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Check
+        run: |
+          bun install
+          bun run check
+
   build:
     runs-on: ubuntu-latest
     steps:

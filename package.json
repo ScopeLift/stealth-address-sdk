@@ -10,9 +10,8 @@
     "test-fork": "make test-fork",
     "test": "bun test",
     "build": "biome check --apply . && bun tsc",
-    "format": "biome format --write .",
     "watch": "bun test --watch src",
-    "lint": "biome lint ."
+    "check": "biome check --apply ."
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
