@@ -100,7 +100,7 @@ function generateStealthAddress({
  * Validates the structure and format of the stealth meta-address.
  *
  * @param {object} params - Parameters for parsing the stealth meta-address URI:
- *   - stealthMetaAddressURI: The URI containing the stealth meta-address.
+ *   - stealthMetaAddressURI: The URI containing the stealth meta-address, or alternatively, the stealth meta-address itself.
  *   - schemeId: The scheme identifier.
  * @returns {HexString} The extracted stealth meta-address.
  */
@@ -108,10 +108,14 @@ function parseStealthMetaAddressURI({
   stealthMetaAddressURI,
   schemeId
 }: {
-  stealthMetaAddressURI: string;
+  stealthMetaAddressURI: string | HexString;
   schemeId: VALID_SCHEME_ID;
 }): HexString {
   handleSchemeId(schemeId);
+
+  // If the stealth meta-address is provided directly
+  if (stealthMetaAddressURI.startsWith('0x'))
+    return stealthMetaAddressURI as HexString;
 
   const parts = stealthMetaAddressURI.split(':');
 
@@ -139,6 +143,7 @@ function validateStealthMetaAddress({
 }): boolean {
   handleSchemeId(schemeId);
 
+  // Remove the '0x' prefix if present
   const cleanedStealthMetaAddress = stealthMetaAddress.startsWith('0x')
     ? stealthMetaAddress.substring(2)
     : stealthMetaAddress;
@@ -155,18 +160,18 @@ function validateStealthMetaAddress({
 
   // Validate the format of each public key
   const singlePublicKeyHexLength = 66; // Length for compressed keys
-  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+  const spendingPublicKey = cleanedStealthMetaAddress.slice(
     0,
     singlePublicKeyHexLength
-  ) as HexString;
-  const viewingPublicKeyHex =
+  );
+  const viewingPublicKey =
     cleanedStealthMetaAddress.length === 132
-      ? (cleanedStealthMetaAddress.slice(singlePublicKeyHexLength) as HexString)
-      : (spendingPublicKeyHex as HexString); // Use the same key for spending and viewing if only one is provided
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
+      : spendingPublicKey; // Use the same key for spending and viewing if only one is provided
 
   if (
-    !isValidCompressedPublicKey(spendingPublicKeyHex) ||
-    !isValidCompressedPublicKey(viewingPublicKeyHex)
+    !isValidCompressedPublicKey(spendingPublicKey) ||
+    !isValidCompressedPublicKey(viewingPublicKey)
   ) {
     return false;
   }
@@ -174,10 +179,17 @@ function validateStealthMetaAddress({
   return true;
 }
 
-function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
+/**
+ * @description Validates a compressed public key.
+ * A compressed public key is a 66-character hexadecimal string that starts with '02' or '03'.
+ * The function takes a non '0x' prefixed public key as input.
+ * @param publicKey
+ * @returns
+ */
+function isValidCompressedPublicKey(publicKey: string): boolean {
   return (
-    (publicKeyHex.startsWith('02') || publicKeyHex.startsWith('03')) &&
-    publicKeyHex.length === 66
+    (publicKey.startsWith('02') || publicKey.startsWith('03')) &&
+    publicKey.length === 66
   );
 }
 
@@ -185,7 +197,7 @@ function isValidCompressedPublicKey(publicKeyHex: HexString): boolean {
  * @description Extracts and validates the spending and viewing public keys from a stealth meta-address.
  *
  * @param {object} params - Parameters for extracting keys from a stealth meta-address:
- *   - stealthMetaAddress: The stealth meta-address.
+ *   - stealthMetaAddress: The stealth meta-address as a hex string (prefixed with `0x`).
  *   - schemeId: The scheme identifier.
  * @returns {object} An object containing:
  *   - spendingPublicKey: The extracted spending public key.
@@ -200,22 +212,22 @@ function parseKeysFromStealthMetaAddress({
 }) {
   handleSchemeId(schemeId);
 
+  // Remove the '0x' prefix
   const cleanedStealthMetaAddress = stealthMetaAddress.slice(2);
-  const singlePublicKeyHexLength = 66; // Length for compressed keys
-  const spendingPublicKeyHex = cleanedStealthMetaAddress.slice(
+  const singlePublicKeyLength = 66; // Length for compressed keys
+  const spendingPublicKey = cleanedStealthMetaAddress.slice(
     0,
-    singlePublicKeyHexLength
+    singlePublicKeyLength
   );
-  const viewingPublicKeyHex =
+  const viewingPublicKey =
     cleanedStealthMetaAddress.length === 132
-      ? cleanedStealthMetaAddress.slice(singlePublicKeyHexLength)
-      : spendingPublicKeyHex; // Use the same key for spending and viewing if only one is provided
+      ? cleanedStealthMetaAddress.slice(singlePublicKeyLength)
+      : spendingPublicKey; // Use the same key for spending and viewing if only one is provided
 
   return {
     spendingPublicKey:
-      ProjectivePoint.fromHex(spendingPublicKeyHex).toRawBytes(true), // Compressed
-    viewingPublicKey:
-      ProjectivePoint.fromHex(viewingPublicKeyHex).toRawBytes(true) // Compressed
+      ProjectivePoint.fromHex(spendingPublicKey).toRawBytes(true), // Compressed
+    viewingPublicKey: ProjectivePoint.fromHex(viewingPublicKey).toRawBytes(true) // Compressed
   };
 }
 
