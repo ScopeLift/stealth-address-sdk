@@ -1,29 +1,29 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
-import {
-  VALID_SCHEME_ID,
-  parseStealthMetaAddressURI,
-  type PrepareRegisterKeysParams,
-} from '../../..';
-import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
-import { PrepareError } from '../types';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import type { Address, Chain, TransactionReceipt } from 'viem';
+import {
+  type PrepareRegisterKeysParams,
+  VALID_SCHEME_ID,
+  parseStealthMetaAddressURI
+} from '../../..';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
+import { PrepareError } from '../types';
 
 describe('prepareRegisterKeys', () => {
-  let stealthClient: StealthActions,
-    ERC6538Address: Address,
-    walletClient: SuperWalletClient,
-    account: Address,
-    chain: Chain;
+  let stealthClient: StealthActions;
+  let ERC6538Address: Address;
+  let walletClient: SuperWalletClient;
+  let account: Address | undefined;
+  let chain: Chain | undefined;
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
 
   // Prepare payload args
@@ -35,14 +35,16 @@ describe('prepareRegisterKeys', () => {
     // Set up the test environment
     ({ stealthClient, ERC6538Address } = await setupTestEnv());
     walletClient = await setupTestWallet();
-    account = walletClient.account?.address!;
-    chain = walletClient.chain!;
+    account = walletClient.account?.address;
+    if (!account) throw new Error('No account found');
+    chain = walletClient.chain;
+    if (!chain) throw new Error('No chain found');
 
     prepareArgs = {
       account,
       ERC6538Address,
       schemeId,
-      stealthMetaAddress: stealthMetaAddressToRegister,
+      stealthMetaAddress: stealthMetaAddressToRegister
     } satisfies PrepareRegisterKeysParams;
     const prepared = await stealthClient.prepareRegisterKeys(prepareArgs);
 
@@ -50,13 +52,13 @@ describe('prepareRegisterKeys', () => {
     const request = await walletClient.prepareTransactionRequest({
       ...prepared,
       chain,
-      account,
+      account
     });
 
     const hash = await walletClient.sendTransaction({
       ...request,
       chain,
-      account,
+      account
     });
 
     res = await walletClient.waitForTransactionReceipt({ hash });
@@ -66,7 +68,7 @@ describe('prepareRegisterKeys', () => {
     expect(
       stealthClient.prepareRegisterKeys({
         ...prepareArgs,
-        ERC6538Address: invalidERC6538Address,
+        ERC6538Address: invalidERC6538Address
       })
     ).rejects.toBeInstanceOf(PrepareError);
   });

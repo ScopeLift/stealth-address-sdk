@@ -1,16 +1,16 @@
-import { describe, test, expect, afterAll, beforeAll } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import type { Address } from 'viem';
 import {
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
   VALID_SCHEME_ID,
-  generateStealthAddress,
+  generateStealthAddress
 } from '../../..';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
+import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
-import type { Address } from 'viem';
-import { type SuperWalletClient } from '../../helpers/types';
 
 const NUM_ANNOUNCEMENTS = 3;
 const WATCH_POLLING_INTERVAL = 1000;
@@ -25,12 +25,14 @@ type WriteAnnounceArgs = {
 const announce = async ({
   walletClient,
   ERC5564Address,
-  args,
+  args
 }: {
   walletClient: SuperWalletClient;
   ERC5564Address: Address;
   args: WriteAnnounceArgs;
 }) => {
+  if (!walletClient.account) throw new Error('No account found');
+
   // Write to the announcement contract
   const hash = await walletClient.writeContract({
     address: ERC5564Address,
@@ -39,16 +41,16 @@ const announce = async ({
       args.schemeId,
       args.stealthAddress,
       args.ephemeralPublicKey,
-      args.viewTag,
+      args.viewTag
     ],
     abi: ERC5564AnnouncerAbi,
     chain: walletClient.chain,
-    account: walletClient.account!,
+    account: walletClient.account
   });
 
   // Wait for the transaction receipt
   await walletClient.waitForTransactionReceipt({
-    hash,
+    hash
   });
 
   return hash;
@@ -59,9 +61,9 @@ const delay = async () =>
   await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL));
 
 describe('watchAnnouncementsForUser', () => {
-  let stealthClient: StealthActions,
-    walletClient: SuperWalletClient,
-    ERC5564Address: Address;
+  let stealthClient: StealthActions;
+  let walletClient: SuperWalletClient;
+  let ERC5564Address: Address;
 
   // Set up keys
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -70,7 +72,7 @@ describe('watchAnnouncementsForUser', () => {
     setupTestStealthKeys(schemeId);
 
   // Track the new announcements to see if they are being watched
-  let newAnnouncements: AnnouncementLog[] = [];
+  const newAnnouncements: AnnouncementLog[] = [];
   let unwatch: () => void;
 
   beforeAll(async () => {
@@ -83,27 +85,27 @@ describe('watchAnnouncementsForUser', () => {
       ERC5564Address,
       args: {
         schemeId: schemeIdBigInt,
-        caller: walletClient.account?.address, // Watch announcements for the user, who is also the caller here as an example
+        caller: walletClient.account?.address // Watch announcements for the user, who is also the caller here as an example
       },
       handleLogsForUser: logs => {
         // Add the new announcements to the list
         // Should be just one log for each call of the announce function
-        logs.forEach(log => {
+        for (const log of logs) {
           newAnnouncements.push(log);
-        });
+        }
       },
       spendingPublicKey,
       viewingPrivateKey,
       pollOptions: {
-        pollingInterval: WATCH_POLLING_INTERVAL, // Override the default polling interval for testing
-      },
+        pollingInterval: WATCH_POLLING_INTERVAL // Override the default polling interval for testing
+      }
     });
 
     // Set up the stealth address to announce
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId,
+        schemeId
       });
 
     // Sequentially announce NUM_ACCOUNCEMENT times
@@ -115,8 +117,8 @@ describe('watchAnnouncementsForUser', () => {
           schemeId: schemeIdBigInt,
           stealthAddress,
           ephemeralPublicKey,
-          viewTag,
-        },
+          viewTag
+        }
       });
     }
 
@@ -140,7 +142,7 @@ describe('watchAnnouncementsForUser', () => {
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId,
+        schemeId
       });
 
     const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
@@ -163,8 +165,8 @@ describe('watchAnnouncementsForUser', () => {
         schemeId: BigInt(schemeId),
         stealthAddress,
         ephemeralPublicKey: newEphemeralPublicKey,
-        viewTag,
-      },
+        viewTag
+      }
     });
 
     await delay();

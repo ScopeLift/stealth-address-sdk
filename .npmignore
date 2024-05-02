@@ -1,5 +1,4 @@
 # Configuration and development tools
-.prettierrc
 .bun
 tsconfig.json
 README.md

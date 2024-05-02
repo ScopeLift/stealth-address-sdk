@@ -9,14 +9,13 @@
     "anvil-fork": "make anvil-fork",
     "test-fork": "make test-fork",
     "test": "bun test",
-    "build": "bun tsc",
-    "format": "prettier --write .",
-    "watch": "bun test --watch src"
+    "build": "biome check --apply . && bun tsc",
+    "watch": "bun test --watch src",
+    "check": "biome check ."
   },
   "devDependencies": {
+    "@biomejs/biome": "1.6.4",
     "@types/bun": "latest",
-    "eslint": "^8.56.0",
-    "prettier": "^3.2.4",
     "typescript": "^5.3.3"
   },
   "dependencies": {

@@ -1,8 +1,8 @@
-import type { PrepareAnnounceParams, PrepareAnnounceReturnType } from './types';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { ERC5564AnnouncerAbi } from '../..';
 import { encodeFunctionData } from 'viem';
+import { ERC5564AnnouncerAbi } from '../..';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import { PrepareError } from '../types';
+import type { PrepareAnnounceParams, PrepareAnnounceReturnType } from './types';
 
 /**
  * Prepares the payload for announcing a stealth address to the ERC5564 contract.
@@ -26,7 +26,7 @@ async function prepareAnnounce({
   ERC5564Address,
   args,
   account,
-  clientParams,
+  clientParams
 }: PrepareAnnounceParams): Promise<PrepareAnnounceReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
   const { schemeId, stealthAddress, ephemeralPublicKey, metadata } = args;
@@ -35,13 +35,13 @@ async function prepareAnnounce({
     schemeIdBigInt,
     stealthAddress,
     ephemeralPublicKey,
-    metadata,
+    metadata
   ];
 
   const data = encodeFunctionData({
     abi: ERC5564AnnouncerAbi,
     functionName: 'announce',
-    args: writeArgs,
+    args: writeArgs
   });
 
   try {
@@ -50,7 +50,7 @@ async function prepareAnnounce({
       address: ERC5564Address,
       abi: ERC5564AnnouncerAbi,
       functionName: 'announce',
-      args: writeArgs,
+      args: writeArgs
     });
   } catch (error) {
     throw new PrepareError(`Failed to prepare contract call: ${error}`);
@@ -59,7 +59,7 @@ async function prepareAnnounce({
   return {
     to: ERC5564Address,
     account,
-    data,
+    data
   };
 }
 export default prepareAnnounce;

@@ -1,21 +1,21 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Address, TransactionReceipt } from 'viem';
 import {
   ERC6538RegistryAbi,
   VALID_SCHEME_ID,
-  parseStealthMetaAddressURI,
+  parseStealthMetaAddressURI
 } from '../../..';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
 import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
-import type { RegisterKeysOnBehalfArgs } from './types';
-import { PrepareError } from '../types';
-import type { Address, TransactionReceipt } from 'viem';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { StealthActions } from '../../stealthClient/types';
+import { PrepareError } from '../types';
+import type { RegisterKeysOnBehalfArgs } from './types';
 
 describe('prepareRegisterKeysOnBehalf', () => {
-  let stealthClient: StealthActions,
-    account: Address,
-    args: RegisterKeysOnBehalfArgs;
+  let stealthClient: StealthActions;
+  let account: Address | undefined;
+  let args: RegisterKeysOnBehalfArgs;
 
   // Transaction receipt for writing to the contract with the prepared payload
   let res: TransactionReceipt;
@@ -24,7 +24,7 @@ describe('prepareRegisterKeysOnBehalf', () => {
     const {
       stealthClient: client,
       ERC6538Address,
-      chainId,
+      chainId
     } = await setupTestEnv();
     stealthClient = client;
     const walletClient = await setupTestWallet();
@@ -32,18 +32,20 @@ describe('prepareRegisterKeysOnBehalf', () => {
     const { stealthMetaAddressURI } = setupTestStealthKeys(schemeId);
     const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
       stealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
-    account = walletClient.account?.address!;
-    const chain = walletClient.chain!;
+    account = walletClient.account?.address;
+    if (!account) throw new Error('No account found');
+    const chain = walletClient.chain;
+    if (!chain) throw new Error('No chain found');
 
-    const generateSignature = async () => {
+    const generateSignature = async (account: Address) => {
       // Get the registrant's current nonce for the signature
       const nonce = await walletClient.readContract({
         address: ERC6538Address,
         abi: ERC6538RegistryAbi,
         functionName: 'nonceOf',
-        args: [account],
+        args: [account]
       });
 
       // Prepare the signature domain
@@ -51,7 +53,7 @@ describe('prepareRegisterKeysOnBehalf', () => {
         name: 'ERC6538Registry',
         version: '1.0',
         chainId,
-        verifyingContract: ERC6538Address,
+        verifyingContract: ERC6538Address
       } as const;
 
       // Taken from the ERC6538Registry contract
@@ -62,14 +64,14 @@ describe('prepareRegisterKeysOnBehalf', () => {
         [primaryType]: [
           { name: 'schemeId', type: 'uint256' },
           { name: 'stealthMetaAddress', type: 'bytes' },
-          { name: 'nonce', type: 'uint256' },
-        ],
+          { name: 'nonce', type: 'uint256' }
+        ]
       } as const;
 
       const message = {
         schemeId: BigInt(schemeId),
         stealthMetaAddress: stealthMetaAddressToRegister,
-        nonce,
+        nonce
       };
 
       const signature = await walletClient.signTypedData({
@@ -77,7 +79,7 @@ describe('prepareRegisterKeysOnBehalf', () => {
         primaryType,
         domain,
         types,
-        message,
+        message
       });
 
       return signature;
@@ -87,39 +89,41 @@ describe('prepareRegisterKeysOnBehalf', () => {
       registrant: account,
       schemeId,
       stealthMetaAddress: stealthMetaAddressToRegister,
-      signature: await generateSignature(),
+      signature: await generateSignature(account)
     } satisfies RegisterKeysOnBehalfArgs;
 
     const prepared = await stealthClient.prepareRegisterKeysOnBehalf({
       account,
       ERC6538Address,
-      args,
+      args
     });
 
     // Prepare tx using viem and the prepared payload
     const request = await walletClient.prepareTransactionRequest({
       ...prepared,
       chain,
-      account,
+      account
     });
 
     const hash = await walletClient.sendTransaction({
       ...request,
       chain,
-      account,
+      account
     });
 
     res = await walletClient.waitForTransactionReceipt({ hash });
   });
 
   test('should throw PrepareError when given invalid contract address', () => {
+    if (!account) throw new Error('No account found');
+
     const invalidERC6538Address = '0xinvalid';
 
     expect(
       stealthClient.prepareRegisterKeysOnBehalf({
         account,
         ERC6538Address: invalidERC6538Address,
-        args,
+        args
       })
     ).rejects.toBeInstanceOf(PrepareError);
   });

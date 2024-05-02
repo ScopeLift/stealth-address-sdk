@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import createStealthClient, {
-  handleViemPublicClient,
-} from './createStealthClient';
-import { PublicClientRequiredError, type ClientParams } from './types';
-import { createPublicClient, http } from 'viem';
+import { http, createPublicClient } from 'viem';
 import { foundry } from 'viem/chains';
 import { LOCAL_ENDPOINT } from '../helpers/test/setupTestEnv';
-import { type VALID_CHAIN_IDS } from '../helpers/types';
+import type { VALID_CHAIN_IDS } from '../helpers/types';
+import createStealthClient, {
+  handleViemPublicClient
+} from './createStealthClient';
+import { type ClientParams, PublicClientRequiredError } from './types';
 
 describe('createStealthClient', () => {
   test('throws error when invalid chain id is provided', () => {
@@ -14,7 +14,7 @@ describe('createStealthClient', () => {
     expect(() =>
       createStealthClient({
         chainId: invalidChainId as VALID_CHAIN_IDS, // Cast as valid chain to trigger error
-        rpcUrl: LOCAL_ENDPOINT,
+        rpcUrl: LOCAL_ENDPOINT
       })
     ).toThrow(new Error('Invalid chainId: 9999'));
   });
@@ -31,7 +31,7 @@ describe('handleViemPublicClient', () => {
   test('returns publicClient when provided', () => {
     const mockPublicClient = createPublicClient({
       chain: foundry,
-      transport: http(LOCAL_ENDPOINT),
+      transport: http(LOCAL_ENDPOINT)
     });
     const client = handleViemPublicClient({ publicClient: mockPublicClient });
     expect(client).toBe(mockPublicClient);
@@ -42,7 +42,7 @@ describe('handleViemPublicClient', () => {
     expect(() =>
       handleViemPublicClient({
         chainId: undefined as unknown as VALID_CHAIN_IDS, // Cast as valid chain to trigger error
-        rpcUrl: exampleRpcUrl,
+        rpcUrl: exampleRpcUrl
       })
     ).toThrow(
       new PublicClientRequiredError('public client could not be created.')

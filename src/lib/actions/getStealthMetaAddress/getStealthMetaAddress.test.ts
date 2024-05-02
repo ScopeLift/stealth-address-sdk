@@ -1,21 +1,21 @@
-import { describe, test, expect, beforeAll } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Address } from 'viem';
 import {
   ERC6538RegistryAbi,
   VALID_SCHEME_ID,
-  generateRandomStealthMetaAddress,
+  generateRandomStealthMetaAddress
 } from '../../..';
-import { GetStealthMetaAddressError } from './types';
-import type { StealthActions } from '../../stealthClient/types';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
-import type { Address } from 'viem';
+import type { StealthActions } from '../../stealthClient/types';
+import { GetStealthMetaAddressError } from './types';
 
 describe('getStealthMetaAddress', () => {
-  let stealthClient: StealthActions,
-    ERC6538Address: Address,
-    walletClient: SuperWalletClient,
-    registrant: Address;
+  let stealthClient: StealthActions;
+  let ERC6538Address: Address;
+  let walletClient: SuperWalletClient;
+  let registrant: Address | undefined;
 
   // Generate a random stealth meta address just for testing purposes
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -27,7 +27,8 @@ describe('getStealthMetaAddress', () => {
     walletClient = await setupTestWallet();
 
     // Register the stealth meta address
-    registrant = walletClient.account?.address!;
+    registrant = walletClient.account?.address;
+    if (!registrant) throw new Error('No registrant address found');
 
     const hash = await walletClient.writeContract({
       address: ERC6538Address,
@@ -35,17 +36,19 @@ describe('getStealthMetaAddress', () => {
       args: [BigInt(schemeId), stealthMetaAddress],
       abi: ERC6538RegistryAbi,
       chain: walletClient.chain,
-      account: registrant,
+      account: registrant
     });
 
     await walletClient.waitForTransactionReceipt({ hash });
   });
 
   test('should return the stealth meta address for a given registrant and scheme ID', async () => {
+    if (!registrant) throw new Error('No registrant address found');
+
     const result = await stealthClient.getStealthMetaAddress({
       ERC6538Address,
       registrant,
-      schemeId,
+      schemeId
     });
 
     expect(result).toEqual(stealthMetaAddress);
@@ -58,7 +61,7 @@ describe('getStealthMetaAddress', () => {
       stealthClient.getStealthMetaAddress({
         ERC6538Address,
         registrant: invalidRegistrant,
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1
       })
     ).rejects.toBeInstanceOf(GetStealthMetaAddressError);
   });
