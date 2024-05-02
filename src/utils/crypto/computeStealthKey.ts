@@ -1,16 +1,16 @@
-import { getSharedSecret, CURVE } from '@noble/secp256k1';
-import type { HexString, IComputeStealthKeyParams } from './types';
+import { CURVE, getSharedSecret } from '@noble/secp256k1';
+import { hexToBytes } from 'viem';
 import {
   getHashedSharedSecret,
-  handleSchemeId,
+  handleSchemeId
 } from './generateStealthAddress';
-import { hexToBytes } from 'viem';
+import type { HexString, IComputeStealthKeyParams } from './types';
 
 function computeStealthKey({
   ephemeralPublicKey,
   schemeId,
   spendingPrivateKey,
-  viewingPrivateKey,
+  viewingPrivateKey
 }: IComputeStealthKeyParams): HexString {
   handleSchemeId(schemeId);
 
@@ -27,11 +27,12 @@ function computeStealthKey({
   // Compute the stealth private key by summing the spending private key and the hashed shared secret.
   const stealthPrivateKeyBigInt = addPriv({
     a: spendingPrivateKeyBigInt,
-    b: hashedSecretBigInt,
+    b: hashedSecretBigInt
   });
 
-  const stealthPrivateKeyHex =
-    `0x${stealthPrivateKeyBigInt.toString(16).padStart(64, '0')}` as HexString;
+  const stealthPrivateKeyHex = `0x${stealthPrivateKeyBigInt
+    .toString(16)
+    .padStart(64, '0')}` as HexString;
 
   return stealthPrivateKeyHex;
 }
