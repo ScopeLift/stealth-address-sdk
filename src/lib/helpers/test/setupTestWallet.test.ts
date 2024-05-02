@@ -1,22 +1,22 @@
-import { beforeEach, mock, describe, test, expect, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { privateKeyToAccount } from 'viem/accounts';
-import { ANVIL_DEFAULT_PRIVATE_KEY } from './setupTestWallet';
 import { VALID_CHAINS } from '../types';
+import { ANVIL_DEFAULT_PRIVATE_KEY } from './setupTestWallet';
 
 describe('setupTestWallet', async () => {
   const { setupTestWallet, getAccount } = await import('./setupTestWallet');
 
   // Clean up the environment variables before each test
   beforeEach(() => {
-    delete process.env.USE_FORK;
-    delete process.env.RPC_URL;
-    delete process.env.PRIVATE_KEY;
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
+    process.env.PRIVATE_KEY = undefined;
   });
 
   afterEach(() => {
-    delete process.env.USE_FORK;
-    delete process.env.RPC_URL;
-    delete process.env.PRIVATE_KEY;
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
+    process.env.PRIVATE_KEY = undefined;
   });
 
   test('uses PRIVATE_KEY environment variable when not using foundry', () => {
@@ -43,8 +43,8 @@ describe('setupTestWallet', async () => {
     mock.module('./setupTestEnv', () => ({
       fetchJson: () =>
         Promise.resolve({
-          result: validChainId,
-        }),
+          result: validChainId
+        })
     }));
 
     expect(setupTestWallet()).rejects.toThrow(

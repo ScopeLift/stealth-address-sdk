@@ -1,11 +1,11 @@
-import { createPublicClient, http, type PublicClient } from 'viem';
-import { getChain } from '../helpers/chains';
+import { http, type PublicClient, createPublicClient } from 'viem';
 import { actions as stealthActions } from '../actions';
+import { getChain } from '../helpers/chains';
 import {
-  PublicClientRequiredError,
   type ClientParams,
+  PublicClientRequiredError,
   type StealthClientInitParams,
-  type StealthClientReturnType,
+  type StealthClientReturnType
 } from './types';
 
 /**
@@ -26,52 +26,52 @@ import {
  */
 function createStealthClient({
   chainId,
-  rpcUrl,
+  rpcUrl
 }: StealthClientInitParams): StealthClientReturnType {
   const chain = getChain(chainId);
 
   // Init viem client
   const publicClient = createPublicClient({
     chain,
-    transport: http(rpcUrl),
+    transport: http(rpcUrl)
   });
 
   const initializedActions: StealthClientReturnType = {
     getAnnouncements: params =>
       stealthActions.getAnnouncements({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     getStealthMetaAddress: params =>
       stealthActions.getStealthMetaAddress({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     getAnnouncementsForUser: params =>
       stealthActions.getAnnouncementsForUser({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     watchAnnouncementsForUser: params =>
       stealthActions.watchAnnouncementsForUser({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     prepareAnnounce: params =>
       stealthActions.prepareAnnounce({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     prepareRegisterKeys: params =>
       stealthActions.prepareRegisterKeys({
         clientParams: { publicClient },
-        ...params,
+        ...params
       }),
     prepareRegisterKeysOnBehalf: params =>
       stealthActions.prepareRegisterKeysOnBehalf({
         clientParams: { publicClient },
-        ...params,
-      }),
+        ...params
+      })
   };
 
   return initializedActions;
@@ -93,7 +93,7 @@ const handleViemPublicClient = (clientParams?: ClientParams): PublicClient => {
     try {
       return createPublicClient({
         chain: getChain(clientParams.chainId),
-        transport: http(clientParams.rpcUrl),
+        transport: http(clientParams.rpcUrl)
       });
     } catch (error) {
       throw new PublicClientRequiredError(

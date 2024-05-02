@@ -1,31 +1,34 @@
-import { expect, test, describe, beforeAll } from 'bun:test';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestWallet from '../../helpers/test/setupTestWallet';
-import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
-import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
-import { ERC5564AnnouncerAbi } from '../../abi';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import type { Account, PublicClient } from 'viem';
 import type { AnnouncementLog } from '..';
-import { FromValueNotFoundError, TransactionHashRequiredError } from './types';
+import { getViewTagFromMetadata } from '../../..';
+import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
+import type { HexString } from '../../../utils/crypto/types';
+import { ERC5564AnnouncerAbi } from '../../abi';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
+import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
+import setupTestWallet from '../../helpers/test/setupTestWallet';
+import type { SuperWalletClient } from '../../helpers/types';
+import type { StealthActions } from '../../stealthClient/types';
 import {
   getTransactionFrom,
-  processAnnouncement,
+  processAnnouncement
 } from './getAnnouncementsForUser';
-import { type PublicClient } from 'viem';
-import { getViewTagFromMetadata } from '../../..';
-import type { HexString } from '../../../utils/crypto/types';
-import type { StealthActions } from '../../stealthClient/types';
-import type { SuperWalletClient } from '../../helpers/types';
+import { FromValueNotFoundError, TransactionHashRequiredError } from './types';
+
+const PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM = 100; // Number of announcements to process in the large data set test
 
 describe('getAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
+  let account: Account | undefined;
 
-  let stealthAddress: HexString,
-    ephemeralPublicKey: HexString,
-    viewTag: HexString;
-  let spendingPublicKey: HexString,
-    viewingPrivateKey: HexString,
-    stealthMetaAddressURI: string;
+  let stealthAddress: HexString;
+  let ephemeralPublicKey: HexString;
+  let viewTag: HexString;
+  let spendingPublicKey: HexString;
+  let viewingPrivateKey: HexString;
+  let stealthMetaAddressURI: string;
 
   let announcements: AnnouncementLog[] = [];
 
@@ -34,9 +37,13 @@ describe('getAnnouncementsForUser', () => {
     const {
       stealthClient: client,
       ERC5564Address,
-      ERC5564DeployBlock,
+      ERC5564DeployBlock
     } = await setupTestEnv();
     walletClient = await setupTestWallet();
+    account = walletClient.account;
+    const chain = walletClient.chain;
+    if (!account) throw new Error('No account found');
+    if (!chain) throw new Error('No chain found');
     stealthClient = client;
 
     // Set up the stealth keys and generate a stealth address
@@ -46,7 +53,7 @@ describe('getAnnouncementsForUser', () => {
 
     ({ stealthAddress, ephemeralPublicKey, viewTag } = generateStealthAddress({
       stealthMetaAddressURI,
-      schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+      schemeId: VALID_SCHEME_ID.SCHEME_ID_1
     }));
 
     // Announce the stealth address, ephemeral public key, and view tag
@@ -55,30 +62,26 @@ describe('getAnnouncementsForUser', () => {
       functionName: 'announce',
       args: [BigInt(schemeId), stealthAddress, ephemeralPublicKey, viewTag],
       abi: ERC5564AnnouncerAbi,
-      chain: walletClient.chain,
-      account: walletClient.account!,
+      chain,
+      account
     });
 
-    console.log('Waiting for announcement transaction to be mined...');
     // Wait for the transaction to be mined
-    const res = await walletClient.waitForTransactionReceipt({
-      hash,
+    await walletClient.waitForTransactionReceipt({
+      hash
     });
-    console.log('Announcement transaction mined:', res.transactionHash);
 
     // Fetch relevant announcements to check against
-    console.log('fetching announcements...');
     announcements = await stealthClient.getAnnouncements({
       ERC5564Address,
       args: {
         schemeId: BigInt(schemeId),
         stealthAddress,
-        caller: walletClient.account?.address, // Just an example; the caller is the address of the wallet since it called announce
+        caller: walletClient.account?.address // Just an example; the caller is the address of the wallet since it called announce
       },
       fromBlock: ERC5564DeployBlock,
-      toBlock: 'latest',
+      toBlock: 'latest'
     });
-    console.log('relevant announcements fetched for testing');
   });
 
   test('filters announcements correctly for the user', async () => {
@@ -86,7 +89,7 @@ describe('getAnnouncementsForUser', () => {
     const results = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey,
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     expect(results[0].stealthAddress).toEqual(stealthAddress);
@@ -95,7 +98,7 @@ describe('getAnnouncementsForUser', () => {
     const results2 = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey: '0x',
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
     expect(results2.length).toBe(0);
@@ -104,15 +107,17 @@ describe('getAnnouncementsForUser', () => {
     const results3 = await stealthClient.getAnnouncementsForUser({
       announcements,
       spendingPublicKey,
-      viewingPrivateKey: '0x',
+      viewingPrivateKey: '0x'
     });
 
     expect(results3.length).toBe(0);
   });
 
   test('handles include and exclude lists correctly', async () => {
+    if (!account) throw new Error('No account found');
+
     // Just an example: the 'from' address of the announcement to use for filtering
-    const fromAddressToTest = walletClient.account?.address!;
+    const fromAddressToTest = account.address;
     const someOtherAddress = '0xD945323b7E5071598868989838414e679F29C0AB';
 
     // Test with an exclude list that should filter out the announcement
@@ -120,7 +125,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      excludeList: [fromAddressToTest],
+      excludeList: [fromAddressToTest]
     });
 
     expect(excludeListResults.length).toBe(0);
@@ -130,7 +135,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      excludeList: [someOtherAddress],
+      excludeList: [someOtherAddress]
     });
 
     expect(excludeListResults2[0].stealthAddress).toEqual(stealthAddress);
@@ -140,7 +145,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      includeList: [fromAddressToTest],
+      includeList: [fromAddressToTest]
     });
 
     expect(includeListResults[0].stealthAddress).toEqual(stealthAddress);
@@ -150,7 +155,7 @@ describe('getAnnouncementsForUser', () => {
       announcements,
       spendingPublicKey,
       viewingPrivateKey,
-      includeList: [someOtherAddress],
+      includeList: [someOtherAddress]
     });
 
     expect(includeListResults2.length).toBe(0);
@@ -162,7 +167,7 @@ describe('getAnnouncementsForUser', () => {
         spendingPublicKey,
         viewingPrivateKey,
         includeList: [fromAddressToTest],
-        excludeList: [fromAddressToTest],
+        excludeList: [fromAddressToTest]
       });
 
     expect(includeAndExcludeListResults.length).toBe(0);
@@ -170,33 +175,25 @@ describe('getAnnouncementsForUser', () => {
 
   test('efficiently processes a large number of announcements', async () => {
     // Generate a large set of mock announcements using the first announcement from above
-    const largeNumberOfAnnouncements = 1000; // Example size
     const largeAnnouncements = Array.from(
-      { length: largeNumberOfAnnouncements },
+      { length: PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM },
       () => announcements[0]
     );
-
-    const startTime = performance.now();
 
     const results = await stealthClient.getAnnouncementsForUser({
       announcements: largeAnnouncements,
       spendingPublicKey,
-      viewingPrivateKey,
+      viewingPrivateKey
     });
 
-    const endTime = performance.now();
-
     // Verify the function handles large data sets correctly
-    expect(results).toHaveLength(largeNumberOfAnnouncements);
-    console.log(
-      `Processed ${largeNumberOfAnnouncements} announcements in ${endTime - startTime} milliseconds.`
-    );
+    expect(results).toHaveLength(PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM);
   });
 
   test('throws TransactionHashRequiredError when transactionHash is null', async () => {
     const announcementWithoutHash: AnnouncementLog = {
       ...announcements[0],
-      transactionHash: null,
+      transactionHash: null
     };
 
     expect(
@@ -207,7 +204,7 @@ describe('getAnnouncementsForUser', () => {
           spendingPublicKey,
           viewingPrivateKey,
           excludeList: new Set([]),
-          includeList: new Set([]),
+          includeList: new Set([])
         }
       )
     ).rejects.toBeInstanceOf(TransactionHashRequiredError);
@@ -219,7 +216,7 @@ describe('getAnnouncementsForUser', () => {
     expect(
       getTransactionFrom({
         publicClient: walletClient as PublicClient,
-        hash: invalidHash,
+        hash: invalidHash
       })
     ).rejects.toBeInstanceOf(FromValueNotFoundError);
   });

@@ -1,9 +1,9 @@
+import { fromHex } from 'viem';
 import { foundry } from 'viem/chains';
-import { getChain } from '../chains';
 import { createStealthClient } from '../..';
 import deployAllContracts from '../../../scripts';
+import { getChain } from '../chains';
 import type { VALID_CHAIN_IDS } from '../types';
-import { fromHex } from 'viem';
 
 export const LOCAL_ENDPOINT = 'http://127.0.0.1:8545';
 
@@ -22,7 +22,7 @@ const setupTestEnv = async () => {
   const {
     erc5564ContractAddress: ERC5564Address,
     erc6538ContractAddress: ERC6538Address,
-    erc5564DeployBlock: ERC5564DeployBlock,
+    erc5564DeployBlock: ERC5564DeployBlock
   } = await deployAllContracts();
 
   return {
@@ -30,7 +30,7 @@ const setupTestEnv = async () => {
     ERC5564Address,
     ERC5564DeployBlock,
     ERC6538Address,
-    stealthClient,
+    stealthClient
   };
 };
 
@@ -73,12 +73,7 @@ const getChainInfo = async () => {
 
 export const fetchChainId = async (): Promise<number> => {
   // If not running fork test script, use the foundry chain ID
-  if (!process.env.USE_FORK) {
-    console.log(
-      `Using foundry chain ID: ${foundry.id}; make sure you ran the fork test script if that's what you wanted`
-    );
-    return foundry.id;
-  }
+  if (!process.env.USE_FORK) return foundry.id;
 
   if (!process.env.RPC_URL) {
     throw new Error('RPC_URL not defined in env');
@@ -95,22 +90,22 @@ export const fetchChainId = async (): Promise<number> => {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         id: 1,
         jsonrpc: '2.0',
-        method: 'eth_chainId',
-      }),
+        method: 'eth_chainId'
+      })
     });
 
     return fromHex(data.result, 'number');
   } catch (error) {
-    throw new Error(`Failed to get the chain ID`);
+    throw new Error('Failed to get the chain ID');
   }
 };
 
-const fetchJson = async <T>(url: string, options: any) => {
+const fetchJson = async <T>(url: string, options: FetchRequestInit) => {
   const response = await fetch(url, options);
 
   if (!response.ok) {

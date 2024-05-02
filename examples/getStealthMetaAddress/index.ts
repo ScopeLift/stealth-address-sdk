@@ -1,16 +1,17 @@
 import {
-  createStealthClient,
-  getStealthMetaAddress,
-  VALID_SCHEME_ID,
   ERC6538_CONTRACT,
+  VALID_SCHEME_ID,
+  createStealthClient,
+  getStealthMetaAddress
 } from 'stealth-address-sdk';
 
 // Example stealth client parameters
 const chainId = 11155111; // Example chain ID for Sepolia
 const rpcUrl = process.env.RPC_URL; // Use your env rpc url that aligns with the chainId;
+if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 
 // Initialize the stealth client
-const stealthClient = createStealthClient({ chainId, rpcUrl: rpcUrl! });
+const stealthClient = createStealthClient({ chainId, rpcUrl });
 
 // Example getting the singleton registry contract address for Sepolia
 const ERC6538Address = ERC6538_CONTRACT.SEPOLIA;
@@ -24,7 +25,7 @@ const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
 const stealthMetaAddress = await stealthClient.getStealthMetaAddress({
   ERC6538Address,
   registrant,
-  schemeId,
+  schemeId
 });
 
 // Alternatively, you can use the getStealthMetaAddress function directly
@@ -33,5 +34,5 @@ const again = await getStealthMetaAddress({
   clientParams: { rpcUrl, chainId },
   ERC6538Address,
   registrant,
-  schemeId,
+  schemeId
 });

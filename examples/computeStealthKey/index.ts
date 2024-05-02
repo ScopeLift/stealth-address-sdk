@@ -11,5 +11,5 @@ const stealthPrivateKey = computeStealthKey({
   ephemeralPublicKey,
   schemeId,
   spendingPrivateKey,
-  viewingPrivateKey,
+  viewingPrivateKey
 });

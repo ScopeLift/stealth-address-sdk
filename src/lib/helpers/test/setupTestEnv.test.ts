@@ -1,6 +1,6 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-import { LOCAL_ENDPOINT } from './setupTestEnv';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { VALID_CHAINS } from '../types';
+import { LOCAL_ENDPOINT } from './setupTestEnv';
 
 describe('setupTestEnv with different environment configurations', () => {
   test('should use local node endpoint url when USE_FORK is true and RPC_URL is defined', async () => {
@@ -14,7 +14,7 @@ describe('setupTestEnv with different environment configurations', () => {
 
   test('throws error when USE_FORK is true and RPC_URL is not defined', async () => {
     process.env.USE_FORK = 'true';
-    delete process.env.RPC_URL;
+    process.env.RPC_URL = undefined;
     const { getRpcUrl } = await import('./setupTestEnv');
 
     expect(getRpcUrl).toThrow('RPC_URL not defined in env');
@@ -65,8 +65,8 @@ describe('fetchChainId', async () => {
     mock.module('./setupTestEnv', () => ({
       fetchJson: () =>
         Promise.resolve({
-          result: '0x1',
-        }),
+          result: '0x1'
+        })
     }));
 
     const chainId = await fetchChainId();
@@ -75,14 +75,14 @@ describe('fetchChainId', async () => {
 
   test('fetch failure throws error', async () => {
     mock.module('./setupTestEnv', () => ({
-      fetchJson: () => Promise.reject(new Error('Network failure')),
+      fetchJson: () => Promise.reject(new Error('Network failure'))
     }));
 
     expect(fetchChainId()).rejects.toThrow('Failed to get the chain ID');
   });
 
   test('throws error when RPC_URL is not defined', async () => {
-    delete process.env.RPC_URL;
+    process.env.RPC_URL = undefined;
 
     expect(fetchChainId).toThrow('RPC_URL not defined in env');
   });
