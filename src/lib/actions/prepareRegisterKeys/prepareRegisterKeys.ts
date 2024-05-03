@@ -1,11 +1,11 @@
-import { encodeFunctionData } from 'viem';
-import { ERC6538RegistryAbi } from '../..';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { PrepareError } from '../types';
 import type {
   PrepareRegisterKeysParams,
-  PrepareRegisterKeysReturnType
+  PrepareRegisterKeysReturnType,
 } from './types';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import { ERC6538RegistryAbi } from '../..';
+import { encodeFunctionData } from 'viem';
+import { PrepareError } from '../types';
 
 /**
  * Prepares the payload for registering keys (setting the stealth meta-address) by simulating the contract call.
@@ -27,7 +27,7 @@ async function prepareRegisterKeys({
   schemeId,
   stealthMetaAddress,
   account,
-  clientParams
+  clientParams,
 }: PrepareRegisterKeysParams): Promise<PrepareRegisterKeysReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
   const args: [bigint, `0x${string}`] = [BigInt(schemeId), stealthMetaAddress];
@@ -35,7 +35,7 @@ async function prepareRegisterKeys({
   const data = encodeFunctionData({
     abi: ERC6538RegistryAbi,
     functionName: 'registerKeys',
-    args
+    args,
   });
 
   // Simulate the contract call
@@ -45,7 +45,7 @@ async function prepareRegisterKeys({
       address: ERC6538Address,
       abi: ERC6538RegistryAbi,
       functionName: 'registerKeys',
-      args
+      args,
     });
   } catch (error) {
     throw new PrepareError(`Failed to prepare contract call: ${error}`);
@@ -54,7 +54,7 @@ async function prepareRegisterKeys({
   return {
     to: ERC6538Address,
     account,
-    data
+    data,
   };
 }
 

@@ -1,11 +1,11 @@
-import type { StealthActions } from '../stealthClient/types';
 import getAnnouncements from './getAnnouncements/getAnnouncements';
-import getAnnouncementsForUser from './getAnnouncementsForUser/getAnnouncementsForUser';
 import getStealthMetaAddress from './getStealthMetaAddress/getStealthMetaAddress';
+import getAnnouncementsForUser from './getAnnouncementsForUser/getAnnouncementsForUser';
+import watchAnnouncementsForUser from './watchAnnouncementsForUser/watchAnnouncementsForUser';
 import prepareAnnounce from './prepareAnnounce/prepareAnnounce';
 import prepareRegisterKeys from './prepareRegisterKeys/prepareRegisterKeys';
 import prepareRegisterKeysOnBehalf from './prepareRegisterKeysOnBehalf/prepareRegisterKeysOnBehalf';
-import watchAnnouncementsForUser from './watchAnnouncementsForUser/watchAnnouncementsForUser';
+import type { StealthActions } from '../stealthClient/types';
 export { default as getAnnouncements } from './getAnnouncements/getAnnouncements';
 export { default as getStealthMetaAddress } from './getStealthMetaAddress/getStealthMetaAddress';
 export { default as getAnnouncementsForUser } from './getAnnouncementsForUser/getAnnouncementsForUser';
@@ -18,31 +18,31 @@ export {
   type AnnouncementArgs,
   type AnnouncementLog,
   type GetAnnouncementsParams,
-  type GetAnnouncementsReturnType
+  type GetAnnouncementsReturnType,
 } from './getAnnouncements/types';
 export {
   type GetStealthMetaAddressParams,
-  type GetStealthMetaAddressReturnType
+  type GetStealthMetaAddressReturnType,
 } from './getStealthMetaAddress/types';
 export {
   type GetAnnouncementsForUserParams,
-  type GetAnnouncementsForUserReturnType
+  type GetAnnouncementsForUserReturnType,
 } from './getAnnouncementsForUser/types';
 export {
   type WatchAnnouncementsForUserParams,
-  type WatchAnnouncementsForUserReturnType
+  type WatchAnnouncementsForUserReturnType,
 } from './watchAnnouncementsForUser/types';
 export {
   type PrepareAnnounceParams,
-  type PrepareAnnounceReturnType
+  type PrepareAnnounceReturnType,
 } from './prepareAnnounce/types';
 export {
   type PrepareRegisterKeysParams,
-  type PrepareRegisterKeysReturnType
+  type PrepareRegisterKeysReturnType,
 } from './prepareRegisterKeys/types';
 export {
   type PrepareRegisterKeysOnBehalfParams,
-  type PrepareRegisterKeysOnBehalfReturnType
+  type PrepareRegisterKeysOnBehalfReturnType,
 } from './prepareRegisterKeysOnBehalf/types';
 
 export const actions: StealthActions = {
@@ -52,5 +52,5 @@ export const actions: StealthActions = {
   watchAnnouncementsForUser,
   prepareAnnounce,
   prepareRegisterKeys,
-  prepareRegisterKeysOnBehalf
+  prepareRegisterKeysOnBehalf,
 };

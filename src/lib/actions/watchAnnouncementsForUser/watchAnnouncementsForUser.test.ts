@@ -1,19 +1,14 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import type { Address } from 'viem';
+import { describe, test, expect, afterAll, beforeAll } from 'bun:test';
+import setupTestEnv from '../../helpers/test/setupTestEnv';
 import {
+  type AnnouncementArgs,
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
   VALID_SCHEME_ID,
-  generateStealthAddress
+  generateStealthAddress,
 } from '../../..';
-import setupTestEnv from '../../helpers/test/setupTestEnv';
-import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
-import type { SuperWalletClient } from '../../helpers/types';
-import type { StealthActions } from '../../stealthClient/types';
-
-const NUM_ANNOUNCEMENTS = 3;
-const WATCH_POLLING_INTERVAL = 1000;
+import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 
 type WriteAnnounceArgs = {
   schemeId: bigint;
@@ -22,107 +17,48 @@ type WriteAnnounceArgs = {
   viewTag: `0x${string}`;
 };
 
-const announce = async ({
-  walletClient,
-  ERC5564Address,
-  args
-}: {
-  walletClient: SuperWalletClient;
-  ERC5564Address: Address;
-  args: WriteAnnounceArgs;
-}) => {
-  if (!walletClient.account) throw new Error('No account found');
-
-  // Write to the announcement contract
-  const hash = await walletClient.writeContract({
-    address: ERC5564Address,
-    functionName: 'announce',
-    args: [
-      args.schemeId,
-      args.stealthAddress,
-      args.ephemeralPublicKey,
-      args.viewTag
-    ],
-    abi: ERC5564AnnouncerAbi,
-    chain: walletClient.chain,
-    account: walletClient.account
-  });
-
-  // Wait for the transaction receipt
-  await walletClient.waitForTransactionReceipt({
-    hash
-  });
-
-  return hash;
-};
-
-// Delay to wait for the announcements to be watched in accordance with the polling interval
-const delay = async () =>
-  await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL));
-
-describe('watchAnnouncementsForUser', () => {
-  let stealthClient: StealthActions;
-  let walletClient: SuperWalletClient;
-  let ERC5564Address: Address;
-
-  // Set up keys
+describe('watchAnnouncementsForUser', async () => {
+  const { stealthClient, ERC5564Address } = await setupTestEnv();
+  const walletClient = await setupTestWallet();
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
-  const schemeIdBigInt = BigInt(schemeId);
   const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
     setupTestStealthKeys(schemeId);
 
   // Track the new announcements to see if they are being watched
-  const newAnnouncements: AnnouncementLog[] = [];
+  let newAnnouncements: AnnouncementLog[] = [];
   let unwatch: () => void;
+  const pollingInterval = 1000; // Override the default polling interval for testing
+  // Delay to wait for the announcements to be watched in accordance with the polling interval
+  const delay = async () =>
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
   beforeAll(async () => {
-    // Set up the testing environment
-    ({ stealthClient, ERC5564Address } = await setupTestEnv());
-    walletClient = await setupTestWallet();
-
     // Set up watching announcements for a user
+    const watchArgs: AnnouncementArgs = {
+      schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
+      caller: walletClient.account?.address,
+    };
+
     unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
-      args: {
-        schemeId: schemeIdBigInt,
-        caller: walletClient.account?.address // Watch announcements for the user, who is also the caller here as an example
-      },
+      args: watchArgs,
       handleLogsForUser: logs => {
         // Add the new announcements to the list
         // Should be just one log for each call of the announce function
-        for (const log of logs) {
+        logs.forEach(log => {
           newAnnouncements.push(log);
-        }
+        });
       },
       spendingPublicKey,
       viewingPrivateKey,
-      pollOptions: {
-        pollingInterval: WATCH_POLLING_INTERVAL // Override the default polling interval for testing
-      }
+      pollOptions: { pollingInterval },
     });
 
-    // Set up the stealth address to announce
-    const { stealthAddress, ephemeralPublicKey, viewTag } =
-      generateStealthAddress({
-        stealthMetaAddressURI,
-        schemeId
-      });
-
-    // Sequentially announce NUM_ACCOUNCEMENT times
-    for (let i = 0; i < NUM_ANNOUNCEMENTS; i++) {
-      await announce({
-        walletClient,
-        ERC5564Address,
-        args: {
-          schemeId: schemeIdBigInt,
-          stealthAddress,
-          ephemeralPublicKey,
-          viewTag
-        }
-      });
+    // Sequentially announce 3 times
+    for (let i = 0; i < 3; i++) {
+      await announce();
     }
 
-    // Small wait to let the announcements be watched
     await delay();
   });
 
@@ -130,10 +66,57 @@ describe('watchAnnouncementsForUser', () => {
     unwatch();
   });
 
+  // Set up and emit announcement for specific stealth address details
+  const announce = async (argsOverrides?: Partial<WriteAnnounceArgs>) => {
+    console.log('Announcing...');
+
+    // Set up stealth address details
+    const { stealthAddress, ephemeralPublicKey, viewTag } =
+      generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId,
+      });
+
+    // Default arguments
+    const defaultArgs: WriteAnnounceArgs = {
+      schemeId: BigInt(schemeId),
+      stealthAddress,
+      ephemeralPublicKey,
+      viewTag,
+    };
+
+    // Merge defaults with overrides
+    const args = { ...defaultArgs, ...argsOverrides };
+
+    // Write to the announcement contract
+    const hash = await walletClient.writeContract({
+      address: ERC5564Address,
+      functionName: 'announce',
+      args: [
+        args.schemeId,
+        args.stealthAddress,
+        args.ephemeralPublicKey,
+        args.viewTag,
+      ],
+      abi: ERC5564AnnouncerAbi,
+      chain: walletClient.chain,
+      account: walletClient.account!,
+    });
+
+    console.log('Waiting for announcement transaction to be mined...');
+
+    const res = await walletClient.waitForTransactionReceipt({
+      hash,
+    });
+
+    console.log('Announcement transaction mined:', res.transactionHash);
+    return hash;
+  };
+
   test('should watch announcements for a user', () => {
     // Check if the announcements were watched
-    // There should be NUM_ACCOUNCEMENTS announcements because there were NUM_ANNOUNCEMENTS calls to the announce function
-    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
+    // There should be 3 announcements because there were 3 calls to the announce function
+    expect(newAnnouncements.length).toEqual(3);
   });
 
   test('should correctly not update announcements for a user if announcement does not apply to user', async () => {
@@ -142,7 +125,7 @@ describe('watchAnnouncementsForUser', () => {
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId
+        schemeId,
       });
 
     const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
@@ -159,19 +142,14 @@ describe('watchAnnouncementsForUser', () => {
 
     // Write to the announcement contract with an inaccurate ephemeral public key
     await announce({
-      walletClient,
-      ERC5564Address,
-      args: {
-        schemeId: BigInt(schemeId),
-        stealthAddress,
-        ephemeralPublicKey: newEphemeralPublicKey,
-        viewTag
-      }
+      stealthAddress,
+      ephemeralPublicKey: newEphemeralPublicKey,
+      viewTag,
     });
 
     await delay();
 
     // Expect no change in the number of announcements watched
-    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
+    expect(newAnnouncements.length).toEqual(3);
   });
 });

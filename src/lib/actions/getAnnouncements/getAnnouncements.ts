@@ -1,12 +1,12 @@
 import type { BlockType } from '../types';
 
 import { type PublicClient, parseAbiItem } from 'viem';
-import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
+import { getBlock, getLogs } from 'viem/actions';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import type {
   AnnouncementLog,
   GetAnnouncementsParams,
-  GetAnnouncementsReturnType
+  GetAnnouncementsReturnType,
 } from './types';
 
 /**
@@ -25,20 +25,20 @@ async function getAnnouncements({
   ERC5564Address,
   args,
   fromBlock,
-  toBlock
+  toBlock,
 }: GetAnnouncementsParams): Promise<GetAnnouncementsReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
 
   const fetchParams = {
     address: ERC5564Address,
-    args
+    args,
   };
 
   const logs = await fetchLogsInChunks({
     publicClient,
     fetchParams,
     fromBlock,
-    toBlock
+    toBlock,
   });
 
   // Extract the relevant data from the logs
@@ -51,7 +51,7 @@ async function getAnnouncements({
       caller: args.caller,
       ephemeralPubKey: args.ephemeralPubKey,
       metadata: args.metadata,
-      ...log
+      ...log,
     };
   });
 
@@ -74,12 +74,11 @@ const fetchLogsInChunks = async ({
   fetchParams,
   fromBlock,
   toBlock,
-  chunkSize = 5000 // Default chunk size, can be adjusted
+  chunkSize = 5000, // Default chunk size, can be adjusted
 }: {
   publicClient: PublicClient;
   fetchParams: {
     address: `0x${string}`;
-    // biome-ignore lint/suspicious/noExplicitAny: TODO handle better
     args: any;
     fromBlock?: BlockType;
     toBlock?: BlockType;
@@ -91,13 +90,17 @@ const fetchLogsInChunks = async ({
   const resolvedFromBlock =
     (await resolveBlockNumber({
       publicClient,
-      block: fromBlock ?? 'earliest'
+      block: fromBlock ?? 'earliest',
     })) || BigInt(0);
 
   const resolvedToBlock = await resolveBlockNumber({
     publicClient,
-    block: toBlock ?? 'latest'
+    block: toBlock ?? 'latest',
   });
+
+  if (!resolvedToBlock) {
+    throw new Error('Failed to resolve toBlock');
+  }
 
   let currentBlock = resolvedFromBlock;
   const allLogs = [];
@@ -116,7 +119,7 @@ const fetchLogsInChunks = async ({
       ),
       fromBlock: currentBlock,
       toBlock: endBlock,
-      strict: true
+      strict: true,
     });
     allLogs.push(...logs);
     currentBlock = endBlock + BigInt(1);
@@ -131,25 +134,25 @@ const fetchLogsInChunks = async ({
  * @param {Object} params - Parameters for resolving the block number.
  *   - `publicClient`: An instance of the viem `PublicClient`.
  *   - `block`: The block number or tag to resolve.
- * @returns {Promise<bigint>} The resolved block number as a bigint or null.
+ * @returns {Promise<bigint | null>} The resolved block number as a bigint or null.
  */
-export async function resolveBlockNumber({
+async function resolveBlockNumber({
   publicClient,
-  block
+  block,
 }: {
   publicClient: PublicClient;
   block?: BlockType;
-}): Promise<bigint> {
+}): Promise<bigint | null> {
   if (typeof block === 'bigint') {
     return block;
   }
 
-  const { number } = await getBlock(publicClient, { blockTag: block });
-  // Get the latest block number if null, since it is the pending block
-  if (!number) {
-    return getBlockNumber(publicClient);
+  try {
+    const res = await getBlock(publicClient, { blockTag: block });
+    return res.number;
+  } catch (error) {
+    throw new Error(`Failed to resolve block number: ${error}.`);
   }
-  return number;
 }
 
 export default getAnnouncements;

@@ -1,14 +1,14 @@
-import type {
-  GetPollOptions,
-  Transport,
-  WatchContractEventReturnType
-} from 'viem';
-import type { GetAnnouncementsForUserParams } from '..';
 import type { EthAddress } from '../../..';
 import type {
   AnnouncementArgs,
-  AnnouncementLog
+  AnnouncementLog,
 } from '../getAnnouncements/types';
+import type { GetAnnouncementsForUserParams } from '..';
+import type {
+  GetPollOptions,
+  Transport,
+  WatchContractEventReturnType,
+} from 'viem';
 
 export type WatchAnnouncementsForUserPollingOptions = GetPollOptions<Transport>;
 

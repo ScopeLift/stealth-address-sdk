@@ -1,7 +1,7 @@
 import type { Log } from 'viem';
 import type { EthAddress } from '../../../utils/crypto/types';
-import type { ClientParams } from '../../stealthClient/types';
 import type { BlockType } from '../types';
+import type { ClientParams } from '../../stealthClient/types';
 
 export type AnnouncementArgs = {
   schemeId?: bigint | bigint[] | null | undefined;

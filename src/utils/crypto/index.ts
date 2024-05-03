@@ -7,7 +7,7 @@ export {
   handleSchemeId,
   parseKeysFromStealthMetaAddress,
   parseStealthMetaAddressURI,
-  publicKeyToAddress
+  publicKeyToAddress,
 } from './generateStealthAddress';
 
 export { default as computeStealthKey } from './computeStealthKey';
@@ -20,5 +20,5 @@ export {
   type ICheckStealthAddressParams,
   type IComputeStealthKeyParams,
   type IGenerateStealthAddressParams,
-  VALID_SCHEME_ID
+  VALID_SCHEME_ID,
 } from './types';

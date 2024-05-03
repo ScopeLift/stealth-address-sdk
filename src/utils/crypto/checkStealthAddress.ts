@@ -1,13 +1,13 @@
 import { getSharedSecret } from '@noble/secp256k1';
-import { hexToBytes } from 'viem';
+import type { ICheckStealthAddressParams } from './types';
 import {
   getHashedSharedSecret,
   getStealthPublicKey,
   getViewTag,
   handleSchemeId,
-  publicKeyToAddress
+  publicKeyToAddress,
 } from '.';
-import type { ICheckStealthAddressParams } from './types';
+import { hexToBytes } from 'viem';
 
 /**
  * @description Checks if a given announcement is intended for the user.
@@ -27,7 +27,7 @@ function checkStealthAddress({
   spendingPublicKey,
   userStealthAddress,
   viewingPrivateKey,
-  viewTag
+  viewTag,
 }: ICheckStealthAddressParams) {
   handleSchemeId(schemeId);
 
@@ -48,13 +48,13 @@ function checkStealthAddress({
   const stealthPublicKey = getStealthPublicKey({
     spendingPublicKey: hexToBytes(spendingPublicKey),
     hashedSharedSecret,
-    schemeId
+    schemeId,
   });
 
   // Derive the stealth address from the stealth public key
   const stealthAddress = publicKeyToAddress({
     publicKey: stealthPublicKey,
-    schemeId
+    schemeId,
   });
 
   // Compare derived stealth address with the user's stealth address

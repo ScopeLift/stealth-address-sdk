@@ -1,9 +1,9 @@
 import type {
   WatchAnnouncementsForUserParams,
-  WatchAnnouncementsForUserReturnType
+  WatchAnnouncementsForUserReturnType,
 } from '..';
-import { ERC5564AnnouncerAbi, getAnnouncementsForUser } from '../..';
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import { ERC5564AnnouncerAbi, getAnnouncementsForUser } from '../..';
 
 /**
  * Watches for announcement events relevant to the user.
@@ -27,7 +27,7 @@ async function watchAnnouncementsForUser<T = void>({
   excludeList,
   includeList,
   handleLogsForUser,
-  pollOptions
+  pollOptions,
 }: WatchAnnouncementsForUserParams<T>): Promise<WatchAnnouncementsForUserReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
 
@@ -43,7 +43,7 @@ async function watchAnnouncementsForUser<T = void>({
         ephemeralPubKey: log.args.ephemeralPubKey,
         metadata: log.args.metadata,
         schemeId: log.args.schemeId,
-        stealthAddress: log.args.stealthAddress
+        stealthAddress: log.args.stealthAddress,
       }));
 
       const relevantAnnouncements = await getAnnouncementsForUser({
@@ -52,13 +52,13 @@ async function watchAnnouncementsForUser<T = void>({
         viewingPrivateKey,
         clientParams: { publicClient },
         excludeList,
-        includeList
+        includeList,
       });
 
       handleLogsForUser(relevantAnnouncements);
     },
     strict: true,
-    ...pollOptions
+    ...pollOptions,
   });
 
   return unwatch;

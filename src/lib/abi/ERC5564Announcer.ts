@@ -6,46 +6,46 @@ export default [
         indexed: true,
         internalType: 'uint256',
         name: 'schemeId',
-        type: 'uint256'
+        type: 'uint256',
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'stealthAddress',
-        type: 'address'
+        type: 'address',
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'caller',
-        type: 'address'
+        type: 'address',
       },
       {
         indexed: false,
         internalType: 'bytes',
         name: 'ephemeralPubKey',
-        type: 'bytes'
+        type: 'bytes',
       },
       {
         indexed: false,
         internalType: 'bytes',
         name: 'metadata',
-        type: 'bytes'
-      }
+        type: 'bytes',
+      },
     ],
     name: 'Announcement',
-    type: 'event'
+    type: 'event',
   },
   {
     inputs: [
       { internalType: 'uint256', name: 'schemeId', type: 'uint256' },
       { internalType: 'address', name: 'stealthAddress', type: 'address' },
       { internalType: 'bytes', name: 'ephemeralPubKey', type: 'bytes' },
-      { internalType: 'bytes', name: 'metadata', type: 'bytes' }
+      { internalType: 'bytes', name: 'metadata', type: 'bytes' },
     ],
     name: 'announce',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function'
-  }
+    type: 'function',
+  },
 ] as const;

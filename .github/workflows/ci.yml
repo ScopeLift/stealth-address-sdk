@@ -59,7 +59,7 @@ jobs:
           bun install
           bun test --coverage
 
-  check:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Check
+      - name: Check formatting
         run: |
           bun install
-          bun run check
+          bun run prettier -c src/

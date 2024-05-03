@@ -4,7 +4,7 @@ import {
   ERC5564_CONTRACT,
   ERC6538RegistryAbi,
   ERC6538_BYTECODE,
-  ERC6538_CONTRACT
+  ERC6538_CONTRACT,
 } from '..';
 import deployContract from './deployContract';
 
@@ -14,20 +14,20 @@ const deployAllContracts = async () => {
       address: ERC5564_CONTRACT.SEPOLIA,
       abi: ERC5564AnnouncerAbi,
       name: 'ERC5564',
-      bytecode: ERC5564_BYTECODE
+      bytecode: ERC5564_BYTECODE,
     });
 
   const { address: erc6538ContractAddress } = await deployContract({
     address: ERC6538_CONTRACT.SEPOLIA,
     abi: ERC6538RegistryAbi,
     name: 'ERC6538',
-    bytecode: ERC6538_BYTECODE
+    bytecode: ERC6538_BYTECODE,
   });
 
   return {
     erc5564ContractAddress,
     erc6538ContractAddress,
-    erc5564DeployBlock
+    erc5564DeployBlock,
   };
 };
 

@@ -1,4 +1,4 @@
-import { getPublicKey, utils } from '@noble/secp256k1';
+import { utils, getPublicKey } from '@noble/secp256k1';
 import { bytesToHex } from 'viem';
 import type { HexString } from '../crypto/types';
 
@@ -23,7 +23,7 @@ function generateRandomStealthMetaAddress() {
     stealthMetaAddress,
     stealthMetaAddressURI,
     viewingPrivateKey: bytesToHex(viewingPrivateKey),
-    viewingPublicKey
+    viewingPublicKey,
   };
 }
 

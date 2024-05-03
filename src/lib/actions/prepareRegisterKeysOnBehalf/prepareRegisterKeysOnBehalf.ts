@@ -1,17 +1,17 @@
-import { encodeFunctionData } from 'viem';
-import { ERC6538RegistryAbi } from '../..';
-import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
-import { PrepareError } from '../types';
 import type {
   PrepareRegisterKeysOnBehalfParams,
-  PrepareRegisterKeysOnBehalfReturnType
+  PrepareRegisterKeysOnBehalfReturnType,
 } from './types';
+import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
+import { ERC6538RegistryAbi } from '../..';
+import { encodeFunctionData } from 'viem';
+import { PrepareError } from '../types';
 
 async function prepareRegisterKeysOnBehalf({
   ERC6538Address,
   args,
   account,
-  clientParams
+  clientParams,
 }: PrepareRegisterKeysOnBehalfParams): Promise<PrepareRegisterKeysOnBehalfReturnType> {
   const publicClient = handleViemPublicClient(clientParams);
   const { registrant, schemeId, stealthMetaAddress, signature } = args;
@@ -19,13 +19,13 @@ async function prepareRegisterKeysOnBehalf({
     registrant,
     BigInt(schemeId),
     signature,
-    stealthMetaAddress
+    stealthMetaAddress,
   ];
 
   const data = encodeFunctionData({
     abi: ERC6538RegistryAbi,
     functionName: 'registerKeysOnBehalf',
-    args: writeArgs
+    args: writeArgs,
   });
 
   try {
@@ -34,13 +34,13 @@ async function prepareRegisterKeysOnBehalf({
       address: ERC6538Address,
       abi: ERC6538RegistryAbi,
       functionName: 'registerKeysOnBehalf',
-      args: writeArgs
+      args: writeArgs,
     });
 
     return {
       to: ERC6538Address,
       account,
-      data
+      data,
     };
   } catch (error) {
     throw new PrepareError(`Failed to prepare contract call: ${error}`);

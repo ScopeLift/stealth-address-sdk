@@ -25,7 +25,7 @@ export type ProcessAnnouncementReturnType = AnnouncementLog | null;
 
 export class FromValueNotFoundError extends Error {
   constructor(
-    message = 'The "from" value could not be retrieved for a transaction.'
+    message: string = 'The "from" value could not be retrieved for a transaction.'
   ) {
     super(message);
     this.name = 'FromValueNotFoundError';
@@ -34,7 +34,7 @@ export class FromValueNotFoundError extends Error {
 }
 
 export class TransactionHashRequiredError extends Error {
-  constructor(message = 'The transaction hash is required.') {
+  constructor(message: string = 'The transaction hash is required.') {
     super(message);
     this.name = 'TransactionHashRequiredError';
     Object.setPrototypeOf(this, TransactionHashRequiredError.prototype);
