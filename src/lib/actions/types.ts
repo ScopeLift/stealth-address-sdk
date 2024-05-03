@@ -14,7 +14,7 @@ export type PreparePayload = {
 };
 
 export class PrepareError extends Error {
-  constructor(message: string = 'error preparing transaction payload') {
+  constructor(message = 'error preparing transaction payload') {
     super(message);
     this.name = 'PrepareError';
     Object.setPrototypeOf(this, PrepareError.prototype);

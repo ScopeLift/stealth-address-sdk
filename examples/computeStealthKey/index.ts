@@ -1,6 +1,6 @@
 import {
   VALID_SCHEME_ID,
-  computeStealthKey,
+  computeStealthKey
 } from '@scopelift/stealth-address-sdk';
 
 // Example keys (these would be generated or provided as necessary)
@@ -14,5 +14,5 @@ const stealthPrivateKey = computeStealthKey({
   ephemeralPublicKey,
   schemeId,
   spendingPrivateKey,
-  viewingPrivateKey,
+  viewingPrivateKey
 });

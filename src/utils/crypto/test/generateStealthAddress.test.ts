@@ -1,12 +1,13 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { bytesToHex } from 'viem';
 import {
   generatePrivateKey,
   generateStealthAddress,
   getViewTag,
   parseKeysFromStealthMetaAddress,
+  parseStealthMetaAddressURI
 } from '..';
-import { VALID_SCHEME_ID, type HexString } from '../types';
+import { type HexString, VALID_SCHEME_ID } from '../types';
 
 describe('generateStealthAddress', () => {
   const validStealthMetaAddressURI =
@@ -14,11 +15,31 @@ describe('generateStealthAddress', () => {
 
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
 
+  test('parseStealthMetaAddressURI should return the stealth meta-address', () => {
+    const expectedStealthMetaAddress =
+      '0x033404e82cd2a92321d51e13064ec13a0fb0192a9fdaaca1cfb47b37bd27ec13970390ad5eca026c05ab5cf4d620a2ac65241b11df004ddca360e954db1b26e3846e';
+    // Passing the valid stealth meta-address URI and the scheme ID
+    const result = parseStealthMetaAddressURI({
+      stealthMetaAddressURI: validStealthMetaAddressURI,
+      schemeId
+    });
+
+    expect(result).toBe(expectedStealthMetaAddress);
+
+    // Passing only the stealth meta-address
+    const result2 = parseStealthMetaAddressURI({
+      stealthMetaAddressURI: expectedStealthMetaAddress,
+      schemeId
+    });
+
+    expect(result2).toBe(expectedStealthMetaAddress);
+  });
+
   test('should generate a valid stealth address given a valid stealth meta-address URI', () => {
     // TODO compute the expected stealth address using computeStealthAddress (not yet implemented in the SDK)
     const result = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
-      schemeId,
+      schemeId
     });
 
     expect(result.stealthAddress).toBeDefined();
@@ -29,19 +50,19 @@ describe('generateStealthAddress', () => {
     const firstPrivateKey = generatePrivateKey({ schemeId });
     const secondPrivateKey = generatePrivateKey({
       ephemeralPrivateKey: firstPrivateKey,
-      schemeId,
+      schemeId
     });
 
     const result = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
       schemeId,
-      ephemeralPrivateKey: firstPrivateKey,
+      ephemeralPrivateKey: firstPrivateKey
     });
 
     const result2 = generateStealthAddress({
       stealthMetaAddressURI: validStealthMetaAddressURI,
       schemeId,
-      ephemeralPrivateKey: secondPrivateKey,
+      ephemeralPrivateKey: secondPrivateKey
     });
 
     expect(result.stealthAddress).toBe(result2.stealthAddress);
@@ -56,7 +77,7 @@ describe('generateStealthAddress', () => {
 
     const result = parseKeysFromStealthMetaAddress({
       stealthMetaAddress,
-      schemeId,
+      schemeId
     });
 
     expect(bytesToHex(result.spendingPublicKey)).toBe(
@@ -75,7 +96,7 @@ describe('generateStealthAddress', () => {
 
     const result = getViewTag({
       hashedSharedSecret,
-      schemeId,
+      schemeId
     });
 
     expect(result).toBe(expectedViewTag);
