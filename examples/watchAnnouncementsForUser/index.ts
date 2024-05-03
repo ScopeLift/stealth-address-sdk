@@ -1,7 +1,7 @@
 import {
-  createStealthClient,
   ERC5564_CONTRACT,
-  VALID_SCHEME_ID
+  VALID_SCHEME_ID,
+  createStealthClient
 } from '@scopelift/stealth-address-sdk';
 
 // Initialize your environment variables or configuration

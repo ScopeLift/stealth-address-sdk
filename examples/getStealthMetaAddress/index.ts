@@ -1,8 +1,8 @@
 import {
-  createStealthClient,
-  getStealthMetaAddress,
+  ERC6538_CONTRACT,
   VALID_SCHEME_ID,
-  ERC6538_CONTRACT
+  createStealthClient,
+  getStealthMetaAddress
 } from '@scopelift/stealth-address-sdk';
 
 // Example stealth client parameters
@@ -29,7 +29,7 @@ const stealthMetaAddress = await stealthClient.getStealthMetaAddress({
 });
 
 // Alternatively, you can use the getStealthMetaAddress function directly
-const again = await getStealthMetaAddress({
+await getStealthMetaAddress({
   // pass in the rpcUrl and chainId to clientParams
   clientParams: { rpcUrl, chainId },
   ERC6538Address,
