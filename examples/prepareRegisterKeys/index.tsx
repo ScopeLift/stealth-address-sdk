@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Address, createWalletClient, custom } from 'viem';
+import { type Address, createWalletClient, custom } from 'viem';
 import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
-  createStealthClient,
   ERC6538_CONTRACT,
-  parseStealthMetaAddressURI,
   VALID_SCHEME_ID,
+  createStealthClient,
+  parseStealthMetaAddressURI
 } from '@scopelift/stealth-address-sdk';
-
 
 /**
  * This React component demonstrates the process of connecting to a wallet and registering a stealth meta-address.
@@ -31,14 +30,14 @@ const Example = () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
   const chain = sepolia; // Example Viem chain
 
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!),
+    transport: custom(window.ethereum!)
   });
 
   // Initialize the stealth client with your RPC URL and chain ID
@@ -58,11 +57,11 @@ const Example = () => {
       account,
       ERC6538Address: ERC6538_CONTRACT.SEPOLIA,
       schemeId,
-      stealthMetaAddress: stealthMetaAddressToRegister,
+      stealthMetaAddress: stealthMetaAddressToRegister
     });
 
     await walletClient.sendTransaction({
-      ...preparedPayload,
+      ...preparedPayload
     });
   };
 

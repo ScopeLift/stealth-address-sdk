@@ -1,19 +1,15 @@
-import React, { useState } from "react";
-import ReactDOM from "react-dom/client";
-import { Address, createWalletClient, custom } from "viem";
-import { sepolia } from "viem/chains";
-import "viem/window";
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom/client';
+import { type Address, createWalletClient, custom } from 'viem';
+import { sepolia } from 'viem/chains';
+import 'viem/window';
 
 import {
-  createStealthClient,
   ERC5564_CONTRACT,
-  generateStealthAddress,
   VALID_SCHEME_ID,
-} from "@scopelift/stealth-address-sdk";
-
-
-
-
+  createStealthClient,
+  generateStealthAddress
+} from '@scopelift/stealth-address-sdk';
 
 /**
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.
@@ -36,7 +32,7 @@ const Example = () => {
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!),
+    transport: custom(window.ethereum!)
   });
 
   // Initialize the stealth client with your RPC URL and chain ID
@@ -55,7 +51,7 @@ const Example = () => {
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1, // Example scheme ID
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1 // Example scheme ID
       });
 
     // Prepare the announce payload
@@ -66,12 +62,12 @@ const Example = () => {
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
         stealthAddress,
         ephemeralPublicKey,
-        metadata: viewTag,
-      },
+        metadata: viewTag
+      }
     });
 
     await walletClient.sendTransaction({
-      ...preparedPayload,
+      ...preparedPayload
     });
   };
 
@@ -85,6 +81,6 @@ const Example = () => {
   return <button onClick={connect}>Connect Wallet</button>;
 };
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Example />
 );

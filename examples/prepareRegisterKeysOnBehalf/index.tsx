@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Address, createWalletClient, custom } from 'viem';
+import { type Address, createWalletClient, custom } from 'viem';
 import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
-  createStealthClient,
   ERC6538_CONTRACT,
-  parseStealthMetaAddressURI,
   VALID_SCHEME_ID,
+  createStealthClient,
+  parseStealthMetaAddressURI
 } from '@scopelift/stealth-address-sdk';
 
 /**
@@ -30,14 +30,14 @@ const Example = () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
-    schemeId,
+    schemeId
   });
   const chain = sepolia; // Example Viem chain
 
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!),
+    transport: custom(window.ethereum!)
   });
 
   // Initialize the stealth client with your RPC URL and chain ID
@@ -60,12 +60,12 @@ const Example = () => {
         registrant: '0x', // Add the registrant address here
         schemeId,
         stealthMetaAddress: stealthMetaAddressToRegister,
-        signature: '0x', // Add the signature here
-      },
+        signature: '0x' // Add the signature here
+      }
     });
 
     await walletClient.sendTransaction({
-      ...preparedPayload,
+      ...preparedPayload
     });
   };
 
