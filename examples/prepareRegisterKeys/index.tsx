@@ -24,9 +24,14 @@ import {
 const Example = () => {
   // Initialize your environment variables or configuration
   const chainId = 11155111; // Example chain ID
-  const rpcUrl = import.meta.env.VITE_RPC_URL!; // Your Ethereum RPC URL
+  const rpcUrl = import.meta.env.VITE_RPC_URL; // Your Ethereum RPC URL
+  if (!rpcUrl) throw new Error('VITE_RPC_URL is required');
+
   // Example URI; see the getStealthMetaAddress example and generateRandomStealthMetaAddress helper for more details
-  const stealthMetaAddressURI = import.meta.env.VITE_STEALTH_META_ADDRESS_URI!;
+  const stealthMetaAddressURI = import.meta.env.VITE_STEALTH_META_ADDRESS_URI;
+  if (!stealthMetaAddressURI)
+    throw new Error('VITE_STEALTH_META_ADDRESS_URI is required');
+
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
   const stealthMetaAddressToRegister = parseStealthMetaAddressURI({
     stealthMetaAddressURI,
@@ -34,10 +39,12 @@ const Example = () => {
   });
   const chain = sepolia; // Example Viem chain
 
+  if (!window.ethereum) throw new Error('window.ethereum is required');
+
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!)
+    transport: custom(window.ethereum)
   });
 
   // Initialize the stealth client with your RPC URL and chain ID
@@ -69,10 +76,16 @@ const Example = () => {
     return (
       <>
         <div>Connected: {account}</div>
-        <button onClick={registerKeys}>Register Stealth Meta-Address</button>
+        <button onClick={registerKeys} type="button">
+          Register Stealth Meta-Address
+        </button>
       </>
     );
-  return <button onClick={connect}>Connect Wallet</button>;
+  return (
+    <button onClick={connect} type="button">
+      Connect Wallet
+    </button>
+  );
 };
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
