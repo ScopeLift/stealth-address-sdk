@@ -2,7 +2,7 @@ import {
   ERC5564_CONTRACT,
   VALID_SCHEME_ID,
   createStealthClient
-} from 'stealth-address-sdk';
+} from '@scopelift/stealth-address-sdk';
 
 // Example parameters
 const chainId = 11155111; // Example chain ID for Sepolia

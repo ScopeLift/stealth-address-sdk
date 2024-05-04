@@ -3,7 +3,7 @@ import {
   VALID_SCHEME_ID,
   createStealthClient,
   getStealthMetaAddress
-} from 'stealth-address-sdk';
+} from '@scopelift/stealth-address-sdk';
 
 // Example stealth client parameters
 const chainId = 11155111; // Example chain ID for Sepolia

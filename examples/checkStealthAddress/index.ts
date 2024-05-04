@@ -3,7 +3,7 @@ import {
   checkStealthAddress,
   generateRandomStealthMetaAddress,
   generateStealthAddress
-} from 'stealth-address-sdk';
+} from '@scopelift/stealth-address-sdk';
 
 // User's keys (for example purposes, real values should be securely generated and stored)
 const {

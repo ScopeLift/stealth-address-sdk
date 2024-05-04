@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client';
-import { Address, createWalletClient, custom } from 'viem';
-import { sepolia } from 'viem/chains';
-import 'viem/window';
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
+import { Address, createWalletClient, custom } from "viem";
+import { sepolia } from "viem/chains";
+import "viem/window";
 
 import {
   createStealthClient,
   ERC5564_CONTRACT,
   generateStealthAddress,
   VALID_SCHEME_ID,
-} from 'stealth-address-sdk';
+} from "@scopelift/stealth-address-sdk";
+
+
+
+
 
 /**
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.
@@ -81,6 +85,6 @@ const Example = () => {
   return <button onClick={connect}>Connect Wallet</button>;
 };
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <Example />
 );
