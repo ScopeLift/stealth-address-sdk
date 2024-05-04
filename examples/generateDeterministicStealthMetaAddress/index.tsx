@@ -20,10 +20,12 @@ const Example = () => {
   // Initialize your configuration
   const chain = sepolia; // Example Viem chain
 
+  if (!window.ethereum) throw new Error('window.ethereum is required');
+
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!)
+    transport: custom(window.ethereum)
   });
 
   // State
@@ -63,7 +65,7 @@ const Example = () => {
     return (
       <>
         {!stealthMetaAddress ? (
-          <button onClick={handleSignAndGenStealthMetaAddress}>
+          <button onClick={handleSignAndGenStealthMetaAddress} type="button">
             Generate Stealth Meta-Address
           </button>
         ) : (
@@ -73,7 +75,11 @@ const Example = () => {
       </>
     );
 
-  return <button onClick={connect}>Connect Wallet</button>;
+  return (
+    <button onClick={connect} type="button">
+      Connect Wallet
+    </button>
+  );
 };
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
