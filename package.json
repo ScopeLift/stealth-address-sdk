@@ -11,10 +11,12 @@
     "test": "bun test",
     "build": "biome check --apply . && bun tsc",
     "watch": "bun test --watch src",
-    "check": "biome check ."
+    "check": "biome check .",
+    "changeset": "changeset"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
+    "@changesets/cli": "^2.27.1",
     "@types/bun": "latest",
     "typescript": "^5.3.3"
   },
