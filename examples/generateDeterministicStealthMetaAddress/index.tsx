@@ -1,10 +1,10 @@
-import React, { useState } from "react";
-import ReactDOM from "react-dom/client";
-import { Address, createWalletClient, custom } from "viem";
-import { sepolia } from "viem/chains";
-import "viem/window";
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom/client';
+import { type Address, createWalletClient, custom } from 'viem';
+import { sepolia } from 'viem/chains';
+import 'viem/window';
 
-import { generateStealthMetaAddressFromSignature } from "@scopelift/stealth-address-sdk";
+import { generateStealthMetaAddressFromSignature } from '@scopelift/stealth-address-sdk';
 
 /**
  * This React component demonstrates the process of generating a stealth meta-address deterministically using a user-signed message
@@ -20,10 +20,12 @@ const Example = () => {
   // Initialize your configuration
   const chain = sepolia; // Example Viem chain
 
+  if (!window.ethereum) throw new Error('window.ethereum is required');
+
   // Initialize Viem wallet client if using Viem
   const walletClient = createWalletClient({
     chain,
-    transport: custom(window.ethereum!),
+    transport: custom(window.ethereum)
   });
 
   // State
@@ -41,11 +43,11 @@ const Example = () => {
     // The message that is signed should clearly communicate to the user what they are signing and why
     const MESSAGE_TO_SIGN = `Generate Stealth Meta-Address on ${chain.id} chain`;
 
-    if (!account) throw new Error("A connected account is required");
+    if (!account) throw new Error('A connected account is required');
 
     const signature = await walletClient.signMessage({
       account,
-      message: MESSAGE_TO_SIGN,
+      message: MESSAGE_TO_SIGN
     });
 
     return signature;
@@ -63,7 +65,7 @@ const Example = () => {
     return (
       <>
         {!stealthMetaAddress ? (
-          <button onClick={handleSignAndGenStealthMetaAddress}>
+          <button onClick={handleSignAndGenStealthMetaAddress} type="button">
             Generate Stealth Meta-Address
           </button>
         ) : (
@@ -73,9 +75,13 @@ const Example = () => {
       </>
     );
 
-  return <button onClick={connect}>Connect Wallet</button>;
+  return (
+    <button onClick={connect} type="button">
+      Connect Wallet
+    </button>
+  );
 };
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Example />
 );

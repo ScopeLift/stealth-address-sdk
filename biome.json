@@ -16,7 +16,7 @@
 		}
 	},
 	"files": {
-		"include": ["src/**/*.ts", "examples/**/*.ts", "biome.json"]
+		"include": ["src/**/*.ts", "examples/**/*.ts*", "biome.json"]
 	},
 	"formatter": {
 		"enabled": true,

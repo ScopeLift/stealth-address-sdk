@@ -1,4 +1,7 @@
-import { VALID_SCHEME_ID, computeStealthKey } from 'stealth-address-sdk';
+import {
+  VALID_SCHEME_ID,
+  computeStealthKey
+} from '@scopelift/stealth-address-sdk';
 
 // Example keys (these would be generated or provided as necessary)
 const ephemeralPublicKey = '0x02c1ad...'; // Ephemeral public key from the announcement
