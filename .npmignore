@@ -1,3 +1,6 @@
+# Env
+.env
+
 # Configuration and development tools
 .bun
 tsconfig.json
