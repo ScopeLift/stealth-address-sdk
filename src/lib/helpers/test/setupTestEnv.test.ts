@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { VALID_CHAINS } from '../types';
 import { LOCAL_ENDPOINT } from './setupTestEnv';
 
@@ -59,6 +59,11 @@ describe('fetchChainId', async () => {
     // Set the env vars, which are needed to use a fork and not default to using foundry chain id
     process.env.USE_FORK = 'true';
     process.env.RPC_URL = 'http://example-rpc-url.com';
+  });
+
+  afterAll(() => {
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
   });
 
   test('successful fetch returns chain ID', async () => {
