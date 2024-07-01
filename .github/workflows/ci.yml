@@ -23,8 +23,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    env:
-      USE_FORK: false
     steps:
       - uses: actions/checkout@v4
 
