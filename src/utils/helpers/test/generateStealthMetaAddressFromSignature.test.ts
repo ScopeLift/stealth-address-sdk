@@ -24,9 +24,6 @@ describe('generateStealthMetaAddressFromSignature', () => {
   });
 
   test('should generate a stealth meta-address from a signature', () => {
-    console.log('🦄 ~ describe ~ signature:', signature);
-    const { portion1 } = extractPortions(signature);
-    console.log('🦄 ~ test ~ portion1:', portion1);
     const result = generateStealthMetaAddressFromSignature(signature);
 
     expect(result).toBeTruthy();
@@ -38,5 +35,19 @@ describe('generateStealthMetaAddressFromSignature', () => {
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1
       })
     ).not.toThrow();
+  });
+
+  describe('extractPortions', () => {
+    test('should extract distinct portions from a signature', () => {
+      const signature = `0x${'a'.repeat(64)}${'b'.repeat(
+        64
+      )}cd` satisfies `0x${string}`;
+
+      const { portion1, portion2, lastByte } = extractPortions(signature);
+
+      expect(portion1).toBe('a'.repeat(64));
+      expect(portion2).toBe('b'.repeat(64));
+      expect(lastByte).toBe('cd');
+    });
   });
 });
