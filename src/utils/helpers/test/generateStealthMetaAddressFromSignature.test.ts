@@ -6,7 +6,7 @@ import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import type { HexString } from '../../crypto/types';
 import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 
-describe('getStealthMetaAddressFromSignature', () => {
+describe('generateStealthMetaAddressFromSignature', () => {
   let walletClient: SuperWalletClient;
   let signature: HexString;
 
