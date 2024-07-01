@@ -1,8 +1,21 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test
+} from 'bun:test';
 import { VALID_CHAINS } from '../types';
 import { LOCAL_ENDPOINT } from './setupTestEnv';
 
 describe('setupTestEnv with different environment configurations', () => {
+  afterEach(() => {
+    process.env.USE_FORK = undefined;
+    process.env.RPC_URL = undefined;
+  });
+
   test('should use local node endpoint url when USE_FORK is true and RPC_URL is defined', async () => {
     const exampleRpcUrl = 'http://example-rpc-url.com';
     process.env.USE_FORK = 'true';
