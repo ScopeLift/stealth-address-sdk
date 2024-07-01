@@ -72,6 +72,10 @@ const getChainInfo = async () => {
 };
 
 export const fetchChainId = async (): Promise<number> => {
+  console.log(
+    '🦄 ~ fetchChainId ~ process.env.USE_FORK:',
+    process.env.USE_FORK
+  );
   // If not running fork test script, use the foundry chain ID
   if (!process.env.USE_FORK) return foundry.id;
 
