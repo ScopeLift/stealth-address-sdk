@@ -23,6 +23,7 @@ describe('getStealthMetaAddressFromSignature', () => {
   });
 
   test('should generate a stealth meta-address from a signature', () => {
+    console.log('🦄 ~ describe ~ signature:', signature);
     const result = generateStealthMetaAddressFromSignature(signature);
 
     expect(result).toBeTruthy();
