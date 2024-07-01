@@ -10,7 +10,10 @@ export {
 
 export {
   generateRandomStealthMetaAddress,
-  getViewTagFromMetadata
+  generateSignatureForRegisterKeysOnBehalf,
+  getViewTagFromMetadata,
+  type GenerateSignatureForRegisterKeysError,
+  type GenerateSignatureForRegisterKeysParams
 } from './helpers';
 
 export {
