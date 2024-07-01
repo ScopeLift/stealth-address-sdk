@@ -72,7 +72,6 @@ const getChainInfo = async () => {
 };
 
 export const fetchChainId = async (): Promise<number> => {
-  console.log('🦄 ~ fetchChainId ~ !isUsingFork():', !isUsingFork());
   // If not running fork test script, use the foundry chain ID
   if (!isUsingFork()) return foundry.id;
 
@@ -118,7 +117,6 @@ const fetchJson = async <T>(url: string, options: FetchRequestInit) => {
 
 function isUsingFork(): boolean {
   const useFork = process.env.USE_FORK;
-  console.log('🦄 ~ isUsingFork ~ process.env.USE_FORK:', process.env.USE_FORK);
   return useFork === 'true';
 }
 
