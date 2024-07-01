@@ -118,6 +118,7 @@ const fetchJson = async <T>(url: string, options: FetchRequestInit) => {
 
 function isUsingFork(): boolean {
   const useFork = process.env.USE_FORK;
+  console.log('🦄 ~ isUsingFork ~ process.env.USE_FORK:', process.env.USE_FORK);
   return useFork === 'true';
 }
 
