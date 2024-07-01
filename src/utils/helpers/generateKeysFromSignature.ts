@@ -16,13 +16,9 @@ function generateKeysFromSignature(signature: HexString): {
   if (!isValidSignature(signature)) {
     throw new Error(`Invalid signature: ${signature}`);
   }
-  console.log('🦄 ~ generateKeysFromSignature ~ signature:', signature);
 
   // Extract signature portions
   const { portion1, portion2, lastByte } = extractPortions(signature);
-  console.log('🦄 ~ generateKeysFromSignature ~ portion1:', portion1);
-  console.log('🦄 ~ generateKeysFromSignature ~ portion2:', portion2);
-  console.log('🦄 ~ generateKeysFromSignature ~ lastByte:', lastByte);
 
   if (`0x${portion1}${portion2}${lastByte}` !== signature) {
     throw new Error('Signature incorrectly generated or parsed');
