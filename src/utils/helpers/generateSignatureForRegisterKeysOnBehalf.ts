@@ -18,7 +18,7 @@ const SIGNATURE_TYPES = {
 } as const;
 
 /**
- * Generates a typed signature for registering keys on behalf of a user in the ERC6538 Registry.
+ * Generates a typed signature for registering keys on behalf of a user (account) in the ERC6538 Registry.
  *
  * This function creates an EIP-712 compliant signature for the `registerKeysOnBehalf` function
  * in the ERC6538 Registry contract. It retrieves the current nonce for the account, prepares
