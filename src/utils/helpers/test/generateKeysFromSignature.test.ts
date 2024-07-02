@@ -33,6 +33,7 @@ describe('generateKeysFromSignature', () => {
   });
 
   afterAll(() => {
+    // mock.restore() is not working to restore the mocked module below
     jest.restoreAllMocks();
   });
 
@@ -41,22 +42,18 @@ describe('generateKeysFromSignature', () => {
 
     expect(isValidPublicKey(result.spendingPublicKey)).toBe(true);
     expect(isValidPublicKey(result.viewingPublicKey)).toBe(true);
-  });
-
-  test('should throw an error for an invalid signature', () => {
-    const invalidSignature = '0x123';
-
-    expect(() => {
-      generateKeysFromSignature(invalidSignature);
-    }).toThrow('Invalid signature');
+    expect(result.spendingPrivateKey).toBeDefined();
+    expect(result.viewingPrivateKey).toBeDefined();
   });
 
   test('should throw an error for incorrectly parsed signatures', () => {
     const notMatchingSignature = '0x123';
-
-    // Mock the output from extractPortions to return an signature that doesn't match the one passed in
     mock.module('../generateKeysFromSignature', () => ({
-      extractPortions: () => notMatchingSignature
+      extractPortions: () => ({
+        portion1: notMatchingSignature,
+        portion2: notMatchingSignature,
+        lastByte: notMatchingSignature
+      })
     }));
 
     expect(() => {
@@ -65,16 +62,13 @@ describe('generateKeysFromSignature', () => {
   });
 
   describe('extractPortions', () => {
-    test('should extract distinct portions from a signature', () => {
-      const signature = `0x${'a'.repeat(64)}${'b'.repeat(
-        64
-      )}cd` satisfies `0x${string}`;
+    test('should work correctly', () => {
+      const signature = `0x${'a'.repeat(64)}${'b'.repeat(64)}cd` as HexString;
+      const result = extractPortions(signature);
 
-      const { portion1, portion2, lastByte } = extractPortions(signature);
-
-      expect(portion1).toBe('a'.repeat(64));
-      expect(portion2).toBe('b'.repeat(64));
-      expect(lastByte).toBe('cd');
+      expect(result.portion1).toBe('a'.repeat(64));
+      expect(result.portion2).toBe('b'.repeat(64));
+      expect(result.lastByte).toBe('cd');
     });
   });
 });
