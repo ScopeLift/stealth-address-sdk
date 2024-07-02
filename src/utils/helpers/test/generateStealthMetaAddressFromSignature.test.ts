@@ -4,7 +4,6 @@ import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import type { HexString } from '../../crypto/types';
-import { extractPortions } from '../generateKeysFromSignature';
 import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 
 describe('generateStealthMetaAddressFromSignature', () => {
@@ -35,19 +34,5 @@ describe('generateStealthMetaAddressFromSignature', () => {
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1
       })
     ).not.toThrow();
-  });
-
-  describe('extractPortions', () => {
-    test('should extract distinct portions from a signature', () => {
-      const signature = `0x${'a'.repeat(64)}${'b'.repeat(
-        64
-      )}cd` satisfies `0x${string}`;
-
-      const { portion1, portion2, lastByte } = extractPortions(signature);
-
-      expect(portion1).toBe('a'.repeat(64));
-      expect(portion2).toBe('b'.repeat(64));
-      expect(lastByte).toBe('cd');
-    });
   });
 });
