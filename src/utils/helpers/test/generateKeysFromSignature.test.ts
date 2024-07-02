@@ -50,6 +50,14 @@ describe('generateKeysFromSignature', () => {
     expect(result.viewingPrivateKey).toBeDefined();
   });
 
+  test('should throw an error for an invalid signature', () => {
+    const invalid = '0x123';
+
+    expect(() => {
+      generateKeysFromSignature(invalid);
+    }).toThrow(`Invalid signature: ${invalid}`);
+  });
+
   test('should throw an error for incorrectly parsed signatures', () => {
     const notMatchingSignature = '0x123';
 
@@ -60,6 +68,8 @@ describe('generateKeysFromSignature', () => {
         lastByte: notMatchingSignature
       })
     }));
+
+    mock.restore();
 
     expect(() => {
       generateKeysFromSignature(signature);
