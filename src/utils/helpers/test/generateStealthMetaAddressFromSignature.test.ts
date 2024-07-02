@@ -4,8 +4,8 @@ import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import { VALID_SCHEME_ID, parseKeysFromStealthMetaAddress } from '../../crypto';
 import type { HexString } from '../../crypto/types';
-import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 import { extractPortions } from '../generateKeysFromSignature';
+import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 
 describe('generateStealthMetaAddressFromSignature', () => {
   let walletClient: SuperWalletClient;
