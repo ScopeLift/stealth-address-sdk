@@ -1,12 +1,4 @@
-import {
-  jest,
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  mock,
-  test
-} from 'bun:test';
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test';
 import { signMessage } from 'viem/actions';
 import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
@@ -15,6 +7,14 @@ import generateKeysFromSignature, {
   extractPortions
 } from '../generateKeysFromSignature';
 import isValidPublicKey from '../isValidPublicKey';
+
+type MockedModule = {
+  extractPortions: () => {
+    portion1: string;
+    portion2: string;
+    lastByte: string;
+  };
+};
 
 describe('generateKeysFromSignature', () => {
   let walletClient: SuperWalletClient;
@@ -32,9 +32,8 @@ describe('generateKeysFromSignature', () => {
     });
   });
 
-  afterAll(() => {
-    // mock.restore() is not working to restore the mocked module below
-    jest.restoreAllMocks();
+  afterEach(() => {
+    mock.restore();
   });
 
   test('should generate valid public keys from a correct signature', () => {
@@ -48,13 +47,16 @@ describe('generateKeysFromSignature', () => {
 
   test('should throw an error for incorrectly parsed signatures', () => {
     const notMatchingSignature = '0x123';
-    mock.module('../generateKeysFromSignature', () => ({
+
+    const mockExtractPortions = (): MockedModule => ({
       extractPortions: () => ({
         portion1: notMatchingSignature,
         portion2: notMatchingSignature,
         lastByte: notMatchingSignature
       })
-    }));
+    });
+
+    mock.module('../generateKeysFromSignature', () => mockExtractPortions());
 
     expect(() => {
       generateKeysFromSignature(signature);
