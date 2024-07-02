@@ -8,13 +8,22 @@ import generateKeysFromSignature, {
 } from '../generateKeysFromSignature';
 import isValidPublicKey from '../isValidPublicKey';
 
-type MockedModule = {
-  extractPortions: () => {
-    portion1: string;
-    portion2: string;
-    lastByte: string;
-  };
+// Define the return type of extractPortions
+type ExtractPortionsResult = {
+  portion1: string;
+  portion2: string;
+  lastByte: string;
 };
+
+class DisposableMock {
+  constructor(mockFn: () => void) {
+    mockFn();
+  }
+
+  [Symbol.dispose]() {
+    mock.restore();
+  }
+}
 
 describe('generateKeysFromSignature', () => {
   let walletClient: SuperWalletClient;
@@ -48,15 +57,19 @@ describe('generateKeysFromSignature', () => {
   test('should throw an error for incorrectly parsed signatures', () => {
     const notMatchingSignature = '0x123';
 
-    const mockExtractPortions = (): MockedModule => ({
-      extractPortions: () => ({
-        portion1: notMatchingSignature,
-        portion2: notMatchingSignature,
-        lastByte: notMatchingSignature
-      })
-    });
+    const mockExtractPortions = () => {
+      return () => ({
+        extractPortions: (): ExtractPortionsResult => ({
+          portion1: notMatchingSignature,
+          portion2: notMatchingSignature,
+          lastByte: notMatchingSignature
+        })
+      });
+    };
 
-    mock.module('../generateKeysFromSignature', () => mockExtractPortions());
+    using _mock = new DisposableMock(() => {
+      mock.module('../generateKeysFromSignature', mockExtractPortions());
+    });
 
     expect(() => {
       generateKeysFromSignature(signature);
