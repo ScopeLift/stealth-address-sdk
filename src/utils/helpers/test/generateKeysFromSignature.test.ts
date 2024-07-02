@@ -38,7 +38,7 @@ describe('generateKeysFromSignature', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   test('should generate valid public keys from a correct signature', () => {
