@@ -8,7 +8,7 @@
   "scripts": {
     "anvil-fork": "make anvil-fork",
     "test-fork": "make test-fork",
-    "test": "bun test",
+    "test": "bun test --restoreAllMocks",
     "build": "biome check --apply . && bun tsc",
     "watch": "bun test --watch src",
     "check": "biome check ."
