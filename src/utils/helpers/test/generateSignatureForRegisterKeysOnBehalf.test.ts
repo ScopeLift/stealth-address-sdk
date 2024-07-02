@@ -1,13 +1,13 @@
-import { beforeAll, describe, test, expect } from 'bun:test';
-import generateSignatureForRegisterKeysOnBehalf from '../generateSignatureForRegisterKeysOnBehalf';
-import { GenerateSignatureForRegisterKeysError } from '../types';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import type { WalletClient } from 'viem';
-import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
-import setupTestEnv from '../../../lib/helpers/test/setupTestEnv';
-import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
 import { signMessage } from 'viem/actions';
-import { VALID_SCHEME_ID } from '../../crypto';
+import setupTestEnv from '../../../lib/helpers/test/setupTestEnv';
+import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { VALID_CHAIN_IDS } from '../../../lib/helpers/types';
+import { VALID_SCHEME_ID } from '../../crypto';
+import generateSignatureForRegisterKeysOnBehalf from '../generateSignatureForRegisterKeysOnBehalf';
+import generateStealthMetaAddressFromSignature from '../generateStealthMetaAddressFromSignature';
+import { GenerateSignatureForRegisterKeysError } from '../types';
 
 describe('generateSignatureForRegisterKeysOnBehalf', () => {
   let params: Parameters<typeof generateSignatureForRegisterKeysOnBehalf>[0];
