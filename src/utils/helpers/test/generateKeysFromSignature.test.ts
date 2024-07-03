@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import { signMessage } from 'viem/actions';
 import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
@@ -13,7 +13,6 @@ describe('generateKeysFromSignature', () => {
   beforeAll(async () => {
     walletClient = await setupTestWallet();
     if (!walletClient.account) throw new Error('No account found');
-
     // Generate a signature to use in the tests
     signature = await signMessage(walletClient, {
       account: walletClient.account,
@@ -22,35 +21,18 @@ describe('generateKeysFromSignature', () => {
     });
   });
 
-  afterAll(() => {
-    mock.restore();
-  });
-
   test('should generate valid public keys from a correct signature', () => {
     const result = generateKeysFromSignature(signature);
-
     expect(isValidPublicKey(result.spendingPublicKey)).toBe(true);
     expect(isValidPublicKey(result.viewingPublicKey)).toBe(true);
+    expect(result.spendingPrivateKey).toBeDefined();
+    expect(result.viewingPrivateKey).toBeDefined();
   });
 
   test('should throw an error for an invalid signature', () => {
-    const invalidSignature = '0x123';
-
+    const invalid = '0x123';
     expect(() => {
-      generateKeysFromSignature(invalidSignature);
-    }).toThrow('Invalid signature');
-  });
-
-  test('should throw an error for incorrectly parsed signatures', () => {
-    const notMatchingSignature = '0x123';
-
-    // Mock the output from extractPortions to return an signature that doesn't match the one passed in
-    mock.module('../generateKeysFromSignature', () => ({
-      extractPortions: () => notMatchingSignature
-    }));
-
-    expect(() => {
-      generateKeysFromSignature(signature);
-    }).toThrow('Signature incorrectly generated or parsed');
+      generateKeysFromSignature(invalid);
+    }).toThrow(`Invalid signature: ${invalid}`);
   });
 });

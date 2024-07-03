@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import type { Address, TransactionReceipt } from 'viem';
 import {
-  ERC6538RegistryAbi,
   VALID_SCHEME_ID,
+  generateSignatureForRegisterKeysOnBehalf,
   parseStealthMetaAddressURI
 } from '../../..';
 import setupTestEnv from '../../helpers/test/setupTestEnv';
@@ -39,57 +39,20 @@ describe('prepareRegisterKeysOnBehalf', () => {
     const chain = walletClient.chain;
     if (!chain) throw new Error('No chain found');
 
-    const generateSignature = async (account: Address) => {
-      // Get the registrant's current nonce for the signature
-      const nonce = await walletClient.readContract({
-        address: ERC6538Address,
-        abi: ERC6538RegistryAbi,
-        functionName: 'nonceOf',
-        args: [account]
-      });
-
-      // Prepare the signature domain
-      const domain = {
-        name: 'ERC6538Registry',
-        version: '1.0',
-        chainId,
-        verifyingContract: ERC6538Address
-      } as const;
-
-      // Taken from the ERC6538Registry contract
-      const primaryType = 'Erc6538RegistryEntry';
-
-      // Prepare the signature types
-      const types = {
-        [primaryType]: [
-          { name: 'schemeId', type: 'uint256' },
-          { name: 'stealthMetaAddress', type: 'bytes' },
-          { name: 'nonce', type: 'uint256' }
-        ]
-      } as const;
-
-      const message = {
-        schemeId: BigInt(schemeId),
-        stealthMetaAddress: stealthMetaAddressToRegister,
-        nonce
-      };
-
-      const signature = await walletClient.signTypedData({
-        account,
-        primaryType,
-        domain,
-        types,
-        message
-      });
-
-      return signature;
-    };
+    const signature = await generateSignatureForRegisterKeysOnBehalf({
+      walletClient,
+      account,
+      ERC6538Address,
+      chainId,
+      schemeId,
+      stealthMetaAddressToRegister
+    });
 
     args = {
       registrant: account,
       schemeId,
       stealthMetaAddress: stealthMetaAddressToRegister,
-      signature: await generateSignature(account)
+      signature
     } satisfies RegisterKeysOnBehalfArgs;
 
     const prepared = await stealthClient.prepareRegisterKeysOnBehalf({
