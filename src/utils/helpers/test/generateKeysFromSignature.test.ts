@@ -3,7 +3,7 @@ import { signMessage } from 'viem/actions';
 import setupTestWallet from '../../../lib/helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../../lib/helpers/types';
 import type { HexString } from '../../crypto/types';
-import generateKeysFromSignature, {} from '../generateKeysFromSignature';
+import generateKeysFromSignature from '../generateKeysFromSignature';
 import isValidPublicKey from '../isValidPublicKey';
 
 describe('generateKeysFromSignature', () => {
