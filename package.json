@@ -11,7 +11,8 @@
     "test": "bun test",
     "build": "biome check --apply . && bun tsc",
     "watch": "bun test --watch src",
-    "check": "biome check ."
+    "check": "biome check .",
+    "publish": "bun run build && npm publish"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
