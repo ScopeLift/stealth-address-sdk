@@ -61,7 +61,7 @@ const result = generateStealthAddress({ stealthMetaAddressURI });
 console.log(result.stealthAddress);
 ```
 
-### Computing Stealh Key
+### Computing Stealth Key
 
 ```ts
 import {
