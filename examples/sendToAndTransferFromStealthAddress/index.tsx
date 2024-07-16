@@ -1,10 +1,10 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import StealthActionsExample from './components/stealth-actions-example';
 import { WagmiProvider } from 'wagmi';
 import { http, createConfig } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import StealthActionsExample from './components/stealth-actions-example';
 
 const rpcUrl = import.meta.env.VITE_RPC_URL;
 if (!rpcUrl) throw new Error('VITE_RPC_URL is required');

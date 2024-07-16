@@ -1,24 +1,24 @@
+import {
+  type GenerateStealthAddressReturnType,
+  VALID_SCHEME_ID,
+  computeStealthKey,
+  generateKeysFromSignature,
+  generateStealthAddress,
+  generateStealthMetaAddressFromSignature
+} from '@scopelift/stealth-address-sdk';
 import React, { useEffect, useState } from 'react';
 import {
+  http,
   type Address,
   createWalletClient,
   custom,
   formatEther,
-  http,
   parseEther
 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import 'viem/window';
-import {
-  VALID_SCHEME_ID,
-  generateStealthAddress,
-  computeStealthKey,
-  generateStealthMetaAddressFromSignature,
-  type GenerateStealthAddressReturnType,
-  generateKeysFromSignature
-} from '@scopelift/stealth-address-sdk';
 import { useBalance, useWaitForTransactionReceipt } from 'wagmi';
-import { privateKeyToAccount } from 'viem/accounts';
 
 const StealthActionsExample = () => {
   const rpcUrl = import.meta.env.VITE_RPC_URL;
