@@ -1,0 +1,23 @@
+{
+  "name": "send-to-and-withdraw-from-stealth-address-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@scopelift/stealth-address-sdk": "^1.0.0-beta.1",
+    "@tanstack/react-query": "^5.51.1",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "viem": "2.x",
+    "vite": "latest",
+    "wagmi": "^2.10.10"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
