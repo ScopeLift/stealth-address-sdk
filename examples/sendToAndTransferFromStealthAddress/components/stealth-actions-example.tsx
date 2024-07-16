@@ -21,7 +21,7 @@ import 'viem/window';
 import { useBalance, useWaitForTransactionReceipt } from 'wagmi';
 
 const StealthActionsExample = () => {
-  const rpcUrl = import.meta.env.VITE_RPC_URL;
+  const rpcUrl = import.meta.env.VITE_RPC_URL || 'https://1rpc.io/sepolia	'; // Use your rpc url here; fallback to 1rpc.io for Sepolia
   if (!rpcUrl) throw new Error('VITE_RPC_URL is required');
   if (!window.ethereum) throw new Error('window.ethereum is required');
 
