@@ -68,8 +68,8 @@ async function getAnnouncementsUsingSubgraph({
     pageSize,
     entity: 'announcementEntities'
   })) {
-    const announcement = batch.map(convertSubgraphEntityToAnnouncementLog);
-    allAnnouncements.push(...announcement);
+    const announcements = batch.map(convertSubgraphEntityToAnnouncementLog);
+    allAnnouncements.push(...announcements);
   }
 
   return allAnnouncements;
