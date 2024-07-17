@@ -14,15 +14,12 @@ async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
   fromBlock,
   toBlock,
-  query,
   filterOptions,
   pageSize = 1000
 }: GetAnnouncementsUsingSubgraphParams): Promise<GetAnnouncementsUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
 
-  const gqlQuery =
-    query ??
-    `
+  const gqlQuery = `
     query GetAnnouncements($fromBlock: Int, $toBlock: Int, $first: Int, $skip: Int, $caller: String) {
       announcementEntities(
         where: {
