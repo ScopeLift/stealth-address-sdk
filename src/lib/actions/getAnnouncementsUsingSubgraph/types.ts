@@ -34,6 +34,12 @@ export type GetAnnouncementsUsingSubgraphParams = {
   pageSize?: number;
 };
 
+export type AnnouncementSubgraphQueryVariables = {
+  fromBlock?: number;
+  toBlock?: number;
+  caller?: string;
+};
+
 export type GetAnnouncementsUsingSubgraphFilterOptions = {
   caller?: `0x${string}`;
 };

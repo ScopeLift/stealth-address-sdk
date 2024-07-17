@@ -3,7 +3,12 @@ import type { SubgraphAnnouncementEntity } from './types';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import { ERC5564_CONTRACT } from '../../../config';
 
-export async function* fetchPages<T>({
+export type PaginationVariables = {
+  first: number;
+  skip: number;
+};
+
+export async function* fetchPages<T, V extends Record<string, unknown>>({
   client,
   gqlQuery,
   variables,
@@ -12,8 +17,7 @@ export async function* fetchPages<T>({
 }: {
   client: GraphQLClient;
   gqlQuery: string;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  variables: Record<string, any>;
+  variables: V;
   pageSize: number;
   entity: 'announcementEntities'; // The name of the entity to fetch from the subgraph
 }): AsyncGenerator<T[], void, undefined> {
@@ -21,7 +25,11 @@ export async function* fetchPages<T>({
   let moreData = true;
 
   while (moreData) {
-    const currentVariables = { ...variables, first: pageSize, skip };
+    const currentVariables = {
+      ...variables,
+      first: pageSize,
+      skip
+    };
     try {
       const response = await client.request<{ [key: string]: T[] }>(
         gqlQuery,

@@ -1,5 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 import type {
+  AnnouncementSubgraphQueryVariables,
   GetAnnouncementsUsingSubgraphParams,
   GetAnnouncementsUsingSubgraphReturnType,
   SubgraphAnnouncementEntity
@@ -50,7 +51,7 @@ async function getAnnouncementsUsingSubgraph({
     }
   `;
 
-  const variables = {
+  const variables: AnnouncementSubgraphQueryVariables = {
     fromBlock: fromBlock ? Number(fromBlock) : undefined,
     toBlock: toBlock ? Number(toBlock) : undefined,
     caller: filterOptions?.caller
@@ -58,7 +59,10 @@ async function getAnnouncementsUsingSubgraph({
 
   const allAnnouncements: AnnouncementLog[] = [];
 
-  for await (const batch of fetchPages<SubgraphAnnouncementEntity>({
+  for await (const batch of fetchPages<
+    SubgraphAnnouncementEntity,
+    AnnouncementSubgraphQueryVariables
+  >({
     client,
     gqlQuery,
     variables,
