@@ -48,8 +48,18 @@ const StealthActionsExample = () => {
     useState<`0x${string}`>();
   const [transferFromStealthTxHash, setTransferFromStealthTxHash] =
     useState<`0x${string}`>();
-  const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  enum CURRENT_STEP {
+    GENERATE_STEALTH_ADDRESS = 1,
+    SEND_TO_STEALTH_ADDRESS = 2,
+    TRANSFER_FROM_STEALTH_ADDRESS = 3,
+    TRANSFER_FROM_STEALTH_ADDRESS_COMPLETE = 4
+  }
+
+  const [currentStep, setCurrentStep] = useState(
+    CURRENT_STEP.GENERATE_STEALTH_ADDRESS
+  );
 
   const {
     isLoading: isLoadingSendToStealthTx,
@@ -80,7 +90,7 @@ const StealthActionsExample = () => {
     try {
       const [address] = await walletClient.requestAddresses();
       setConnectedAccount(address);
-      setCurrentStep(1);
+      setCurrentStep(CURRENT_STEP.GENERATE_STEALTH_ADDRESS);
     } catch (error) {
       handleError('Error connecting wallet');
     }
@@ -106,7 +116,7 @@ const StealthActionsExample = () => {
         schemeId: SCHEME_ID
       });
       setStealthAddressDetails(details);
-      setCurrentStep(2);
+      setCurrentStep(CURRENT_STEP.SEND_TO_STEALTH_ADDRESS);
     } catch (error) {
       handleError('Error generating stealth address');
     }
@@ -123,7 +133,7 @@ const StealthActionsExample = () => {
         value: parseEther(SEND_AMOUNT)
       });
       setSendToStealthTxHash(hash);
-      setCurrentStep(3);
+      setCurrentStep(CURRENT_STEP.TRANSFER_FROM_STEALTH_ADDRESS);
     } catch (error) {
       handleError('Error sending to stealth address');
     }
@@ -153,7 +163,7 @@ const StealthActionsExample = () => {
         value: parseEther(WITHDRAW_AMOUNT)
       });
       setTransferFromStealthTxHash(hash);
-      setCurrentStep(4);
+      setCurrentStep(CURRENT_STEP.TRANSFER_FROM_STEALTH_ADDRESS_COMPLETE);
     } catch (error) {
       handleError('Error transferring from stealth address');
     }
@@ -162,7 +172,7 @@ const StealthActionsExample = () => {
   const handleError = (msg: string) => {
     console.error(msg);
     setError(msg);
-    setCurrentStep(1);
+    setCurrentStep(CURRENT_STEP.GENERATE_STEALTH_ADDRESS);
   };
 
   useEffect(() => {
