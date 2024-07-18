@@ -53,8 +53,7 @@ const StealthActionsExample = () => {
   enum CurrentStep {
     GENERATE_STEALTH_ADDRESS = 1,
     SEND_TO_STEALTH_ADDRESS = 2,
-    TRANSFER_FROM_STEALTH_ADDRESS = 3,
-    TRANSFER_FROM_STEALTH_ADDRESS_COMPLETE = 4
+    TRANSFER_FROM_STEALTH_ADDRESS = 3
   }
 
   const [currentStep, setCurrentStep] = useState(
@@ -263,9 +262,7 @@ const StealthActionsExample = () => {
       {transferFromStealthTxHash && (
         <p>Transfer Transaction Hash: {transferFromStealthTxHash}</p>
       )}
-      {currentStep === CurrentStep.TRANSFER_FROM_STEALTH_ADDRESS_COMPLETE && (
-        <p>Transfer complete!</p>
-      )}
+      {isSuccessTransferFromStealthTx && <p>Transfer complete!</p>}
     </>
   );
 };
