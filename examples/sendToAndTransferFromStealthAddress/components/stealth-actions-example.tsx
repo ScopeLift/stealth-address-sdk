@@ -227,14 +227,17 @@ const StealthActionsExample = () => {
       )}
       <button
         onClick={getStealthAddressDetails}
-        disabled={currentStep !== 1}
+        disabled={currentStep !== CurrentStep.GENERATE_STEALTH_ADDRESS}
         type="button"
       >
         Generate Stealth Address
       </button>
       <button
         onClick={sendToStealthAddress}
-        disabled={currentStep !== 2 || isLoadingSendToStealthTx}
+        disabled={
+          currentStep !== CurrentStep.SEND_TO_STEALTH_ADDRESS ||
+          isLoadingSendToStealthTx
+        }
         type="button"
       >
         {isLoadingSendToStealthTx
@@ -246,7 +249,10 @@ const StealthActionsExample = () => {
       )}
       <button
         onClick={transferFromStealthAddress}
-        disabled={currentStep !== 3 || isLoadingTransferFromStealthTx}
+        disabled={
+          currentStep !== CurrentStep.TRANSFER_FROM_STEALTH_ADDRESS ||
+          isLoadingTransferFromStealthTx
+        }
         type="button"
       >
         {isLoadingTransferFromStealthTx
@@ -256,7 +262,9 @@ const StealthActionsExample = () => {
       {transferFromStealthTxHash && (
         <p>Transfer Transaction Hash: {transferFromStealthTxHash}</p>
       )}
-      {currentStep === 4 && <p>Transfer complete!</p>}
+      {currentStep === CurrentStep.TRANSFER_FROM_STEALTH_ADDRESS_COMPLETE && (
+        <p>Transfer complete!</p>
+      )}
     </>
   );
 };
