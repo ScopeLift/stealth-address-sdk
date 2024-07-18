@@ -251,7 +251,8 @@ const StealthActionsExample = () => {
         onClick={transferFromStealthAddress}
         disabled={
           currentStep !== CurrentStep.TRANSFER_FROM_STEALTH_ADDRESS ||
-          isLoadingTransferFromStealthTx
+          isLoadingTransferFromStealthTx ||
+          !isSuccessSendToStealthTx
         }
         type="button"
       >
