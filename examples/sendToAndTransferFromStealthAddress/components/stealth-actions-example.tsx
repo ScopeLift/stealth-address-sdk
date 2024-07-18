@@ -19,10 +19,9 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import 'viem/window';
 import { useBalance, useWaitForTransactionReceipt } from 'wagmi';
+import { RPC_URL } from '..';
 
 const StealthActionsExample = () => {
-  const rpcUrl = import.meta.env.VITE_RPC_URL || 'https://1rpc.io/sepolia	'; // Use your rpc url here; fallback to 1rpc.io for Sepolia
-  if (!rpcUrl) throw new Error('VITE_RPC_URL is required');
   if (!window.ethereum) throw new Error('window.ethereum is required');
 
   const CHAIN = sepolia;
@@ -146,7 +145,7 @@ const StealthActionsExample = () => {
       const stealthWalletClient = createWalletClient({
         account: stealthAddressAccount,
         chain: CHAIN,
-        transport: http(rpcUrl)
+        transport: http(RPC_URL)
       });
 
       const hash = await stealthWalletClient.sendTransaction({

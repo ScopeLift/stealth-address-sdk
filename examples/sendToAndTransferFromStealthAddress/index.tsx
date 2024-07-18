@@ -6,13 +6,14 @@ import { http, createConfig } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import StealthActionsExample from './components/stealth-actions-example';
 
-const rpcUrl = import.meta.env.VITE_RPC_URL;
-if (!rpcUrl) throw new Error('VITE_RPC_URL is required');
+export const RPC_URL =
+  import.meta.env.VITE_RPC_URL || 'https://1rpc.io/sepolia';
+if (!RPC_URL) throw new Error('VITE_RPC_URL is required');
 
 export const config = createConfig({
   chains: [sepolia],
   transports: {
-    [sepolia.id]: http(rpcUrl)
+    [sepolia.id]: http(RPC_URL)
   }
 });
 
