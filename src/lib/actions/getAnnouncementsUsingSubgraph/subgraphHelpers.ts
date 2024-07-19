@@ -1,7 +1,7 @@
 import type { GraphQLClient } from 'graphql-request';
-import type { SubgraphAnnouncementEntity } from './types';
-import type { AnnouncementLog } from '../getAnnouncements/types';
 import { ERC5564_CONTRACT } from '../../../config';
+import type { AnnouncementLog } from '../getAnnouncements/types';
+import type { SubgraphAnnouncementEntity } from './types';
 
 export type PaginationVariables = {
   first: number;
@@ -19,7 +19,7 @@ export async function* fetchPages<T, V extends Record<string, unknown>>({
   gqlQuery: string;
   variables: V;
   pageSize: number;
-  entity: 'announcementEntities'; // The name of the entity to fetch from the subgraph
+  entity: 'announcements'; // The name of the entity to fetch from the subgraph
 }): AsyncGenerator<T[], void, undefined> {
   let skip = 0;
   let moreData = true;
