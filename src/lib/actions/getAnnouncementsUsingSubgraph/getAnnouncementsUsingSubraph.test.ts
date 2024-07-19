@@ -1,19 +1,28 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import getAnnouncementsUsingSubgraph from './getAnnouncementsUsingSubgraph';
+import { getAddress } from 'viem';
+import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 
 describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   const subgraphUrl = process.env.SUBGRAPH_URL;
   if (!subgraphUrl) throw new Error('SUBGRAPH_URL not set in env');
 
-  const fromBlock = 5486597; // Sepolia announcer contract deploy block
+  const fromBlock = ERC5564_StartBlocks.SEPOLIA;
   let result: AnnouncementLog[];
 
   beforeAll(async () => {
-    result = await getAnnouncementsUsingSubgraph({
-      subgraphUrl,
-      fromBlock
-    });
+    try {
+      result = await getAnnouncementsUsingSubgraph({
+        subgraphUrl,
+        filter: `{
+          blockNumber_gte: ${fromBlock}
+        }`
+      });
+    } catch (error) {
+      console.error(`Failed to fetch announcements: ${error}`);
+      throw error;
+    }
   });
 
   test('fetches announcements successfully', () => {
@@ -40,33 +49,6 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
     expect(announcement).toHaveProperty('metadata');
   });
 
-  test('fetches announcements within specified block range', async () => {
-    const latestBlock = Math.max(...result.map(a => Number(a.blockNumber)));
-    const midPoint = Math.floor((fromBlock + latestBlock) / 2);
-
-    const firstHalf = await getAnnouncementsUsingSubgraph({
-      subgraphUrl,
-      fromBlock,
-      toBlock: midPoint,
-      pageSize: 100
-    });
-
-    const secondHalf = await getAnnouncementsUsingSubgraph({
-      subgraphUrl,
-      fromBlock: midPoint + 1,
-      toBlock: latestBlock,
-      pageSize: 100
-    });
-
-    expect(firstHalf.length + secondHalf.length).toBe(result.length);
-    expect(
-      Math.max(...firstHalf.map(a => Number(a.blockNumber)))
-    ).toBeLessThanOrEqual(midPoint);
-    expect(
-      Math.min(...secondHalf.map(a => Number(a.blockNumber)))
-    ).toBeGreaterThan(midPoint);
-  });
-
   test('applies caller filter correctly', async () => {
     if (result.length === 0) {
       console.warn('No announcements found to test caller filter');
@@ -76,20 +58,25 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
     const caller = result[0].caller;
     const filteredResult = await getAnnouncementsUsingSubgraph({
       subgraphUrl,
-      fromBlock,
-      filterOptions: { caller },
+      filter: `{
+        caller: "${caller}"
+      }`,
       pageSize: 100
     });
 
     expect(filteredResult.length).toBeGreaterThan(0);
-    expect(filteredResult.every(a => a.caller === caller)).toBe(true);
+    expect(
+      filteredResult.every(a => getAddress(a.caller) === getAddress(caller))
+    ).toBe(true);
   });
 
   test('handles pagination correctly', async () => {
     const smallPageSize = 10;
     const pagedResult = await getAnnouncementsUsingSubgraph({
       subgraphUrl,
-      fromBlock,
+      filter: `{
+        blockNumber_gte: ${fromBlock}
+      }`,
       pageSize: smallPageSize
     });
 

@@ -5,7 +5,6 @@ import {
   fetchPages
 } from './subgraphHelpers';
 import type {
-  AnnouncementSubgraphQueryVariables,
   GetAnnouncementsUsingSubgraphParams,
   GetAnnouncementsUsingSubgraphReturnType,
   SubgraphAnnouncementEntity
@@ -13,27 +12,22 @@ import type {
 
 async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
-  fromBlock,
-  toBlock,
-  filterOptions,
+  filter = '', // A valid GraphQL filter string that looks like: `{ blockNumber_gte: 123456, caller: "0xAddress" }`
   pageSize = 1000
 }: GetAnnouncementsUsingSubgraphParams): Promise<GetAnnouncementsUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
 
   const gqlQuery = `
-    query GetAnnouncements($fromBlock: Int, $toBlock: Int, $first: Int, $skip: Int, $caller: String) {
-      announcementEntities(
-        where: {
-          block_gte: $fromBlock,
-          block_lte: $toBlock
-          caller: $caller,
-        },
+    query GetAnnouncements($first: Int, $skip: Int) {
+      announcements(
+        where: ${filter},
         first: $first,
         skip: $skip,
-        orderBy: block,
+        orderBy: blockNumber,
         orderDirection: asc
-      ) {
-        block
+      ) 
+      {
+        blockNumber
         blockHash
         caller
         data
@@ -48,24 +42,14 @@ async function getAnnouncementsUsingSubgraph({
         transactionHash
         transactionIndex
       }
-    }
+}
   `;
-
-  const variables: AnnouncementSubgraphQueryVariables = {
-    fromBlock: fromBlock ? Number(fromBlock) : undefined,
-    toBlock: toBlock ? Number(toBlock) : undefined,
-    caller: filterOptions?.caller
-  };
 
   const allAnnouncements: AnnouncementLog[] = [];
 
-  for await (const batch of fetchPages<
-    SubgraphAnnouncementEntity,
-    AnnouncementSubgraphQueryVariables
-  >({
+  for await (const batch of fetchPages<SubgraphAnnouncementEntity>({
     client,
     gqlQuery,
-    variables,
     pageSize,
     entity: 'announcements'
   })) {
