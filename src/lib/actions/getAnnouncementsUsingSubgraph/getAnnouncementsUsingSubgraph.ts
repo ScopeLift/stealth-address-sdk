@@ -1,15 +1,15 @@
 import { GraphQLClient } from 'graphql-request';
+import type { AnnouncementLog } from '../getAnnouncements/types';
+import {
+  convertSubgraphEntityToAnnouncementLog,
+  fetchPages
+} from './subgraphHelpers';
 import type {
   AnnouncementSubgraphQueryVariables,
   GetAnnouncementsUsingSubgraphParams,
   GetAnnouncementsUsingSubgraphReturnType,
   SubgraphAnnouncementEntity
 } from './types';
-import {
-  convertSubgraphEntityToAnnouncementLog,
-  fetchPages
-} from './subgraphHelpers';
-import type { AnnouncementLog } from '../getAnnouncements/types';
 
 async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
@@ -67,7 +67,7 @@ async function getAnnouncementsUsingSubgraph({
     gqlQuery,
     variables,
     pageSize,
-    entity: 'announcementEntities'
+    entity: 'announcements'
   })) {
     const announcements = batch.map(convertSubgraphEntityToAnnouncementLog);
     allAnnouncements.push(...announcements);
