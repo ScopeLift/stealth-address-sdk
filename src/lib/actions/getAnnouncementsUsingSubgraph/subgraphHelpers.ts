@@ -8,42 +8,63 @@ export type PaginationVariables = {
   skip: number;
 };
 
-export async function* fetchPages<T>({
+export async function* fetchPages<T extends { id: string }>({
   client,
   gqlQuery,
   pageSize,
-  entity
+  filter,
+  entity,
+  lastId
 }: {
   client: GraphQLClient;
   gqlQuery: string;
   pageSize: number;
-  entity: 'announcements'; // The name of the entity to fetch from the subgraph
-}): AsyncGenerator<T[], void, undefined> {
-  let skip = 0;
-  let moreData = true;
+  filter: string;
+  entity: string;
+  lastId?: string;
+}): AsyncGenerator<T[], void, unknown> {
+  const variables: { first: number; id_lt?: string } = {
+    first: pageSize
+  };
+  if (lastId) {
+    variables.id_lt = lastId;
+  }
 
-  while (moreData) {
-    const variables = {
-      first: pageSize,
-      skip
-    };
-    try {
-      const response = await client.request<{ [key: string]: T[] }>(
-        gqlQuery,
-        variables
-      );
+  const whereClause = [filter, lastId ? 'id_lt: $id_lt' : null]
+    .filter(Boolean)
+    .join(', ');
 
-      yield response[entity];
+  const finalQuery = gqlQuery.replace('__WHERE_CLAUSE__', whereClause);
 
-      if (response[entity].length < pageSize) {
-        moreData = false;
-      } else {
-        skip += pageSize;
-      }
-    } catch (error) {
-      console.error(`Failed to fetch data: ${error}`);
-      throw error;
+  try {
+    const response = await client.request<{ [key: string]: T[] }>(
+      finalQuery,
+      variables
+    );
+    const batch = response[entity];
+
+    if (batch.length === 0) {
+      return;
     }
+
+    yield batch;
+
+    if (batch.length < pageSize) {
+      return;
+    }
+
+    const newLastId = batch[batch.length - 1].id;
+    yield* fetchPages({
+      client,
+      gqlQuery,
+      pageSize,
+      filter,
+      entity,
+      lastId: newLastId
+    });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
   }
 }
 

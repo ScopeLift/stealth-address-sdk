@@ -12,49 +12,53 @@ import type {
 
 async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
-  filter = '', // A valid GraphQL filter string that looks like: `{ blockNumber_gte: 123456, caller: "0xAddress" }`
+  filter = '',
   pageSize = 1000
 }: GetAnnouncementsUsingSubgraphParams): Promise<GetAnnouncementsUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
-
   const gqlQuery = `
-    query GetAnnouncements($first: Int, $skip: Int) {
-      announcements(
-        where: ${filter},
-        first: $first,
-        skip: $skip,
-        orderBy: blockNumber,
-        orderDirection: asc
-      ) 
-      {
-        blockNumber
-        blockHash
-        caller
-        data
-        ephemeralPubKey
-        id
-        logIndex
-        metadata
-        removed
-        schemeId
-        stealthAddress
-        topics
-        transactionHash
-        transactionIndex
-      }
-}
-  `;
+  query GetAnnouncements($first: Int, $id_lt: ID) {
+    announcements(
+      where: { __WHERE_CLAUSE__ }
+      first: $first,
+      orderBy: id,
+      orderDirection: desc
+    ) {
+      id
+      blockNumber
+      blockHash
+      caller
+      data
+      ephemeralPubKey
+      logIndex
+      metadata
+      removed
+      schemeId
+      stealthAddress
+      topics
+      transactionHash
+      transactionIndex
+    }
+  }
+`;
 
   const allAnnouncements: AnnouncementLog[] = [];
 
-  for await (const batch of fetchPages<SubgraphAnnouncementEntity>({
-    client,
-    gqlQuery,
-    pageSize,
-    entity: 'announcements'
-  })) {
-    const announcements = batch.map(convertSubgraphEntityToAnnouncementLog);
-    allAnnouncements.push(...announcements);
+  try {
+    for await (const batch of fetchPages<SubgraphAnnouncementEntity>({
+      client,
+      gqlQuery,
+      pageSize,
+      filter,
+      entity: 'announcements'
+    })) {
+      allAnnouncements.push(
+        ...batch.map(convertSubgraphEntityToAnnouncementLog)
+      );
+    }
+  } catch (error) {
+    console.error('Failed to fetch announcements:', error);
+    throw error;
   }
 
   return allAnnouncements;

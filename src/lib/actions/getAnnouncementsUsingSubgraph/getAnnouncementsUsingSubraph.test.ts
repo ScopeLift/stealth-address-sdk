@@ -15,9 +15,9 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
     try {
       result = await getAnnouncementsUsingSubgraph({
         subgraphUrl,
-        filter: `{
+        filter: `
           blockNumber_gte: ${fromBlock}
-        }`
+        `
       });
     } catch (error) {
       console.error(`Failed to fetch announcements: ${error}`);
@@ -58,9 +58,9 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
     const caller = result[0].caller;
     const filteredResult = await getAnnouncementsUsingSubgraph({
       subgraphUrl,
-      filter: `{
+      filter: `
         caller: "${caller}"
-      }`,
+      `,
       pageSize: 100
     });
 
@@ -74,9 +74,9 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
     const smallPageSize = 10;
     const pagedResult = await getAnnouncementsUsingSubgraph({
       subgraphUrl,
-      filter: `{
+      filter: `
         blockNumber_gte: ${fromBlock}
-      }`,
+      `,
       pageSize: smallPageSize
     });
 
