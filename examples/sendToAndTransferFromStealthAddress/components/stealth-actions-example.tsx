@@ -28,7 +28,7 @@ const StealthActionsExample = () => {
   const SCHEME_ID = VALID_SCHEME_ID.SCHEME_ID_1;
   const MESSAGE_TO_SIGN = `Generate Stealth Meta-Address on ${CHAIN.id} chain`;
   const SEND_AMOUNT = '0.01';
-  const WITHDRAW_AMOUNT = '0.005';
+  const WITHDRAW_AMOUNT = '0.009'; // Withdrawal amount is slightly less than the send amount to account for gas costs
 
   const walletClient = createWalletClient({
     chain: CHAIN,
