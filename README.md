@@ -2,6 +2,14 @@
 
 This TypeScript SDK provides tools for working with Ethereum stealth addresses as defined in [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564) and [EIP-6538](https://eips.ethereum.org/EIPS/eip-6538). It aims to offer a comprehensive suite of functionalities for both generating stealth addresses and interacting with stealth transactions.
 
+## Documentation
+
+For comprehensive documentation and to learn more about stealth addresses, please visit our [official documentation site](https://stealthaddress.dev/).
+
+## Contract Deployments
+
+Information about contract deployments can be found on the [deployments page](https://stealthaddress.dev/contracts/deployments) of our official documentation site.
+
 ## Features
 
 - Generate Ethereum stealth addresses.
