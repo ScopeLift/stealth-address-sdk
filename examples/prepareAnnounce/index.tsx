@@ -5,7 +5,7 @@ import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
-  ERC5564_CONTRACT,
+  ERC5564_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient,
   generateStealthAddress
@@ -64,7 +64,7 @@ const Example = () => {
     // Prepare the announce payload
     const preparedPayload = await stealthClient.prepareAnnounce({
       account,
-      ERC5564Address: ERC5564_CONTRACT.SEPOLIA,
+      ERC5564Address: ERC5564_CONTRACT_ADDRESS,
       args: {
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
         stealthAddress,
