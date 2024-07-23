@@ -1,5 +1,5 @@
 import {
-  ERC6538_CONTRACT,
+  ERC6538_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient,
   getStealthMetaAddress
@@ -13,8 +13,7 @@ if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 // Initialize the stealth client
 const stealthClient = createStealthClient({ chainId, rpcUrl });
 
-// Example getting the singleton registry contract address for Sepolia
-const ERC6538Address = ERC6538_CONTRACT.SEPOLIA;
+const ERC6538Address = ERC6538_CONTRACT_ADDRESS;
 
 // Example registrant
 const registrant = '0xYourRegistrantAddress'; // can also be an ens name
