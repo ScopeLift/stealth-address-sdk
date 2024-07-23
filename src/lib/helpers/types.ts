@@ -7,11 +7,11 @@ import type {
   WalletActions
 } from 'viem';
 import {
+  type Chain,
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
-  type Chain,
   foundry,
   gnosis,
   holesky,
