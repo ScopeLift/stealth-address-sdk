@@ -1,72 +1,58 @@
 name: CI
-
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Build
         run: |
           bun install
           bun run build
-
   test:
     runs-on: ubuntu-latest
+    environment: Testing
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Start anvil node
         run: anvil &
-
       - name: Run tests
+        env:
+          SUBGRAPH_URL: ${{ secrets.SUBGRAPH_URL }}
         run: |
           bun install
           bun test
-
   coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Start anvil node
         run: anvil &
-
       - name: Run test coverage
         run: |
           bun install
           bun test --coverage
-
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Check
         run: |
           bun install
