@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { GraphQLClient } from 'graphql-request';
-import {
-  fetchPages,
-  convertSubgraphEntityToAnnouncementLog
-} from './subgraphHelpers';
 import { ERC5564_CONTRACT } from '../../../config';
+import {
+  convertSubgraphEntityToAnnouncementLog,
+  fetchPages
+} from './subgraphHelpers';
 
 type MockResponse = {
   [key: string]: { id: string }[];
