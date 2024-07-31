@@ -35,6 +35,7 @@ jobs:
           bun test
   coverage:
     runs-on: ubuntu-latest
+    environment: Testing
     steps:
       - uses: actions/checkout@v4
       - name: Install Foundry
@@ -44,6 +45,8 @@ jobs:
       - name: Start anvil node
         run: anvil &
       - name: Run test coverage
+        env:
+          SUBGRAPH_URL: ${{ secrets.SUBGRAPH_URL }}
         run: |
           bun install
           bun test --coverage
