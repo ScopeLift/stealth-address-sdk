@@ -1,5 +1,5 @@
 import {
-  ERC5564_CONTRACT,
+  ERC5564_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient
 } from '@scopelift/stealth-address-sdk';
@@ -14,8 +14,8 @@ const spendingPublicKey = '0xUserSpendingPublicKey';
 const viewingPrivateKey = '0xUserViewingPrivateKey';
 
 // The contract address of the ERC5564Announcer on your target blockchain
-// You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
-const ERC5564Address = ERC5564_CONTRACT.SEPOLIA;
+// You can use the provided ERC5564_CONTRACT_ADDRESS get the singleton contract address for a valid chain ID
+const ERC5564Address = ERC5564_CONTRACT_ADDRESS;
 
 // Initialize the stealth client with your configuration
 const stealthClient = createStealthClient({ chainId, rpcUrl });

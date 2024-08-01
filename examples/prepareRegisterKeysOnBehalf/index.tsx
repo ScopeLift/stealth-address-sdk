@@ -5,7 +5,7 @@ import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
-  ERC6538_CONTRACT,
+  ERC6538_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient,
   parseStealthMetaAddressURI
@@ -62,7 +62,7 @@ const Example = () => {
     // Prepare the registerKeys payload
     const preparedPayload = await stealthClient.prepareRegisterKeysOnBehalf({
       account, // Your wallet address
-      ERC6538Address: ERC6538_CONTRACT.SEPOLIA,
+      ERC6538Address: ERC6538_CONTRACT_ADDRESS,
       args: {
         registrant: '0x', // Add the registrant address here
         schemeId,

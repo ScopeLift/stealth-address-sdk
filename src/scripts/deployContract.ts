@@ -1,9 +1,4 @@
-import type {
-  ERC5564AnnouncerAbi,
-  ERC5564_CONTRACT,
-  ERC6538RegistryAbi,
-  ERC6538_CONTRACT
-} from '..';
+import type { ERC5564AnnouncerAbi, ERC6538RegistryAbi } from '..';
 import setupTestWallet from '../lib/helpers/test/setupTestWallet';
 
 /**
@@ -16,12 +11,10 @@ import setupTestWallet from '../lib/helpers/test/setupTestWallet';
  * @returns {Promise<`0x${string}`>} - The address of the deployed contract
  */
 const deployContract = async ({
-  address,
   abi,
   bytecode,
   name
 }: {
-  address: ERC5564_CONTRACT | ERC6538_CONTRACT;
   abi: typeof ERC5564AnnouncerAbi | typeof ERC6538RegistryAbi;
   bytecode: `0x${string}`;
   name: string;

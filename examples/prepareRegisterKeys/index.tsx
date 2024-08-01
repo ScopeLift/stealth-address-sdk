@@ -5,7 +5,7 @@ import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
-  ERC6538_CONTRACT,
+  ERC6538_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient,
   parseStealthMetaAddressURI
@@ -62,7 +62,7 @@ const Example = () => {
     // Prepare the registerKeys payload
     const preparedPayload = await stealthClient.prepareRegisterKeys({
       account,
-      ERC6538Address: ERC6538_CONTRACT.SEPOLIA,
+      ERC6538Address: ERC6538_CONTRACT_ADDRESS,
       schemeId,
       stealthMetaAddress: stealthMetaAddressToRegister
     });

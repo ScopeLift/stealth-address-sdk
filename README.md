@@ -129,7 +129,7 @@ console.log(
 
 ```ts
 import {
-  ERC5564_CONTRACT,
+  ERC5564_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient,
 } from "@scopelift/stealth-address-sdk";
@@ -149,8 +149,8 @@ const caller = "0xYourCallingContractAddress";
 const schemeId = BigInt(VALID_SCHEME_ID.SCHEME_ID_1);
 
 // The contract address of the ERC5564Announcer on your target blockchain
-// You can use the provided ERC5564_CONTRACT enum to get the singleton contract address for a valid chain ID
-const ERC5564Address = ERC5564_CONTRACT.SEPOLIA; // only for Sepolia for now
+// You can use the provided ERC5564_CONTRACT_ADDRESS get the singleton contract address for a valid chain ID
+const ERC5564Address = ERC5564_CONTRACT_ADDRESS;
 
 async function fetchAnnouncementsForUser() {
   // Example call to getAnnouncements action on the stealth client to get all potential announcements
