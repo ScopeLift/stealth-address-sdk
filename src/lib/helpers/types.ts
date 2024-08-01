@@ -6,12 +6,53 @@ import type {
   Transport,
   WalletActions
 } from 'viem';
-import { type Chain, foundry, sepolia } from 'viem/chains';
-export type VALID_CHAIN_IDS = typeof sepolia.id | typeof foundry.id;
+import {
+  type Chain,
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  foundry,
+  gnosis,
+  holesky,
+  mainnet,
+  optimism,
+  optimismSepolia,
+  polygon,
+  scroll,
+  sepolia
+} from 'viem/chains';
+export type VALID_CHAIN_IDS =
+  | typeof arbitrum.id
+  | typeof arbitrumSepolia.id
+  | typeof base.id
+  | typeof baseSepolia.id
+  | typeof foundry.id
+  | typeof gnosis.id
+  | typeof holesky.id
+  | typeof mainnet.id
+  | typeof optimism.id
+  | typeof optimismSepolia.id
+  | typeof polygon.id
+  | typeof scroll.id
+  | typeof sepolia.id;
 
+// Valid chains where the ERC5564 and ERC6538 contracts are deployed
+// The contract addresses for each chain can be found here: https://stealthaddress.dev/contracts/deployments
 export const VALID_CHAINS: Record<VALID_CHAIN_IDS, Chain> = {
-  [sepolia.id]: sepolia,
-  [foundry.id]: foundry
+  [arbitrum.id]: arbitrum,
+  [arbitrumSepolia.id]: arbitrumSepolia,
+  [base.id]: base,
+  [baseSepolia.id]: baseSepolia,
+  [foundry.id]: foundry,
+  [gnosis.id]: gnosis,
+  [holesky.id]: holesky,
+  [mainnet.id]: mainnet,
+  [optimism.id]: optimism,
+  [optimismSepolia.id]: optimismSepolia,
+  [polygon.id]: polygon,
+  [scroll.id]: scroll,
+  [sepolia.id]: sepolia
 };
 
 // A Viem WalletClient with public actions
