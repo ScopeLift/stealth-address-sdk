@@ -1,12 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  beforeAll,
-  describe,
-  expect,
-  test,
-  mock
-} from 'bun:test';
+import { beforeEach, beforeAll, describe, expect, test, mock } from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
