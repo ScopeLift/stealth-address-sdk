@@ -30,3 +30,13 @@ export type GetAnnouncementsUsingSubgraphParams = {
 
 export type GetAnnouncementsUsingSubgraphReturnType =
   GetAnnouncementsReturnType;
+
+export class GetAnnouncementsUsingSubgraphError extends Error {
+  constructor(
+    message: string,
+    public readonly originalError?: unknown
+  ) {
+    super(message);
+    this.name = 'GetAnnouncementsUsingSubgraphError';
+  }
+}

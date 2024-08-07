@@ -1,8 +1,18 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
+import {
+  afterEach,
+  beforeEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  mock
+} from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
+import { GetAnnouncementsUsingSubgraphError } from './types';
 import getAnnouncementsUsingSubgraph from './getAnnouncementsUsingSubgraph';
+import { fetchPages } from './subgraphHelpers';
 
 describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   const subgraphUrl = process.env.SUBGRAPH_URL;
@@ -10,6 +20,13 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
   const fromBlock = ERC5564_StartBlocks.SEPOLIA;
   let result: AnnouncementLog[];
+
+  // Restore the original implementation of fetchPages
+  beforeEach(async () => {
+    mock.module('./subgraphHelpers', () => ({
+      fetchPages
+    }));
+  });
 
   beforeAll(async () => {
     try {
@@ -82,5 +99,37 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
     expect(pagedResult.length).toBe(result.length);
     expect(pagedResult).toEqual(result);
+  });
+
+  test('should throw GetAnnouncementsUsingSubgraphError on fetch failure', async () => {
+    const mockFetchPages = mock(() => ({
+      [Symbol.asyncIterator]: () => ({
+        next: () => Promise.resolve({ done: true, value: undefined })
+      })
+    }));
+
+    mock.module('./subgraphHelpers', () => ({
+      fetchPages: mockFetchPages
+    }));
+
+    const mockError = new Error('Fetch failed');
+    mockFetchPages.mockImplementation(() => {
+      throw mockError;
+    });
+
+    expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'http://example.com/subgraph'
+      })
+    ).rejects.toBeInstanceOf(GetAnnouncementsUsingSubgraphError);
+
+    expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'http://example.com/subgraph'
+      })
+    ).rejects.toMatchObject({
+      message: 'Failed to fetch announcements from the subgraph',
+      originalError: mockError
+    });
   });
 });

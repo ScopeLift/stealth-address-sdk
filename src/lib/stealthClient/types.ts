@@ -1,8 +1,10 @@
-import type { PublicClient } from 'viem';
+import type { PublicClient } from "viem";
 import type {
   GetAnnouncementsForUserParams,
   GetAnnouncementsParams,
   GetAnnouncementsReturnType,
+  GetAnnouncementsUsingSubgraphParams,
+  GetAnnouncementsUsingSubgraphReturnType,
   GetStealthMetaAddressParams,
   GetStealthMetaAddressReturnType,
   PrepareAnnounceParams,
@@ -12,9 +14,9 @@ import type {
   PrepareRegisterKeysParams,
   PrepareRegisterKeysReturnType,
   WatchAnnouncementsForUserParams,
-  WatchAnnouncementsForUserReturnType
-} from '../actions/';
-import type { VALID_CHAIN_IDS } from '../helpers/types';
+  WatchAnnouncementsForUserReturnType,
+} from "../actions/";
+import type { VALID_CHAIN_IDS } from "../helpers/types";
 
 export type ClientParams =
   | {
@@ -37,19 +39,24 @@ export type StealthActions = {
     ERC5564Address,
     args,
     fromBlock,
-    toBlock
+    toBlock,
   }: GetAnnouncementsParams) => Promise<GetAnnouncementsReturnType>;
+  getAnnouncementsUsingSubgraph: ({
+    subgraphUrl,
+    filter,
+    pageSize,
+  }: GetAnnouncementsUsingSubgraphParams) => Promise<GetAnnouncementsUsingSubgraphReturnType>;
   getStealthMetaAddress: ({
     ERC6538Address,
     registrant,
-    schemeId
+    schemeId,
   }: GetStealthMetaAddressParams) => Promise<GetStealthMetaAddressReturnType>;
   getAnnouncementsForUser: ({
     announcements,
     spendingPublicKey,
     viewingPrivateKey,
     excludeList,
-    includeList
+    includeList,
   }: GetAnnouncementsForUserParams) => Promise<GetAnnouncementsReturnType>;
   watchAnnouncementsForUser: <T>({
     ERC5564Address,
@@ -57,30 +64,30 @@ export type StealthActions = {
     handleLogsForUser,
     spendingPublicKey,
     viewingPrivateKey,
-    pollOptions
+    pollOptions,
   }: WatchAnnouncementsForUserParams<T>) => Promise<WatchAnnouncementsForUserReturnType>;
   prepareAnnounce: ({
     account,
     args,
-    ERC5564Address
+    ERC5564Address,
   }: PrepareAnnounceParams) => Promise<PrepareAnnounceReturnType>;
   prepareRegisterKeys: ({
     ERC6538Address,
     schemeId,
     stealthMetaAddress,
-    account
+    account,
   }: PrepareRegisterKeysParams) => Promise<PrepareRegisterKeysReturnType>;
   prepareRegisterKeysOnBehalf: ({
     ERC6538Address,
     args,
-    account
+    account,
   }: PrepareRegisterKeysOnBehalfParams) => Promise<PrepareRegisterKeysOnBehalfReturnType>;
 };
 
 export class PublicClientRequiredError extends Error {
-  constructor(message = 'publicClient is required') {
+  constructor(message = "publicClient is required") {
     super(message);
-    this.name = 'PublicClientRequiredError';
+    this.name = "PublicClientRequiredError";
     Object.setPrototypeOf(this, PublicClientRequiredError.prototype);
   }
 }

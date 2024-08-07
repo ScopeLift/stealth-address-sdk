@@ -4,10 +4,11 @@ import {
   convertSubgraphEntityToAnnouncementLog,
   fetchPages,
 } from "./subgraphHelpers";
-import type {
-  GetAnnouncementsUsingSubgraphParams,
-  GetAnnouncementsUsingSubgraphReturnType,
-  SubgraphAnnouncementEntity,
+import {
+  GetAnnouncementsUsingSubgraphError,
+  type GetAnnouncementsUsingSubgraphParams,
+  type GetAnnouncementsUsingSubgraphReturnType,
+  type SubgraphAnnouncementEntity,
 } from "./types";
 
 /**
@@ -32,7 +33,7 @@ import type {
  * The return value here is the same as the `getAnnouncements` function to be able to seamlessly fallback to fetching via logs
  * if the subgraph is not available.
  *
- * @throws {Error} If there's an issue fetching the announcements.
+ * @throws {GetAnnouncementsUsingSubgraphError} If there's an issue fetching the announcements.
  */
 async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
@@ -81,8 +82,10 @@ async function getAnnouncementsUsingSubgraph({
       );
     }
   } catch (error) {
-    console.error("Failed to fetch announcements:", error);
-    throw error;
+    throw new GetAnnouncementsUsingSubgraphError(
+      "Failed to fetch announcements from the subgraph",
+      error
+    );
   }
 
   return allAnnouncements;
