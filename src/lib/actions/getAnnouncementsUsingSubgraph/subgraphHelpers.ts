@@ -1,5 +1,5 @@
 import type { GraphQLClient } from 'graphql-request';
-import { ERC5564_CONTRACT } from '../../../config';
+import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import type { SubgraphAnnouncementEntity } from './types';
 
@@ -72,7 +72,7 @@ export function convertSubgraphEntityToAnnouncementLog(
   entity: SubgraphAnnouncementEntity
 ): AnnouncementLog {
   return {
-    address: ERC5564_CONTRACT.SEPOLIA, // Contract address is the same for all chains
+    address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
     blockHash: entity.blockHash as `0x${string}`,
     blockNumber: BigInt(entity.blockNumber),
     logIndex: Number(entity.logIndex),

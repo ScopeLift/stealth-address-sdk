@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { GraphQLClient } from 'graphql-request';
-import { ERC5564_CONTRACT } from '../../../config';
+import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import {
   convertSubgraphEntityToAnnouncementLog,
   fetchPages
@@ -164,7 +164,7 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
     const result = convertSubgraphEntityToAnnouncementLog(subgraphEntity);
 
     expect(result).toEqual({
-      address: ERC5564_CONTRACT.SEPOLIA,
+      address: ERC5564_CONTRACT_ADDRESS,
       blockHash: '0x123',
       blockNumber: BigInt(100),
       logIndex: 1,
