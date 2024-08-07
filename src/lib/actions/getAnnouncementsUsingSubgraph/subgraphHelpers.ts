@@ -24,7 +24,7 @@ export type PaginationVariables = {
  * @param {string} params.gqlQuery - The GraphQL query string with a '__WHERE_CLAUSE__' placeholder.
  * @param {number} params.pageSize - The number of items to fetch per page.
  * @param {string} params.filter - Additional filter criteria for the query.
- * @param {string} params.entity - The name of the entity being queried. Currently only supports 'announcements'.
+ * @param {string} params.entity - The name of the entity being queried.
  * @param {string} [params.lastId] - The ID of the last item from the previous page, used for pagination.
  * @yields {T[]} An array of entities of type T for each page of results.
  * @throws {Error} If there's an error fetching the data from the subgraph.
@@ -41,7 +41,7 @@ export async function* fetchPages<T extends { id: string }>({
   gqlQuery: string;
   pageSize: number;
   filter: string;
-  entity: 'announcements';
+  entity: string;
   lastId?: string;
 }): AsyncGenerator<T[], void, unknown> {
   // Set up variables for the GraphQL query
