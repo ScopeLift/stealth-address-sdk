@@ -1,12 +1,4 @@
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test
-} from 'bun:test';
+import { beforeAll, describe, expect, mock, test } from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
@@ -21,13 +13,6 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   const fromBlock = ERC5564_StartBlocks.SEPOLIA;
   let result: AnnouncementLog[];
 
-  // Restore the original implementation of fetchPages
-  beforeEach(async () => {
-    mock.module('./subgraphHelpers', () => ({
-      fetchPages
-    }));
-  });
-
   beforeAll(async () => {
     try {
       result = await getAnnouncementsUsingSubgraph({
@@ -40,13 +25,6 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
       console.error(`Failed to fetch announcements: ${error}`);
       throw error;
     }
-  });
-
-  // Restore the original implementation of fetchPages
-  afterEach(async () => {
-    mock.module('./subgraphHelpers', () => ({
-      fetchPages
-    }));
   });
 
   test('fetches announcements successfully', () => {
@@ -138,5 +116,9 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
       message: 'Failed to fetch announcements from the subgraph',
       originalError: mockError
     });
+
+    mock.module('./subgraphHelpers', () => ({
+      fetchPages
+    }));
   });
 });
