@@ -1,15 +1,15 @@
-import { GraphQLClient } from "graphql-request";
-import type { AnnouncementLog } from "../getAnnouncements/types";
+import { GraphQLClient } from 'graphql-request';
+import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
   convertSubgraphEntityToAnnouncementLog,
-  fetchPages,
-} from "./subgraphHelpers";
+  fetchPages
+} from './subgraphHelpers';
 import {
   GetAnnouncementsUsingSubgraphError,
   type GetAnnouncementsUsingSubgraphParams,
   type GetAnnouncementsUsingSubgraphReturnType,
-  type SubgraphAnnouncementEntity,
-} from "./types";
+  type SubgraphAnnouncementEntity
+} from './types';
 
 /**
  * Fetches announcement data from a specified subgraph URL.
@@ -37,8 +37,8 @@ import {
  */
 async function getAnnouncementsUsingSubgraph({
   subgraphUrl,
-  filter = "",
-  pageSize = 1000,
+  filter = '',
+  pageSize = 1000
 }: GetAnnouncementsUsingSubgraphParams): Promise<GetAnnouncementsUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
   const gqlQuery = `
@@ -75,7 +75,7 @@ async function getAnnouncementsUsingSubgraph({
       gqlQuery,
       pageSize,
       filter,
-      entity: "announcements",
+      entity: 'announcements'
     })) {
       allAnnouncements.push(
         ...batch.map(convertSubgraphEntityToAnnouncementLog)
@@ -83,7 +83,7 @@ async function getAnnouncementsUsingSubgraph({
     }
   } catch (error) {
     throw new GetAnnouncementsUsingSubgraphError(
-      "Failed to fetch announcements from the subgraph",
+      'Failed to fetch announcements from the subgraph',
       error
     );
   }

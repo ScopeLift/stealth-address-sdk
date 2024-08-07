@@ -1,10 +1,10 @@
-import { beforeEach, beforeAll, describe, expect, test, mock } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
-import { GetAnnouncementsUsingSubgraphError } from './types';
 import getAnnouncementsUsingSubgraph from './getAnnouncementsUsingSubgraph';
 import { fetchPages } from './subgraphHelpers';
+import { GetAnnouncementsUsingSubgraphError } from './types';
 
 describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   const subgraphUrl = process.env.SUBGRAPH_URL;
