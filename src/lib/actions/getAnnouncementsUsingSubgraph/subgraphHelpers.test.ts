@@ -15,10 +15,6 @@ describe('fetchPages', () => {
   let mockRequest: ReturnType<typeof mock>;
 
   beforeEach(() => {
-    mock.module('./subgraphHelpers', () => ({
-      fetchPages
-    }));
-
     mockRequest = mock((_query: string, _variables: Record<string, unknown>) =>
       Promise.resolve({} as MockResponse)
     );

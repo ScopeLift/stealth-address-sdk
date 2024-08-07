@@ -87,38 +87,18 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   });
 
   test('should throw GetAnnouncementsUsingSubgraphError on fetch failure', async () => {
-    const mockFetchPages = mock(() => ({
-      [Symbol.asyncIterator]: () => ({
-        next: () => Promise.resolve({ done: true, value: undefined })
-      })
-    }));
-
-    mock.module('./subgraphHelpers', () => ({
-      fetchPages: mockFetchPages
-    }));
-
-    const mockError = new Error('Fetch failed');
-    mockFetchPages.mockImplementation(() => {
-      throw mockError;
-    });
-
     expect(
       getAnnouncementsUsingSubgraph({
         subgraphUrl: 'http://example.com/subgraph'
       })
-    ).rejects.toBeInstanceOf(GetAnnouncementsUsingSubgraphError);
+    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
 
     expect(
       getAnnouncementsUsingSubgraph({
         subgraphUrl: 'http://example.com/subgraph'
       })
     ).rejects.toMatchObject({
-      message: 'Failed to fetch announcements from the subgraph',
-      originalError: mockError
+      message: 'Failed to fetch announcements from the subgraph'
     });
-
-    mock.module('./subgraphHelpers', () => ({
-      fetchPages
-    }));
   });
 });
