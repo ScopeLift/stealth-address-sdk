@@ -1,4 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test
+} from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
@@ -32,6 +40,13 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
       console.error(`Failed to fetch announcements: ${error}`);
       throw error;
     }
+  });
+
+  // Restore the original implementation of fetchPages
+  afterEach(async () => {
+    mock.module('./subgraphHelpers', () => ({
+      fetchPages
+    }));
   });
 
   test('fetches announcements successfully', () => {
