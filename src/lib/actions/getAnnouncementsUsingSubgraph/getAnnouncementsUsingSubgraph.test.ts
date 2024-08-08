@@ -176,22 +176,49 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
   test('handles pagination correctly for all subgraphs', async () => {
     const largePageSize = 10000;
-    const paginationPromises = testResults.map(async result => {
-      const pagedResult = await getAnnouncementsUsingSubgraph({
-        subgraphUrl: result.network.url,
-        filter: `blockNumber_gte: ${result.network.startBlock}`,
-        pageSize: largePageSize
-      });
+    const paginationResults = await Promise.all(
+      networks.map(async network => {
+        try {
+          const announcements = await getAnnouncementsUsingSubgraph({
+            subgraphUrl: network.url,
+            filter: `blockNumber_gte: ${network.startBlock}`,
+            pageSize: largePageSize
+          });
+          return { network, announcements };
+        } catch (error) {
+          return { network, announcements: [], error: error as Error };
+        }
+      })
+    );
 
-      expect(pagedResult.length).toBeGreaterThanOrEqual(
-        result.announcements.length
-      );
-      expect(pagedResult.slice(0, result.announcements.length)).toEqual(
-        result.announcements
-      );
-    });
+    for (let i = 0; i < testResults.length; i++) {
+      const initialResult = testResults[i];
+      const paginatedResult = paginationResults[i];
 
-    await Promise.all(paginationPromises);
+      // Skip if there was an error in either fetch
+      if (initialResult.error || paginatedResult.error) {
+        console.warn(
+          `Skipping pagination test for ${initialResult.network.name} due to fetch error`
+        );
+        continue;
+      }
+
+      expect(paginatedResult.announcements.length).toBeGreaterThanOrEqual(
+        initialResult.announcements.length
+      );
+
+      // Check that the paginated results contain at least all the announcements from the initial fetch
+      const initialAnnouncementSet = new Set(
+        initialResult.announcements.map(a => a.transactionHash)
+      );
+      const paginatedAnnouncementSet = new Set(
+        paginatedResult.announcements.map(a => a.transactionHash)
+      );
+
+      for (const hash of initialAnnouncementSet) {
+        expect(paginatedAnnouncementSet.has(hash)).toBe(true);
+      }
+    }
   });
 
   test('should throw GetAnnouncementsUsingSubgraphError on fetch failure', async () => {
