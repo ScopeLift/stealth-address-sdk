@@ -42,6 +42,10 @@ function createStealthClient({
         clientParams: { publicClient },
         ...params
       }),
+    getAnnouncementsUsingSubgraph: params =>
+      stealthActions.getAnnouncementsUsingSubgraph({
+        ...params
+      }),
     getStealthMetaAddress: params =>
       stealthActions.getStealthMetaAddress({
         clientParams: { publicClient },
