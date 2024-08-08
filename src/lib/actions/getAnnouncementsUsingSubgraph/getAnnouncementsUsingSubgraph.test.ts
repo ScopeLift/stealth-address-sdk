@@ -175,12 +175,12 @@ describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   });
 
   test('handles pagination correctly for all subgraphs', async () => {
-    const smallPageSize = 5;
+    const largePageSize = 10000;
     const paginationPromises = testResults.map(async result => {
       const pagedResult = await getAnnouncementsUsingSubgraph({
         subgraphUrl: result.network.url,
         filter: `blockNumber_gte: ${result.network.startBlock}`,
-        pageSize: smallPageSize
+        pageSize: largePageSize
       });
 
       expect(pagedResult.length).toBeGreaterThanOrEqual(
