@@ -8,7 +8,6 @@ import {
   type ContractEventName,
   type Log
 } from 'viem';
-import type { BlockType } from '../actions/types';
 import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
 
 /**
@@ -30,9 +29,9 @@ type FetchLogsInChunksParams<TAbi extends Abi> = {
     args?: GetEventArgs<TAbi, ContractEventName<TAbi>>;
   };
   /** The starting block number for the fetch. Defaults to 'earliest'. */
-  fromBlock?: BlockType;
+  fromBlock?: bigint | 'earliest';
   /** The ending block number for the fetch. Defaults to 'latest'. */
-  toBlock?: BlockType;
+  toBlock?: bigint | 'latest';
   /** The number of blocks to query in each chunk. Defaults to 5000. */
   chunkSize?: number;
 };
@@ -52,22 +51,16 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
   abi,
   eventName,
   fetchParams,
-  fromBlock,
-  toBlock,
+  fromBlock = 'earliest',
+  toBlock = 'latest',
   chunkSize = 5000
 }: FetchLogsInChunksParams<TAbi>): Promise<
   FetchLogsInChunksReturnType<TAbi>
 > => {
-  const resolvedFromBlock =
-    (await resolveBlockNumber({
-      publicClient,
-      block: fromBlock ?? 'earliest'
-    })) || BigInt(0);
-
-  const resolvedToBlock = await resolveBlockNumber({
-    publicClient,
-    block: toBlock ?? 'latest'
-  });
+  const [resolvedFromBlock, resolvedToBlock] = await Promise.all([
+    resolveBlockNumber({ publicClient, block: fromBlock }),
+    resolveBlockNumber({ publicClient, block: toBlock })
+  ]);
 
   const eventAbi = abi.find(
     (item): item is AbiEvent => item.type === 'event' && item.name === eventName
@@ -77,11 +70,9 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
   const allLogs = [];
 
   while (currentBlock <= resolvedToBlock) {
-    // Calculate the end block for the current chunk
-    const endBlock =
-      currentBlock + BigInt(chunkSize) < resolvedToBlock
-        ? currentBlock + BigInt(chunkSize)
-        : resolvedToBlock;
+    const endBlock = BigInt(
+      Math.min(Number(currentBlock) + chunkSize, Number(resolvedToBlock))
+    );
 
     const logs = await getLogs(publicClient, {
       address: fetchParams.address,
@@ -118,21 +109,21 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
  *   - `block`: The block number or tag to resolve.
  * @returns {Promise<bigint>} The resolved block number as a bigint or null.
  */
-export async function resolveBlockNumber({
+async function resolveBlockNumber({
   publicClient,
   block
 }: {
   publicClient: PublicClient;
-  block?: BlockType;
+  block?: bigint | 'earliest' | 'latest';
 }): Promise<bigint> {
   if (typeof block === 'bigint') {
     return block;
   }
 
-  const { number } = await getBlock(publicClient, { blockTag: block });
-  // Get the latest block number if null, since it is the pending block
-  if (!number) {
+  if (block === 'latest') {
     return getBlockNumber(publicClient);
   }
-  return number;
+
+  const { number } = await getBlock(publicClient, { blockTag: block });
+  return number ?? getBlockNumber(publicClient);
 }
