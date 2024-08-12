@@ -101,17 +101,17 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
       strict: true
     });
 
-    const decodedLogs = logs.map(log => ({
-      ...log,
-      ...decodeEventLog({
-        abi,
-        eventName,
-        topics: log.topics,
-        data: log.data
-      })
-    }));
-
-    allLogs.push(...decodedLogs);
+    allLogs.push(
+      ...logs.map(log => ({
+        ...log,
+        ...decodeEventLog({
+          abi,
+          eventName,
+          topics: log.topics,
+          data: log.data
+        })
+      }))
+    );
   }
 
   return allLogs;
