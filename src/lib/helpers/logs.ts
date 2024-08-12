@@ -3,27 +3,49 @@ import {
   type Abi,
   type AbiEvent,
   type GetEventArgs,
-  type ExtractAbiItemNames,
   type DecodeEventLogReturnType,
   decodeEventLog,
-  type ContractEventName
+  type ContractEventName,
+  type Log
 } from 'viem';
 import type { BlockType } from '../actions/types';
 import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
 
+/**
+ * Parameters for fetching logs in chunks.
+ * @template TAbi - The ABI type.
+ */
 type FetchLogsInChunksParams<TAbi extends Abi> = {
+  /** An instance of the viem PublicClient. */
   publicClient: PublicClient;
+  /** The ABI of the contract. */
   abi: TAbi;
+  /** The name of the event to fetch logs for. */
   eventName: ContractEventName<TAbi>;
+  /** Parameters for the log fetch query. */
   fetchParams: {
+    /** The address of the contract. */
     address: `0x${string}`;
+    /** Optional arguments to filter the logs. */
     args?: GetEventArgs<TAbi, ContractEventName<TAbi>>;
   };
+  /** The starting block number for the fetch. Defaults to 'earliest'. */
   fromBlock?: BlockType;
+  /** The ending block number for the fetch. Defaults to 'latest'. */
   toBlock?: BlockType;
+  /** The number of blocks to query in each chunk. Defaults to 5000. */
   chunkSize?: number;
 };
 
+type FetchLogsInChunksReturnType<TAbi extends Abi> = Array<
+  DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>> & Log
+>;
+
+/**
+ * Type guard to check if an item is an AbiEvent.
+ * @param item - The item to check.
+ * @returns True if the item is an AbiEvent, false otherwise.
+ */
 function isAbiEvent(item: unknown): item is AbiEvent {
   return (
     typeof item === 'object' &&
@@ -35,20 +57,12 @@ function isAbiEvent(item: unknown): item is AbiEvent {
 }
 
 /**
- * Fetches logs in chunks to handle potential large range queries efficiently.
- *
- * @param {Object} params - The parameters for fetching logs in chunks.
- *   - `publicClient`: An instance of the viem `PublicClient`.
- *   - `fetchParams`: Parameters for the log fetch query.
- *   - `fromBlock`: The starting block number for the fetch.
- *   - `toBlock`: The ending block number for the fetch.
- *   - `chunkSize`: The number of blocks to query in each chunk.
- * @returns {Promise<GetLogsReturnType>} A flattened array of all logs fetched in chunks.
+ * Fetches logs in chunks to handle potentially large range queries efficiently.
+ * @template TAbi - The ABI type.
+ * @param {FetchLogsInChunksParams<TAbi>} params - The parameters for fetching logs in chunks.
+ * @returns {Promise<FetchLogsInChunksReturnType>} A flattened array of all logs fetched in chunks, including decoded event data.
  */
-export const fetchLogsInChunks = async <
-  TAbi extends Abi,
-  TEventName extends ExtractAbiItemNames<TAbi>
->({
+export const fetchLogsInChunks = async <TAbi extends Abi>({
   publicClient,
   abi,
   eventName,
@@ -56,7 +70,9 @@ export const fetchLogsInChunks = async <
   fromBlock,
   toBlock,
   chunkSize = 5000
-}: FetchLogsInChunksParams<TAbi>) => {
+}: FetchLogsInChunksParams<TAbi>): Promise<
+  FetchLogsInChunksReturnType<TAbi>
+> => {
   const resolvedFromBlock =
     (await resolveBlockNumber({
       publicClient,
@@ -97,12 +113,12 @@ export const fetchLogsInChunks = async <
 
     const decodedLogs = logs.map(log => ({
       ...log,
-      ...(decodeEventLog({
+      ...decodeEventLog({
         abi,
         eventName,
         topics: log.topics,
         data: log.data
-      }) as DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>>)
+      })
     }));
 
     allLogs.push(...decodedLogs);
