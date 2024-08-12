@@ -34,13 +34,11 @@ async function getAnnouncements({
   const publicClient = handleViemPublicClient(clientParams);
 
   const logs = await fetchLogsInChunks({
-    publicClient,
+    publicClient: publicClient,
     abi: ERC5564AnnouncerAbi,
     eventName: 'Announcement',
-    fetchParams: {
-      address: ERC5564Address,
-      args: convertAnnouncementArgs(args)
-    },
+    address: ERC5564Address,
+    args: convertAnnouncementArgs(args),
     fromBlock,
     toBlock
   });

@@ -3,31 +3,27 @@ import {
   type Abi,
   type AbiEvent,
   type GetEventArgs,
-  type DecodeEventLogReturnType,
   decodeEventLog,
   type ContractEventName,
-  type Log
+  type DecodeEventLogReturnType
 } from 'viem';
-import { getBlock, getBlockNumber, getLogs } from 'viem/actions';
+import { getBlockNumber, getLogs } from 'viem/actions';
 
 /**
- * Parameters for fetching logs in chunks.
+ * Parameters for fetching and decoding logs in chunks.
  * @template TAbi - The ABI type.
  */
-type FetchLogsInChunksParams<TAbi extends Abi> = {
+type FetchLogsParams<TAbi extends Abi> = {
   /** An instance of the viem PublicClient. */
   publicClient: PublicClient;
   /** The ABI of the contract. */
   abi: TAbi;
   /** The name of the event to fetch logs for. */
   eventName: ContractEventName<TAbi>;
-  /** Parameters for the log fetch query. */
-  fetchParams: {
-    /** The address of the contract. */
-    address: `0x${string}`;
-    /** Optional arguments to filter the logs. */
-    args?: GetEventArgs<TAbi, ContractEventName<TAbi>>;
-  };
+  /** The address of the contract. */
+  address: `0x${string}`;
+  /** Optional arguments to filter the logs. */
+  args?: GetEventArgs<TAbi, ContractEventName<TAbi>>;
   /** The starting block number for the fetch. Defaults to 'earliest'. */
   fromBlock?: bigint | 'earliest';
   /** The ending block number for the fetch. Defaults to 'latest'. */
@@ -36,50 +32,70 @@ type FetchLogsInChunksParams<TAbi extends Abi> = {
   chunkSize?: number;
 };
 
-type FetchLogsInChunksReturnType<TAbi extends Abi> = Array<
-  DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>> & Log
+type FetchLogsReturnType<TAbi extends Abi> = Array<
+  DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>> & {
+    blockNumber: bigint;
+    transactionHash: `0x${string}`;
+    logIndex: number;
+  }
 >;
 
 /**
- * Fetches logs in chunks to handle potentially large range queries efficiently.
+ * Fetches and decodes logs in chunks to handle potentially large range queries efficiently.
+ *
  * @template TAbi - The ABI type.
- * @param {FetchLogsInChunksParams<TAbi>} params - The parameters for fetching logs in chunks.
- * @returns {Promise<FetchLogsInChunksReturnType>} A flattened array of all logs fetched in chunks, including decoded event data.
+ * @param {FetchLogsParams<TAbi>} params - The parameters for fetching logs in chunks.
+ * @returns {Promise<FetchLogsReturnType>} - A flattened array of all logs fetched in chunks, including decoded event data.
+ *
+ * @example
+ * const logs = await fetchLogsInChunks({
+ *   publicClient,
+ *   abi: myContractABI,
+ *   eventName: 'Transfer',
+ *   address: '0x...',
+ *   fromBlock: 1000000n,
+ *   toBlock: 2000000n,
+ *   chunkSize: 10000
+ * });
  */
 export const fetchLogsInChunks = async <TAbi extends Abi>({
   publicClient,
   abi,
   eventName,
-  fetchParams,
+  address,
+  args,
   fromBlock = 'earliest',
   toBlock = 'latest',
   chunkSize = 5000
-}: FetchLogsInChunksParams<TAbi>): Promise<
-  FetchLogsInChunksReturnType<TAbi>
-> => {
-  const [resolvedFromBlock, resolvedToBlock] = await Promise.all([
-    resolveBlockNumber({ publicClient, block: fromBlock }),
-    resolveBlockNumber({ publicClient, block: toBlock })
+}: FetchLogsParams<TAbi>): Promise<FetchLogsReturnType<TAbi>> => {
+  const [start, end] = await Promise.all([
+    fromBlock === 'earliest'
+      ? 0n
+      : typeof fromBlock === 'bigint'
+        ? fromBlock
+        : getBlockNumber(publicClient),
+    toBlock === 'latest' ? getBlockNumber(publicClient) : toBlock
   ]);
 
   const eventAbi = abi.find(
     (item): item is AbiEvent => item.type === 'event' && item.name === eventName
   );
 
-  let currentBlock = resolvedFromBlock;
   const allLogs = [];
 
-  while (currentBlock <= resolvedToBlock) {
-    const endBlock = BigInt(
-      Math.min(Number(currentBlock) + chunkSize, Number(resolvedToBlock))
-    );
-
+  for (
+    let currentBlock = start;
+    currentBlock <= end;
+    currentBlock += BigInt(chunkSize)
+  ) {
     const logs = await getLogs(publicClient, {
-      address: fetchParams.address,
+      address,
       event: eventAbi,
-      args: fetchParams.args,
+      args,
       fromBlock: currentBlock,
-      toBlock: endBlock,
+      toBlock: BigInt(
+        Math.min(Number(currentBlock) + chunkSize - 1, Number(end))
+      ),
       strict: true
     });
 
@@ -94,36 +110,7 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
     }));
 
     allLogs.push(...decodedLogs);
-
-    currentBlock = endBlock + BigInt(1);
   }
 
   return allLogs;
 };
-
-/**
- * Resolves a block number from a given block type (number, tag, or bigint).
- *
- * @param {Object} params - Parameters for resolving the block number.
- *   - `publicClient`: An instance of the viem `PublicClient`.
- *   - `block`: The block number or tag to resolve.
- * @returns {Promise<bigint>} The resolved block number as a bigint or null.
- */
-async function resolveBlockNumber({
-  publicClient,
-  block
-}: {
-  publicClient: PublicClient;
-  block?: bigint | 'earliest' | 'latest';
-}): Promise<bigint> {
-  if (typeof block === 'bigint') {
-    return block;
-  }
-
-  if (block === 'latest') {
-    return getBlockNumber(publicClient);
-  }
-
-  const { number } = await getBlock(publicClient, { blockTag: block });
-  return number ?? getBlockNumber(publicClient);
-}
