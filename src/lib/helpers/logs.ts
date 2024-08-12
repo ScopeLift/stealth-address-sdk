@@ -5,7 +5,8 @@ import {
   type GetEventArgs,
   decodeEventLog,
   type ContractEventName,
-  type DecodeEventLogReturnType
+  type DecodeEventLogReturnType,
+  type Log
 } from 'viem';
 import { getBlockNumber, getLogs } from 'viem/actions';
 
@@ -33,11 +34,7 @@ type FetchLogsParams<TAbi extends Abi> = {
 };
 
 type FetchLogsReturnType<TAbi extends Abi> = Array<
-  DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>> & {
-    blockNumber: bigint;
-    transactionHash: `0x${string}`;
-    logIndex: number;
-  }
+  DecodeEventLogReturnType<TAbi, ContractEventName<TAbi>> & Log
 >;
 
 /**
