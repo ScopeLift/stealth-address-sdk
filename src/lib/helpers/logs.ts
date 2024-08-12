@@ -1,12 +1,12 @@
 import {
-  type PublicClient,
   type Abi,
   type AbiEvent,
-  type GetEventArgs,
-  decodeEventLog,
   type ContractEventName,
   type DecodeEventLogReturnType,
-  type Log
+  type GetEventArgs,
+  type Log,
+  type PublicClient,
+  decodeEventLog
 } from 'viem';
 import { getBlockNumber, getLogs } from 'viem/actions';
 
