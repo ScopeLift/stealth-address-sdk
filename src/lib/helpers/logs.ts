@@ -81,6 +81,8 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
     (item): item is AbiEvent => item.type === 'event' && item.name === eventName
   );
 
+  if (!eventAbi) throw new Error(`Event ${eventName} not found in ABI`);
+
   const allLogs = [];
 
   for (
