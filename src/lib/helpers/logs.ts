@@ -42,21 +42,6 @@ type FetchLogsInChunksReturnType<TAbi extends Abi> = Array<
 >;
 
 /**
- * Type guard to check if an item is an AbiEvent.
- * @param item - The item to check.
- * @returns True if the item is an AbiEvent, false otherwise.
- */
-function isAbiEvent(item: unknown): item is AbiEvent {
-  return (
-    typeof item === 'object' &&
-    item !== null &&
-    'type' in item &&
-    item.type === 'event' &&
-    'name' in item
-  );
-}
-
-/**
  * Fetches logs in chunks to handle potentially large range queries efficiently.
  * @template TAbi - The ABI type.
  * @param {FetchLogsInChunksParams<TAbi>} params - The parameters for fetching logs in chunks.
@@ -85,12 +70,8 @@ export const fetchLogsInChunks = async <TAbi extends Abi>({
   });
 
   const eventAbi = abi.find(
-    (item): item is AbiEvent => isAbiEvent(item) && item.name === eventName
+    (item): item is AbiEvent => item.type === 'event' && item.name === eventName
   );
-
-  if (!eventAbi) {
-    throw new Error(`Event ${eventName} not found in the provided ABI`);
-  }
 
   let currentBlock = resolvedFromBlock;
   const allLogs = [];
