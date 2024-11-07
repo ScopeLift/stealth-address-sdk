@@ -3,6 +3,8 @@ import type {
   GetAnnouncementsForUserParams,
   GetAnnouncementsParams,
   GetAnnouncementsReturnType,
+  GetAnnouncementsUsingSubgraphParams,
+  GetAnnouncementsUsingSubgraphReturnType,
   GetStealthMetaAddressParams,
   GetStealthMetaAddressReturnType,
   PrepareAnnounceParams,
@@ -39,6 +41,11 @@ export type StealthActions = {
     fromBlock,
     toBlock
   }: GetAnnouncementsParams) => Promise<GetAnnouncementsReturnType>;
+  getAnnouncementsUsingSubgraph: ({
+    subgraphUrl,
+    filter,
+    pageSize
+  }: GetAnnouncementsUsingSubgraphParams) => Promise<GetAnnouncementsUsingSubgraphReturnType>;
   getStealthMetaAddress: ({
     ERC6538Address,
     registrant,
