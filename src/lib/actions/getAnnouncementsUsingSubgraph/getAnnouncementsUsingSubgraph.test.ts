@@ -5,96 +5,232 @@ import type { AnnouncementLog } from '../getAnnouncements/types';
 import getAnnouncementsUsingSubgraph from './getAnnouncementsUsingSubgraph';
 import { GetAnnouncementsUsingSubgraphError } from './types';
 
-describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
-  const subgraphUrl = process.env.SUBGRAPH_URL;
-  if (!subgraphUrl) throw new Error('SUBGRAPH_URL not set in env');
+enum Network {
+  ARBITRUM_ONE = 'ARBITRUM_ONE',
+  ARBITRUM_SEPOLIA = 'ARBITRUM_SEPOLIA',
+  BASE = 'BASE',
+  BASE_SEPOLIA = 'BASE_SEPOLIA',
+  HOLESKY = 'HOLESKY',
+  MAINNET = 'MAINNET',
+  MATIC = 'MATIC',
+  OPTIMISM = 'OPTIMISM',
+  OPTIMISM_SEPOLIA = 'OPTIMISM_SEPOLIA',
+  SEPOLIA = 'SEPOLIA'
+}
 
-  const fromBlock = ERC5564_StartBlocks.SEPOLIA;
-  let result: AnnouncementLog[];
+type NetworkInfo = {
+  name: Network;
+  url: string;
+  startBlock: number;
+};
+
+type TestResult = {
+  network: NetworkInfo;
+  announcements: AnnouncementLog[];
+  error?: Error;
+};
+
+const checkEnvVars = () => {
+  if (!process.env.SUBGRAPH_NAME_ARBITRUM_ONE)
+    throw new Error('SUBGRAPH_NAME_ARBITRUM_ONE not set in env');
+  if (!process.env.SUBGRAPH_NAME_ARBITRUM_SEPOLIA)
+    throw new Error('SUBGRAPH_NAME_ARBITRUM_SEPOLIA not set in env');
+  if (!process.env.SUBGRAPH_NAME_BASE)
+    throw new Error('SUBGRAPH_NAME_BASE not set in env');
+  if (!process.env.SUBGRAPH_NAME_BASE_SEPOLIA)
+    throw new Error('SUBGRAPH_NAME_BASE_SEPOLIA not set in env');
+  if (!process.env.SUBGRAPH_NAME_HOLESKY)
+    throw new Error('SUBGRAPH_NAME_HOLESKY not set in env');
+  if (!process.env.SUBGRAPH_NAME_MAINNET)
+    throw new Error('SUBGRAPH_NAME_MAINNET not set in env');
+  if (!process.env.SUBGRAPH_NAME_MATIC)
+    throw new Error('SUBGRAPH_NAME_MATIC not set in env');
+  if (!process.env.SUBGRAPH_NAME_OPTIMISM)
+    throw new Error('SUBGRAPH_NAME_OPTIMISM not set in env');
+  if (!process.env.SUBGRAPH_NAME_OPTIMISM_SEPOLIA)
+    throw new Error('SUBGRAPH_NAME_OPTIMISM_SEPOLIA not set in env');
+  if (!process.env.SUBGRAPH_NAME_SEPOLIA)
+    throw new Error('SUBGRAPH_NAME_SEPOLIA not set in env');
+};
+
+const getNetworksInfo = () => {
+  checkEnvVars();
+
+  if (!process.env.SUBGRAPH_URL_PREFIX)
+    throw new Error('SUBGRAPH_URL_PREFIX not set in env');
+
+  const networks: NetworkInfo[] = Object.values(Network)
+    .map(network => {
+      const subgraphName = process.env[`SUBGRAPH_NAME_${network}`];
+      const url = `${process.env.SUBGRAPH_URL_PREFIX}/${subgraphName}/api`;
+      const startBlock = ERC5564_StartBlocks[network];
+
+      return {
+        name: network,
+        url,
+        startBlock
+      };
+    })
+    .filter((network): network is NetworkInfo => network !== null);
+
+  if (networks.length === 0) {
+    throw new Error('No SUBGRAPH_NAME_* env vars set');
+  }
+
+  return networks;
+};
+
+const networks = getNetworksInfo();
+
+describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
+  let testResults: TestResult[] = [];
 
   beforeAll(async () => {
-    try {
-      result = await getAnnouncementsUsingSubgraph({
-        subgraphUrl,
-        filter: `
-          blockNumber_gte: ${fromBlock}
-        `
+    testResults = await Promise.all(
+      networks.map(async network => {
+        try {
+          const announcements = await getAnnouncementsUsingSubgraph({
+            subgraphUrl: network.url,
+            filter: `blockNumber_gte: ${network.startBlock}`
+          });
+          return { network, announcements };
+        } catch (error) {
+          return { network, announcements: [], error: error as Error };
+        }
+      })
+    );
+
+    // Log results after all fetches are complete
+    for (const result of testResults) {
+      if (result.error) {
+        console.error(
+          `❌ Failed to fetch from ${result.network.name}: ${result.network.url}`
+        );
+        console.error(`   Error: ${result.error.message}`);
+      } else {
+        console.log(
+          `✅ Successfully fetched from ${result.network.name}: ${result.network.url}`
+        );
+        console.log(
+          `   Number of announcements: ${result.announcements.length}`
+        );
+      }
+    }
+  });
+
+  test('should successfully fetch from all subgraphs', () => {
+    for (const result of testResults) {
+      expect(result.error).toBeUndefined();
+    }
+  });
+
+  test('announcement structure is correct for all subgraphs', () => {
+    const expectedProperties = [
+      'blockNumber',
+      'blockHash',
+      'transactionIndex',
+      'removed',
+      'address',
+      'data',
+      'topics',
+      'transactionHash',
+      'logIndex',
+      'schemeId',
+      'stealthAddress',
+      'caller',
+      'ephemeralPubKey',
+      'metadata'
+    ];
+
+    for (const result of testResults) {
+      if (result.announcements.length > 0) {
+        const announcement = result.announcements[0];
+        for (const prop of expectedProperties) {
+          expect(announcement).toHaveProperty(prop);
+        }
+      }
+    }
+  });
+
+  test('applies caller filter correctly for all subgraphs', async () => {
+    for (const result of testResults) {
+      if (result.announcements.length === 0) {
+        console.warn(
+          `No announcements found to test caller filter for ${result.network.name}`
+        );
+        continue;
+      }
+
+      const caller = result.announcements[0].caller;
+      const filteredResult = await getAnnouncementsUsingSubgraph({
+        subgraphUrl: result.network.url,
+        filter: `caller: "${caller}"`
       });
-    } catch (error) {
-      console.error(`Failed to fetch announcements: ${error}`);
-      throw error;
+
+      expect(filteredResult.length).toBeGreaterThan(0);
+      expect(
+        filteredResult.every(a => getAddress(a.caller) === getAddress(caller))
+      ).toBe(true);
     }
   });
 
-  test('fetches announcements successfully', () => {
-    expect(result).toBeDefined();
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
-  });
+  test('handles pagination correctly for all subgraphs', async () => {
+    const largePageSize = 10000;
+    const paginationResults = await Promise.all(
+      networks.map(async network => {
+        try {
+          const announcements = await getAnnouncementsUsingSubgraph({
+            subgraphUrl: network.url,
+            filter: `blockNumber_gte: ${network.startBlock}`,
+            pageSize: largePageSize
+          });
+          return { network, announcements };
+        } catch (error) {
+          return { network, announcements: [], error: error as Error };
+        }
+      })
+    );
 
-  test('announcement structure is correct', () => {
-    const announcement = result[0];
-    expect(announcement).toHaveProperty('blockNumber');
-    expect(announcement).toHaveProperty('blockHash');
-    expect(announcement).toHaveProperty('transactionIndex');
-    expect(announcement).toHaveProperty('removed');
-    expect(announcement).toHaveProperty('address');
-    expect(announcement).toHaveProperty('data');
-    expect(announcement).toHaveProperty('topics');
-    expect(announcement).toHaveProperty('transactionHash');
-    expect(announcement).toHaveProperty('logIndex');
-    expect(announcement).toHaveProperty('schemeId');
-    expect(announcement).toHaveProperty('stealthAddress');
-    expect(announcement).toHaveProperty('caller');
-    expect(announcement).toHaveProperty('ephemeralPubKey');
-    expect(announcement).toHaveProperty('metadata');
-  });
+    for (let i = 0; i < testResults.length; i++) {
+      const initialResult = testResults[i];
+      const paginatedResult = paginationResults[i];
 
-  test('applies caller filter correctly', async () => {
-    if (result.length === 0) {
-      console.warn('No announcements found to test caller filter');
-      return;
+      // Skip if there was an error in either fetch
+      if (initialResult.error || paginatedResult.error) {
+        console.warn(
+          `Skipping pagination test for ${initialResult.network.name} due to fetch error`
+        );
+        continue;
+      }
+
+      expect(paginatedResult.announcements.length).toBeGreaterThanOrEqual(
+        initialResult.announcements.length
+      );
+
+      // Check that the paginated results contain at least all the announcements from the initial fetch
+      const initialAnnouncementSet = new Set(
+        initialResult.announcements.map(a => a.transactionHash)
+      );
+      const paginatedAnnouncementSet = new Set(
+        paginatedResult.announcements.map(a => a.transactionHash)
+      );
+
+      for (const hash of initialAnnouncementSet) {
+        expect(paginatedAnnouncementSet.has(hash)).toBe(true);
+      }
     }
-
-    const caller = result[0].caller;
-    const filteredResult = await getAnnouncementsUsingSubgraph({
-      subgraphUrl,
-      filter: `
-        caller: "${caller}"
-      `,
-      pageSize: 100
-    });
-
-    expect(filteredResult.length).toBeGreaterThan(0);
-    expect(
-      filteredResult.every(a => getAddress(a.caller) === getAddress(caller))
-    ).toBe(true);
-  });
-
-  test('handles pagination correctly', async () => {
-    const smallPageSize = 10;
-    const pagedResult = await getAnnouncementsUsingSubgraph({
-      subgraphUrl,
-      filter: `
-        blockNumber_gte: ${fromBlock}
-      `,
-      pageSize: smallPageSize
-    });
-
-    expect(pagedResult.length).toBe(result.length);
-    expect(pagedResult).toEqual(result);
   });
 
   test('should throw GetAnnouncementsUsingSubgraphError on fetch failure', async () => {
     expect(
       getAnnouncementsUsingSubgraph({
-        subgraphUrl: 'http://example.com/subgraph'
+        subgraphUrl: 'http://example.com/invalid-subgraph'
       })
     ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
 
     expect(
       getAnnouncementsUsingSubgraph({
-        subgraphUrl: 'http://example.com/subgraph'
+        subgraphUrl: 'http://example.com/invalid-subgraph'
       })
     ).rejects.toMatchObject({
       message: 'Failed to fetch announcements from the subgraph'

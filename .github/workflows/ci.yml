@@ -18,7 +18,7 @@ jobs:
           bun run build
   test:
     runs-on: ubuntu-latest
-    environment: Testing
+    environment: Testing All Networks
     steps:
       - uses: actions/checkout@v4
       - name: Install Foundry
@@ -29,13 +29,23 @@ jobs:
         run: anvil &
       - name: Run tests
         env:
-          SUBGRAPH_URL: ${{ secrets.SUBGRAPH_URL }}
+          SUBGRAPH_URL_PREFIX: ${{ secrets.SUBGRAPH_URL_PREFIX }}
+          SUBGRAPH_NAME_ARBITRUM_ONE: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_ONE }}
+          SUBGRAPH_NAME_ARBITRUM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_SEPOLIA }}
+          SUBGRAPH_NAME_BASE: ${{ secrets.SUBGRAPH_NAME_BASE }}
+          SUBGRAPH_NAME_BASE_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_BASE_SEPOLIA }}
+          SUBGRAPH_NAME_HOLESKY: ${{ secrets.SUBGRAPH_NAME_HOLESKY }}
+          SUBGRAPH_NAME_MAINNET: ${{ secrets.SUBGRAPH_NAME_MAINNET }}
+          SUBGRAPH_NAME_MATIC: ${{ secrets.SUBGRAPH_NAME_MATIC }}
+          SUBGRAPH_NAME_OPTIMISM: ${{ secrets.SUBGRAPH_NAME_OPTIMISM }}
+          SUBGRAPH_NAME_OPTIMISM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_OPTIMISM_SEPOLIA }}
+          SUBGRAPH_NAME_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_SEPOLIA }}
         run: |
           bun install
           bun test
   coverage:
     runs-on: ubuntu-latest
-    environment: Testing
+    environment: Testing All Networks
     steps:
       - uses: actions/checkout@v4
       - name: Install Foundry
@@ -46,7 +56,17 @@ jobs:
         run: anvil &
       - name: Run test coverage
         env:
-          SUBGRAPH_URL: ${{ secrets.SUBGRAPH_URL }}
+          SUBGRAPH_URL_PREFIX: ${{ secrets.SUBGRAPH_URL_PREFIX }}
+          SUBGRAPH_NAME_ARBITRUM_ONE: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_ONE }}
+          SUBGRAPH_NAME_ARBITRUM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_SEPOLIA }}
+          SUBGRAPH_NAME_BASE: ${{ secrets.SUBGRAPH_NAME_BASE }}
+          SUBGRAPH_NAME_BASE_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_BASE_SEPOLIA }}
+          SUBGRAPH_NAME_HOLESKY: ${{ secrets.SUBGRAPH_NAME_HOLESKY }}
+          SUBGRAPH_NAME_MAINNET: ${{ secrets.SUBGRAPH_NAME_MAINNET }}
+          SUBGRAPH_NAME_MATIC: ${{ secrets.SUBGRAPH_NAME_MATIC }}
+          SUBGRAPH_NAME_OPTIMISM: ${{ secrets.SUBGRAPH_NAME_OPTIMISM }}
+          SUBGRAPH_NAME_OPTIMISM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_OPTIMISM_SEPOLIA }}
+          SUBGRAPH_NAME_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_SEPOLIA }}
         run: |
           bun install
           bun test --coverage
