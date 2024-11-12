@@ -1,11 +1,3 @@
-export type BlockType =
-  | bigint
-  | 'latest'
-  | 'earliest'
-  | 'pending'
-  | 'safe'
-  | 'finalized';
-
 export type PreparePayload = {
   to: `0x${string}`;
   account: `0x${string}`;

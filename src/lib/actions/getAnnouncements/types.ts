@@ -1,7 +1,6 @@
 import type { Log } from 'viem';
 import type { EthAddress } from '../../../utils/crypto/types';
 import type { ClientParams } from '../../stealthClient/types';
-import type { BlockType } from '../types';
 
 export type AnnouncementArgs = {
   schemeId?: bigint | bigint[] | null | undefined;
@@ -21,7 +20,7 @@ export type GetAnnouncementsParams = {
   clientParams?: ClientParams;
   ERC5564Address: EthAddress;
   args: AnnouncementArgs;
-  fromBlock?: BlockType;
-  toBlock?: BlockType;
+  fromBlock?: bigint | 'earliest';
+  toBlock?: bigint | 'latest';
 };
 export type GetAnnouncementsReturnType = AnnouncementLog[];

@@ -58,7 +58,7 @@ const announce = async ({
 
 // Delay to wait for the announcements to be watched in accordance with the polling interval
 const delay = async () =>
-  await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL));
+  await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL * 2));
 
 describe('watchAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
