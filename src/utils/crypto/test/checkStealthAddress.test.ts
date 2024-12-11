@@ -70,4 +70,25 @@ describe('checkStealthAddress', () => {
 
     expect(isForUser).toBe(false);
   });
+
+  test('matches addresses regardless of case', () => {
+    // Test with different case variations
+    const variations = [
+      stealthAddress.toLowerCase(),
+      stealthAddress.toUpperCase()
+    ];
+
+    for (const addressVariation of variations) {
+      const result = checkStealthAddress({
+        ephemeralPublicKey,
+        schemeId,
+        spendingPublicKey: bytesToHex(spendingPublicKey),
+        viewingPrivateKey,
+        userStealthAddress: addressVariation as `0x${string}`,
+        viewTag
+      });
+
+      expect(result).toBe(true);
+    }
+  });
 });
