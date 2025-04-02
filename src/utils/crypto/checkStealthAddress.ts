@@ -57,8 +57,7 @@ function checkStealthAddress({
     schemeId
   });
 
-  // Compare derived stealth address with the user's stealth address
-  return stealthAddress === userStealthAddress;
+  return stealthAddress.toLowerCase() === userStealthAddress.toLowerCase();
 }
 
 export default checkStealthAddress;
