@@ -13,12 +13,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Fetch both the PR branch and main branch
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
 
       - name: Install dependencies
         run: bun install
+
+      - name: Ensure main branch is available
+        run: |
+          git fetch origin main:main || git fetch origin main
 
       - name: Check for changesets
         id: changeset-check
@@ -116,4 +122,11 @@ jobs:
         if: steps.changeset-check.outputs.skip != 'true'
         run: |
           # Run changeset status to validate any existing changesets
-          bun changeset status
+          # Only run if we have changeset files to avoid git branch issues
+          CHANGESET_FILES=$(find .changeset -name "*.md" -not -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$CHANGESET_FILES" -gt 0 ]; then
+            echo "Validating $CHANGESET_FILES changeset file(s)..."
+            bun changeset status
+          else
+            echo "No changeset files to validate"
+          fi
