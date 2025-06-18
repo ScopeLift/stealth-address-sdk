@@ -64,7 +64,22 @@ function validateFunctionSelector(selector: FunctionSelector): void {
 }
 
 /**
- * Builds metadata for native ETH transfers according to ERC-5564
+ * Builds ERC-5564 compliant metadata for native ETH transfers
+ *
+ * @param params - Parameters for ETH metadata
+ * @param params.viewTag - 1-byte view tag for announcement filtering (e.g., "0x99")
+ * @param params.amount - Amount of ETH to transfer in wei (string, number, or bigint)
+ * @returns 57-byte metadata hex string compliant with ERC-5564
+ *
+ * @example
+ * ```typescript
+ * import { parseUnits } from 'viem';
+ * 
+ * const metadata = buildMetadataForETH({
+ *   viewTag: "0x99",
+ *   amount: parseUnits("1.5", 18) // 1.5 ETH
+ * });
+ * ```
  *
  * Metadata structure:
  * - Byte 1: View tag
@@ -91,7 +106,26 @@ export function buildMetadataForETH({
 }
 
 /**
- * Builds metadata for ERC-20 token transfers according to ERC-5564
+ * Builds ERC-5564 compliant metadata for ERC-20 token transfers
+ *
+ * @param params - Parameters for ERC-20 metadata
+ * @param params.viewTag - 1-byte view tag for announcement filtering (e.g., "0x99")
+ * @param params.tokenAddress - ERC-20 token contract address
+ * @param params.amount - Amount of tokens to transfer (in token's smallest unit)
+ * @param params.functionSelector - Function selector (default: transfer)
+ * @returns 57-byte metadata hex string compliant with ERC-5564
+ *
+ * @example
+ * ```typescript
+ * import { parseUnits } from 'viem';
+ * 
+ * const metadata = buildMetadataForERC20({
+ *   viewTag: "0x99",
+ *   tokenAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
+ *   amount: parseUnits("100", 18), // 100 tokens with 18 decimals
+ *   functionSelector: ERC20_FUNCTION_SELECTORS.TRANSFER // optional
+ * });
+ * ```
  *
  * Metadata structure:
  * - Byte 1: View tag
@@ -121,7 +155,24 @@ export function buildMetadataForERC20({
 }
 
 /**
- * Builds metadata for ERC-721 token transfers according to ERC-5564
+ * Builds ERC-5564 compliant metadata for ERC-721 (NFT) token transfers
+ *
+ * @param params - Parameters for ERC-721 metadata
+ * @param params.viewTag - 1-byte view tag for announcement filtering (e.g., "0x99")
+ * @param params.tokenAddress - ERC-721 token contract address
+ * @param params.tokenId - Token ID to transfer
+ * @param params.functionSelector - Function selector (default: transferFrom)
+ * @returns 57-byte metadata hex string compliant with ERC-5564
+ *
+ * @example
+ * ```typescript
+ * const metadata = buildMetadataForERC721({
+ *   viewTag: "0x99",
+ *   tokenAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
+ *   tokenId: 12345,
+ *   functionSelector: ERC721_FUNCTION_SELECTORS.SAFE_TRANSFER_FROM // optional
+ * });
+ * ```
  *
  * Metadata structure:
  * - Byte 1: View tag
@@ -151,7 +202,26 @@ export function buildMetadataForERC721({
 }
 
 /**
- * Builds metadata for custom contract interactions according to ERC-5564
+ * Builds ERC-5564 compliant metadata for custom contract interactions
+ *
+ * @param params - Parameters for custom metadata
+ * @param params.viewTag - 1-byte view tag for announcement filtering (e.g., "0x99")
+ * @param params.functionSelector - Function selector for the contract call
+ * @param params.contractAddress - Target contract address
+ * @param params.data - Custom data payload (32 bytes)
+ * @returns 57-byte metadata hex string compliant with ERC-5564
+ *
+ * @example
+ * ```typescript
+ * import { toFunctionSelector } from 'viem';
+ * 
+ * const metadata = buildMetadataCustom({
+ *   viewTag: "0x99",
+ *   functionSelector: toFunctionSelector('mint(address,uint256)'),
+ *   contractAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
+ *   data: 12345 // Custom payload
+ * });
+ * ```
  *
  * Metadata structure:
  * - Byte 1: View tag
@@ -203,14 +273,33 @@ function buildMetadataFromComponents({
 }
 
 /**
- * Parses metadata back into its components for debugging/validation
- * Useful for testing and verification
+ * Parses ERC-5564 metadata back into its components for debugging and validation
+ *
+ * @param metadata - 57-byte metadata hex string to parse
+ * @returns Parsed metadata components
+ * @throws Error if metadata format is invalid
+ *
+ * @example
+ * ```typescript
+ * const components = parseMetadata("0x99a9059cbb...");
+ * console.log(components.viewTag); // "0x99"
+ * console.log(components.functionIdentifier); // "0xa9059cbb"
+ * ```
  */
 export function parseMetadata(metadata: Hex): MetadataComponents {
-  if (!metadata.startsWith('0x') || metadata.length !== 116) {
+  if (!metadata.startsWith('0x')) {
+    throw new Error('Metadata must start with 0x prefix');
+  }
+  
+  if (metadata.length !== 116) {
     throw new Error(
-      'Invalid metadata format - must be 57 bytes (0x + 114 hex characters)'
+      `Invalid metadata length: expected 116 characters (0x + 114 hex), got ${metadata.length}`
     );
+  }
+  
+  // Validate hex format
+  if (!/^0x[0-9a-fA-F]{114}$/.test(metadata)) {
+    throw new Error('Metadata contains invalid hex characters');
   }
 
   const metadataWithoutPrefix = metadata.slice(2);

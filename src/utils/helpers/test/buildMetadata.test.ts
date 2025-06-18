@@ -324,13 +324,17 @@ describe('buildMetadata', () => {
     test('should throw error for invalid metadata format in parseMetadata', () => {
       expect(() => {
         parseMetadata('0x12345' as unknown as `0x${string}`); // Too short
-      }).toThrow('Invalid metadata format - must be 57 bytes');
+      }).toThrow('Invalid metadata length: expected 116 characters');
 
       expect(() => {
         parseMetadata(
           '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678' as unknown as `0x${string}`
         ); // Missing 0x
-      }).toThrow('Invalid metadata format - must be 57 bytes');
+      }).toThrow('Metadata must start with 0x prefix');
+      
+      expect(() => {
+        parseMetadata('0x99GGGG59cbb0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' as unknown as `0x${string}`); // Invalid hex characters (exactly 116 chars)
+      }).toThrow('Metadata contains invalid hex characters');
     });
   });
 
