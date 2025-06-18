@@ -1,4 +1,4 @@
-import { pad, toHex } from 'viem';
+import { pad, toFunctionSelector, toHex } from 'viem';
 import type { Address, Hex } from 'viem';
 import type {
   CustomMetadataParams,
@@ -15,20 +15,24 @@ import type {
 const ETH_TOKEN_IDENTIFIER = '0xeeeeeeee' as const;
 const ETH_TOKEN_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const;
 
-// Common ERC-20 function selectors
+// Generate ERC-20 function selectors from viem
 export const ERC20_FUNCTION_SELECTORS = {
-  TRANSFER: '0xa9059cbb',
-  TRANSFER_FROM: '0x23b872dd',
-  APPROVE: '0x095ea7b3'
+  TRANSFER: toFunctionSelector('transfer(address,uint256)'),
+  TRANSFER_FROM: toFunctionSelector('transferFrom(address,address,uint256)'),
+  APPROVE: toFunctionSelector('approve(address,uint256)')
 } as const;
 
-// Common ERC-721 function selectors
+// Generate ERC-721 function selectors from viem
 export const ERC721_FUNCTION_SELECTORS = {
-  TRANSFER_FROM: '0x23b872dd',
-  SAFE_TRANSFER_FROM: '0x42842e0e',
-  SAFE_TRANSFER_FROM_WITH_DATA: '0xb88d4fde',
-  APPROVE: '0x095ea7b3',
-  SET_APPROVAL_FOR_ALL: '0xa22cb465'
+  TRANSFER_FROM: toFunctionSelector('transferFrom(address,address,uint256)'),
+  SAFE_TRANSFER_FROM: toFunctionSelector(
+    'safeTransferFrom(address,address,uint256)'
+  ),
+  SAFE_TRANSFER_FROM_WITH_DATA: toFunctionSelector(
+    'safeTransferFrom(address,address,uint256,bytes)'
+  ),
+  APPROVE: toFunctionSelector('approve(address,uint256)'),
+  SET_APPROVAL_FOR_ALL: toFunctionSelector('setApprovalForAll(address,bool)')
 } as const;
 
 /**
