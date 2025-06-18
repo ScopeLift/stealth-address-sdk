@@ -37,10 +37,19 @@ jobs:
           SOURCE_PATTERNS="^src/|^package\.json$|^README\.md$"
           
           # Files that don't need a changeset  
-          IGNORE_PATTERNS="\.test\.|\.spec\.|/__tests__/|/test/|\.config\.|\.yml$|\.yaml$|\.md$|\.json$|^\.changeset/|^\.github/|^examples/|^scripts/|^docs/"
+          IGNORE_PATTERNS="\.test\.|\.spec\.|/__tests__/|/test/|\.config\.|^\.changeset/|^examples/|^scripts/|^docs/"
+          
+          # Special case: workflow files and configs usually don't need changesets unless they affect user experience
+          WORKFLOW_PATTERNS="^\.github/|\.ya?ml$|\.json$"
           
           NEEDS_CHANGESET=false
           for file in $CHANGED_FILES; do
+            # Skip workflow and config files - they usually don't need changesets
+            if echo "$file" | grep -E "$WORKFLOW_PATTERNS" > /dev/null; then
+              echo "Skipping workflow/config file: $file"
+              continue
+            fi
+            
             # Check if file matches source patterns and doesn't match ignore patterns
             if echo "$file" | grep -E "$SOURCE_PATTERNS" > /dev/null; then
               if ! echo "$file" | grep -E "$IGNORE_PATTERNS" > /dev/null; then
@@ -52,13 +61,17 @@ jobs:
           done
           
           # Check if changeset files exist
-          CHANGESET_FILES=$(find .changeset -name "*.md" -not -name "README.md" 2>/dev/null | wc -l)
+          CHANGESET_FILES=$(find .changeset -name "*.md" -not -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          
+          echo "Source files changed: $NEEDS_CHANGESET"
+          echo "Changeset files found: $CHANGESET_FILES"
           
           if [ "$NEEDS_CHANGESET" = true ] && [ "$CHANGESET_FILES" -eq 0 ]; then
             echo "❌ No changeset found, but source files were modified"
             echo "Please run 'bun changeset' to create a changeset file"
             echo "Or add a comment to your PR explaining why no changeset is needed"
             echo "needs_changeset=true" >> $GITHUB_OUTPUT
+            exit 1
           else
             echo "✅ Changeset check passed"
             echo "needs_changeset=false" >> $GITHUB_OUTPUT
