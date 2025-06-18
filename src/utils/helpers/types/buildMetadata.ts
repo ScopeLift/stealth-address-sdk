@@ -4,27 +4,27 @@ export type ViewTag = `0x${string}`;
 export type FunctionSelector = `0x${string}`;
 export type TokenAmount = string | number | bigint;
 
-export interface BaseMetadataParams {
+export interface ETHMetadataParams {
   viewTag: ViewTag;
-}
-
-export interface ETHMetadataParams extends BaseMetadataParams {
   amount: TokenAmount;
 }
 
-export interface ERC20MetadataParams extends BaseMetadataParams {
+export interface ERC20MetadataParams {
+  viewTag: ViewTag;
   tokenAddress: Address;
   amount: TokenAmount;
   functionSelector?: FunctionSelector;
 }
 
-export interface ERC721MetadataParams extends BaseMetadataParams {
+export interface ERC721MetadataParams {
+  viewTag: ViewTag;
   tokenAddress: Address;
   tokenId: TokenAmount;
   functionSelector?: FunctionSelector;
 }
 
-export interface CustomMetadataParams extends BaseMetadataParams {
+export interface CustomMetadataParams {
+  viewTag: ViewTag;
   functionSelector: FunctionSelector;
   contractAddress: Address;
   data: TokenAmount;

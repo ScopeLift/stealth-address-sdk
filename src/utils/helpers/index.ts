@@ -4,7 +4,6 @@ export type {
 } from './types';
 
 export type {
-  BaseMetadataParams,
   ETHMetadataParams,
   ERC20MetadataParams,
   ERC721MetadataParams,
@@ -28,7 +27,6 @@ export {
   buildMetadataForERC20,
   buildMetadataForERC721,
   buildMetadataCustom,
-  buildMetadataWithViewTagOnly,
   parseMetadata,
   ERC20_FUNCTION_SELECTORS,
   ERC721_FUNCTION_SELECTORS

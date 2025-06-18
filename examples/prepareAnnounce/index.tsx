@@ -9,7 +9,6 @@ import {
   VALID_SCHEME_ID,
   buildMetadataForERC20,
   buildMetadataForETH,
-  buildMetadataWithViewTagOnly,
   createStealthClient,
   generateStealthAddress
 } from '@scopelift/stealth-address-sdk';
@@ -18,8 +17,7 @@ import {
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.
  * It utilizes Viem's walletClient for wallet interaction and the stealth-address-sdk for stealth address operations.
  *
- * This example shows different metadata building options:
- * - Basic view-tag only metadata (original behavior)
+ * This example shows ERC-5564 compliant metadata building:
  * - ETH transfer metadata with amount
  * - ERC-20 token metadata with token address and amount
  *
@@ -57,37 +55,6 @@ const Example = () => {
   const connect = async () => {
     const [address] = await walletClient.requestAddresses();
     setAccount(address);
-  };
-
-  // Example: Basic announcement with view tag only (original behavior)
-  const announceBasic = async () => {
-    if (!account) return;
-
-    // Generate stealth address details
-    const { stealthAddress, ephemeralPublicKey, viewTag } =
-      generateStealthAddress({
-        stealthMetaAddressURI,
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1
-      });
-
-    // Use simple view tag metadata (backward compatible)
-    const metadata = buildMetadataWithViewTagOnly({ viewTag });
-
-    // Prepare the announce payload
-    const preparedPayload = await stealthClient.prepareAnnounce({
-      account,
-      ERC5564Address: ERC5564_CONTRACT_ADDRESS,
-      args: {
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
-        stealthAddress,
-        ephemeralPublicKey,
-        metadata
-      }
-    });
-
-    await walletClient.sendTransaction({
-      ...preparedPayload
-    });
   };
 
   // Example: ETH transfer announcement with amount metadata
@@ -172,9 +139,6 @@ const Example = () => {
             maxWidth: '300px'
           }}
         >
-          <button onClick={announceBasic} type="button">
-            Announce (Basic - View Tag Only)
-          </button>
           <button onClick={announceETH} type="button">
             Announce ETH Transfer (0.1 ETH)
           </button>

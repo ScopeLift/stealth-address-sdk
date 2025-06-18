@@ -1,7 +1,6 @@
 import { pad, toHex } from 'viem';
 import type { Address, Hex } from 'viem';
 import type {
-  BaseMetadataParams,
   CustomMetadataParams,
   ERC20MetadataParams,
   ERC721MetadataParams,
@@ -218,15 +217,4 @@ export function parseMetadata(metadata: Hex): MetadataComponents {
     contractAddress: `0x${metadataWithoutPrefix.slice(10, 50)}` as Address,
     amount: `0x${metadataWithoutPrefix.slice(50, 114)}` as Hex
   };
-}
-
-/**
- * Builds basic metadata with only the view tag (backward compatibility)
- * This is the current behavior of the SDK
- */
-export function buildMetadataWithViewTagOnly({
-  viewTag
-}: BaseMetadataParams): ViewTag {
-  validateViewTag(viewTag);
-  return viewTag;
 }

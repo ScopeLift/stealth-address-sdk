@@ -7,7 +7,6 @@ import {
   buildMetadataForERC20,
   buildMetadataForERC721,
   buildMetadataForETH,
-  buildMetadataWithViewTagOnly,
   parseMetadata
 } from '../buildMetadata.js';
 
@@ -217,16 +216,6 @@ describe('buildMetadata', () => {
     });
   });
 
-  describe('buildMetadataWithViewTagOnly', () => {
-    test('should return just the view tag for backward compatibility', () => {
-      const metadata = buildMetadataWithViewTagOnly({
-        viewTag: MOCK_VIEW_TAG
-      });
-
-      expect(metadata).toBe(MOCK_VIEW_TAG);
-    });
-  });
-
   describe('parseMetadata', () => {
     test('should correctly parse ETH metadata', () => {
       const amount = parseUnits('2.5', 18);
@@ -359,19 +348,6 @@ describe('buildMetadata', () => {
       });
 
       const extractedViewTag = getViewTagFromMetadata(metadata);
-      expect(extractedViewTag).toBe(MOCK_VIEW_TAG);
-    });
-
-    test('view tag only metadata should work with existing functions', async () => {
-      const { default: getViewTagFromMetadata } = await import(
-        '../getViewTagFromMetadata.js'
-      );
-
-      const simpleMetadata = buildMetadataWithViewTagOnly({
-        viewTag: MOCK_VIEW_TAG
-      });
-
-      const extractedViewTag = getViewTagFromMetadata(simpleMetadata);
       expect(extractedViewTag).toBe(MOCK_VIEW_TAG);
     });
   });
