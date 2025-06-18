@@ -25,6 +25,12 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
+      - name: Debug runner info
+        run: |
+          echo "Runner hostname: $(hostname)"
+          echo "Runner FQDN: $(hostname -f)"
+          echo "Runner IP: $(curl -s ifconfig.me || curl -s ipinfo.io/ip)"
+          echo "Runner user agent: curl/$(curl --version | head -n1 | cut -d' ' -f2)"
       - name: Start anvil node
         run: anvil &
       - name: Run tests
