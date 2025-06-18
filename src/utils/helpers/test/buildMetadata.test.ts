@@ -331,9 +331,11 @@ describe('buildMetadata', () => {
           '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678' as unknown as `0x${string}`
         ); // Missing 0x
       }).toThrow('Metadata must start with 0x prefix');
-      
+
       expect(() => {
-        parseMetadata('0x99GGGG59cbb0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' as unknown as `0x${string}`); // Invalid hex characters (exactly 116 chars)
+        parseMetadata(
+          '0x99GGGG59cbb0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' as unknown as `0x${string}`
+        ); // Invalid hex characters (exactly 116 chars)
       }).toThrow('Metadata contains invalid hex characters');
     });
   });

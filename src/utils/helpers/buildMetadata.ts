@@ -74,7 +74,7 @@ function validateFunctionSelector(selector: FunctionSelector): void {
  * @example
  * ```typescript
  * import { parseUnits } from 'viem';
- * 
+ *
  * const metadata = buildMetadataForETH({
  *   viewTag: "0x99",
  *   amount: parseUnits("1.5", 18) // 1.5 ETH
@@ -118,7 +118,7 @@ export function buildMetadataForETH({
  * @example
  * ```typescript
  * import { parseUnits } from 'viem';
- * 
+ *
  * const metadata = buildMetadataForERC20({
  *   viewTag: "0x99",
  *   tokenAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
@@ -214,7 +214,7 @@ export function buildMetadataForERC721({
  * @example
  * ```typescript
  * import { toFunctionSelector } from 'viem';
- * 
+ *
  * const metadata = buildMetadataCustom({
  *   viewTag: "0x99",
  *   functionSelector: toFunctionSelector('mint(address,uint256)'),
@@ -290,13 +290,13 @@ export function parseMetadata(metadata: Hex): MetadataComponents {
   if (!metadata.startsWith('0x')) {
     throw new Error('Metadata must start with 0x prefix');
   }
-  
+
   if (metadata.length !== 116) {
     throw new Error(
       `Invalid metadata length: expected 116 characters (0x + 114 hex), got ${metadata.length}`
     );
   }
-  
+
   // Validate hex format
   if (!/^0x[0-9a-fA-F]{114}$/.test(metadata)) {
     throw new Error('Metadata contains invalid hex characters');
