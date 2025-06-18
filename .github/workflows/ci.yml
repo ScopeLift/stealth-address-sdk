@@ -37,36 +37,6 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
-      - name: Debug runner info
-        run: |
-          echo "Runner hostname: $(hostname)"
-          echo "Runner FQDN: $(hostname -f)"
-          echo "Runner IP: $(curl -s ifconfig.me || curl -s ipinfo.io/ip)"
-          echo "Runner user agent: curl/$(curl --version | head -n1 | cut -d' ' -f2)"
-          echo "SUBGRAPH_URL_PREFIX set: $([[ -n "$SUBGRAPH_URL_PREFIX" ]] && echo "YES" || echo "NO")"
-          echo "SUBGRAPH_NAME_SEPOLIA set: $([[ -n "$SUBGRAPH_NAME_SEPOLIA" ]] && echo "YES" || echo "NO")"
-          echo "URL starts with https: $([[ "$SUBGRAPH_URL_PREFIX" == https://* ]] && echo "YES" || echo "NO")"
-          echo "URL contains satsuma: $([[ "$SUBGRAPH_URL_PREFIX" == *satsuma* ]] && echo "YES" || echo "NO")"
-      - name: Test subgraph connectivity
-        run: |
-          TEST_URL="${SUBGRAPH_URL_PREFIX}/${SUBGRAPH_NAME_SEPOLIA}/api"
-          echo "Testing connectivity to subgraph endpoint..."
-          
-          # Test with redirect following
-          RESPONSE=$(curl -s -L -w "HTTPSTATUS:%{http_code}|REDIRECT:%{redirect_url}" "$TEST_URL" -H "Content-Type: application/json" -d '{"query": "{ _meta { block { number } } }"}')
-          HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTPSTATUS:[0-9]*" | cut -d: -f2)
-          REDIRECT_URL=$(echo "$RESPONSE" | grep -o "REDIRECT:.*" | cut -d: -f2-)
-          
-          echo "HTTP response code: $HTTP_CODE"
-          if [ -n "$REDIRECT_URL" ] && [ "$REDIRECT_URL" != "" ]; then
-            echo "🔄 Redirected to: $REDIRECT_URL"
-          fi
-          
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Subgraph endpoint is accessible"
-          else
-            echo "❌ Subgraph endpoint returned: $HTTP_CODE"
-          fi
       - name: Start anvil node
         run: anvil &
       - name: Run tests
@@ -76,6 +46,18 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     environment: Testing All Networks
+    env:
+      SUBGRAPH_URL_PREFIX: ${{ secrets.SUBGRAPH_URL_PREFIX }}
+      SUBGRAPH_NAME_ARBITRUM_ONE: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_ONE }}
+      SUBGRAPH_NAME_ARBITRUM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_SEPOLIA }}
+      SUBGRAPH_NAME_BASE: ${{ secrets.SUBGRAPH_NAME_BASE }}
+      SUBGRAPH_NAME_BASE_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_BASE_SEPOLIA }}
+      SUBGRAPH_NAME_HOLESKY: ${{ secrets.SUBGRAPH_NAME_HOLESKY }}
+      SUBGRAPH_NAME_MAINNET: ${{ secrets.SUBGRAPH_NAME_MAINNET }}
+      SUBGRAPH_NAME_MATIC: ${{ secrets.SUBGRAPH_NAME_MATIC }}
+      SUBGRAPH_NAME_OPTIMISM: ${{ secrets.SUBGRAPH_NAME_OPTIMISM }}
+      SUBGRAPH_NAME_OPTIMISM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_OPTIMISM_SEPOLIA }}
+      SUBGRAPH_NAME_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_SEPOLIA }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Foundry
@@ -85,18 +67,6 @@ jobs:
       - name: Start anvil node
         run: anvil &
       - name: Run test coverage
-        env:
-          SUBGRAPH_URL_PREFIX: ${{ secrets.SUBGRAPH_URL_PREFIX }}
-          SUBGRAPH_NAME_ARBITRUM_ONE: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_ONE }}
-          SUBGRAPH_NAME_ARBITRUM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_ARBITRUM_SEPOLIA }}
-          SUBGRAPH_NAME_BASE: ${{ secrets.SUBGRAPH_NAME_BASE }}
-          SUBGRAPH_NAME_BASE_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_BASE_SEPOLIA }}
-          SUBGRAPH_NAME_HOLESKY: ${{ secrets.SUBGRAPH_NAME_HOLESKY }}
-          SUBGRAPH_NAME_MAINNET: ${{ secrets.SUBGRAPH_NAME_MAINNET }}
-          SUBGRAPH_NAME_MATIC: ${{ secrets.SUBGRAPH_NAME_MATIC }}
-          SUBGRAPH_NAME_OPTIMISM: ${{ secrets.SUBGRAPH_NAME_OPTIMISM }}
-          SUBGRAPH_NAME_OPTIMISM_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_OPTIMISM_SEPOLIA }}
-          SUBGRAPH_NAME_SEPOLIA: ${{ secrets.SUBGRAPH_NAME_SEPOLIA }}
         run: |
           bun install
           bun test --coverage
