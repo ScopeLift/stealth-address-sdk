@@ -45,12 +45,23 @@ jobs:
           echo "Runner user agent: curl/$(curl --version | head -n1 | cut -d' ' -f2)"
           echo "SUBGRAPH_URL_PREFIX set: $([[ -n "$SUBGRAPH_URL_PREFIX" ]] && echo "YES" || echo "NO")"
           echo "SUBGRAPH_NAME_SEPOLIA set: $([[ -n "$SUBGRAPH_NAME_SEPOLIA" ]] && echo "YES" || echo "NO")"
+          echo "URL starts with https: $([[ "$SUBGRAPH_URL_PREFIX" == https://* ]] && echo "YES" || echo "NO")"
+          echo "URL contains satsuma: $([[ "$SUBGRAPH_URL_PREFIX" == *satsuma* ]] && echo "YES" || echo "NO")"
       - name: Test subgraph connectivity
         run: |
           TEST_URL="${SUBGRAPH_URL_PREFIX}/${SUBGRAPH_NAME_SEPOLIA}/api"
           echo "Testing connectivity to subgraph endpoint..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TEST_URL" -H "Content-Type: application/json" -d '{"query": "{ _meta { block { number } } }"}' || echo "ERROR")
+          
+          # Test with redirect following
+          RESPONSE=$(curl -s -L -w "HTTPSTATUS:%{http_code}|REDIRECT:%{redirect_url}" "$TEST_URL" -H "Content-Type: application/json" -d '{"query": "{ _meta { block { number } } }"}')
+          HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTPSTATUS:[0-9]*" | cut -d: -f2)
+          REDIRECT_URL=$(echo "$RESPONSE" | grep -o "REDIRECT:.*" | cut -d: -f2-)
+          
           echo "HTTP response code: $HTTP_CODE"
+          if [ -n "$REDIRECT_URL" ] && [ "$REDIRECT_URL" != "" ]; then
+            echo "🔄 Redirected to: $REDIRECT_URL"
+          fi
+          
           if [ "$HTTP_CODE" = "200" ]; then
             echo "✅ Subgraph endpoint is accessible"
           else
