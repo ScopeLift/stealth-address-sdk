@@ -14,6 +14,14 @@ export type GetLatestSubgraphIndexedBlockParams = {
   subgraphUrl: string;
 };
 
+type SubgraphMetaResponse = {
+  _meta: {
+    block: {
+      number: number;
+    };
+  };
+};
+
 /**
  * Gets the latest block number that has been indexed by the subgraph.
  *
@@ -55,13 +63,7 @@ async function getLatestSubgraphIndexedBlock({
   `;
 
   try {
-    const response = await client.request<{
-      _meta: {
-        block: {
-          number: number;
-        };
-      };
-    }>(gqlQuery);
+    const response = await client.request<SubgraphMetaResponse>(gqlQuery);
 
     const blockNumber = response._meta?.block?.number;
 
