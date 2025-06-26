@@ -11,6 +11,7 @@ export {
 export {
   generateRandomStealthMetaAddress,
   generateSignatureForRegisterKeysOnBehalf,
+  getLatestSubgraphIndexedBlock,
   getViewTagFromMetadata,
   type GenerateSignatureForRegisterKeysError,
   type GenerateSignatureForRegisterKeysParams
