@@ -17,8 +17,9 @@ describe('getLatestSubgraphIndexedBlock', () => {
   });
 
   test('should fetch latest indexed block from real subgraph', async () => {
-    const subgraphUrl = 'https://subgraph.satsuma-prod.com/760e79467576/scopelift/stealth-address-erc-base/api';
-    
+    const subgraphUrl =
+      'https://subgraph.satsuma-prod.com/760e79467576/scopelift/stealth-address-erc-base/api';
+
     const result = await getLatestSubgraphIndexedBlock({
       subgraphUrl
     });
@@ -33,7 +34,7 @@ describe('getLatestSubgraphIndexedBlock', () => {
 
   test('should throw error for invalid subgraph URL', async () => {
     const invalidUrl = 'https://invalid-subgraph-url.com/api';
-    
+
     await expect(
       getLatestSubgraphIndexedBlock({
         subgraphUrl: invalidUrl
@@ -42,8 +43,9 @@ describe('getLatestSubgraphIndexedBlock', () => {
   });
 
   test('should throw error for non-existent subgraph', async () => {
-    const nonExistentUrl = 'https://api.thegraph.com/subgraphs/name/non-existent-subgraph';
-    
+    const nonExistentUrl =
+      'https://api.thegraph.com/subgraphs/name/non-existent-subgraph';
+
     await expect(
       getLatestSubgraphIndexedBlock({
         subgraphUrl: nonExistentUrl

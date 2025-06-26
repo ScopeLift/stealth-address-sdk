@@ -32,7 +32,7 @@ export type GetLatestSubgraphIndexedBlockParams = {
  * @example
  * ```typescript
  * import { getLatestSubgraphIndexedBlock } from 'stealth-address-sdk';
- * 
+ *
  * const latestBlock = await getLatestSubgraphIndexedBlock({
  *   subgraphUrl: 'https://api.thegraph.com/subgraphs/name/your-subgraph'
  * });
@@ -43,7 +43,7 @@ async function getLatestSubgraphIndexedBlock({
   subgraphUrl
 }: GetLatestSubgraphIndexedBlockParams): Promise<bigint> {
   const client = new GraphQLClient(subgraphUrl);
-  
+
   const gqlQuery = `
     query GetLatestIndexedBlock {
       _meta {
@@ -64,7 +64,7 @@ async function getLatestSubgraphIndexedBlock({
     }>(gqlQuery);
 
     const blockNumber = response._meta?.block?.number;
-    
+
     if (blockNumber === undefined || blockNumber === null) {
       throw new GetLatestSubgraphIndexedBlockError(
         'Failed to retrieve block number from subgraph meta response'
@@ -76,7 +76,7 @@ async function getLatestSubgraphIndexedBlock({
     if (error instanceof GetLatestSubgraphIndexedBlockError) {
       throw error;
     }
-    
+
     throw new GetLatestSubgraphIndexedBlockError(
       'Failed to fetch latest indexed block from subgraph',
       error
