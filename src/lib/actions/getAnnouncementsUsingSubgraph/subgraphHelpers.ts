@@ -1,6 +1,7 @@
 import type { GraphQLClient } from 'graphql-request';
 import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
+import { GetAnnouncementsUsingSubgraphError } from './getAnnouncementsUsingSubgraph';
 import type { SubgraphAnnouncementEntity } from './types';
 
 /**
@@ -98,34 +99,146 @@ export async function* fetchPages<T extends { id: string }>({
 }
 
 /**
+ * Validates a SubgraphAnnouncementEntity to ensure it has all required fields.
+ *
+ * @param entity - The entity to validate
+ * @throws {GetAnnouncementsUsingSubgraphError} If required fields are missing or invalid
+ */
+function validateSubgraphAnnouncementEntity(
+  entity: SubgraphAnnouncementEntity
+): void {
+  if (!entity.id) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: missing id field'
+    );
+  }
+
+  const requiredFields = [
+    'blockNumber',
+    'caller',
+    'ephemeralPubKey',
+    'metadata',
+    'schemeId',
+    'stealthAddress',
+    'transactionHash'
+  ];
+
+  for (const field of requiredFields) {
+    if (!entity[field as keyof SubgraphAnnouncementEntity]) {
+      throw new GetAnnouncementsUsingSubgraphError(
+        `Invalid announcement entity: missing required field '${field}'`
+      );
+    }
+  }
+
+  // Validate numeric fields
+  if (
+    entity.blockNumber &&
+    (Number.isNaN(Number(entity.blockNumber)) || Number(entity.blockNumber) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: blockNumber must be a non-negative number'
+    );
+  }
+
+  if (
+    entity.logIndex &&
+    (Number.isNaN(Number(entity.logIndex)) || Number(entity.logIndex) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: logIndex must be a non-negative number'
+    );
+  }
+
+  if (
+    entity.transactionIndex &&
+    (Number.isNaN(Number(entity.transactionIndex)) ||
+      Number(entity.transactionIndex) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: transactionIndex must be a non-negative number'
+    );
+  }
+
+  if (entity.schemeId && Number.isNaN(Number(entity.schemeId))) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: schemeId must be a valid number'
+    );
+  }
+
+  // Validate hex strings (basic validation - just check they start with 0x)
+  const hexFields = [
+    'caller',
+    'ephemeralPubKey',
+    'stealthAddress',
+    'transactionHash',
+    'blockHash',
+    'data',
+    'metadata'
+  ];
+
+  for (const field of hexFields) {
+    const value = entity[field as keyof SubgraphAnnouncementEntity];
+    if (value && typeof value === 'string' && !value.startsWith('0x')) {
+      throw new GetAnnouncementsUsingSubgraphError(
+        `Invalid announcement entity: ${field} must be a valid hex string starting with '0x'`
+      );
+    }
+  }
+}
+
+/**
  * Converts a SubgraphAnnouncementEntity to an AnnouncementLog for interoperability
  * between `getAnnouncements` and `getAnnouncementsUsingSubgraph`.
  *
  * This function transforms the data structure returned by the subgraph into the
  * standardized AnnouncementLog format used throughout the SDK. It ensures consistency
  * in data representation regardless of whether announcements are fetched directly via logs
- * or via a subgraph.
+ * or via a subgraph. Includes comprehensive validation of the entity data.
  *
  * @param {SubgraphAnnouncementEntity} entity - The announcement entity from the subgraph.
  * @returns {AnnouncementLog} The converted announcement log in the standard format.
+ * @throws {Error} If the entity is missing required fields or has invalid data.
  */
 export function convertSubgraphEntityToAnnouncementLog(
   entity: SubgraphAnnouncementEntity
 ): AnnouncementLog {
+  // Validate the entity before conversion
+  validateSubgraphAnnouncementEntity(entity);
+
+  // After validation, we can safely assert that required fields exist
+  const validatedEntity = entity as Required<
+    Pick<
+      SubgraphAnnouncementEntity,
+      | 'blockNumber'
+      | 'caller'
+      | 'ephemeralPubKey'
+      | 'metadata'
+      | 'schemeId'
+      | 'stealthAddress'
+      | 'transactionHash'
+    >
+  > &
+    SubgraphAnnouncementEntity;
+
   return {
     address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
-    blockHash: entity.blockHash as `0x${string}`,
-    blockNumber: BigInt(entity.blockNumber),
-    logIndex: Number(entity.logIndex),
-    removed: entity.removed,
-    transactionHash: entity.transactionHash as `0x${string}`,
-    transactionIndex: Number(entity.transactionIndex),
-    topics: entity.topics as [`0x${string}`, ...`0x${string}`[]] | [],
-    data: entity.data as `0x${string}`,
-    schemeId: BigInt(entity.schemeId),
-    stealthAddress: entity.stealthAddress as `0x${string}`,
-    caller: entity.caller as `0x${string}`,
-    ephemeralPubKey: entity.ephemeralPubKey as `0x${string}`,
-    metadata: entity.metadata as `0x${string}`
+    // Optional fields with fallbacks (correct)
+    blockHash: (entity.blockHash ||
+      '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`,
+    logIndex: Number(entity.logIndex || 0),
+    removed: entity.removed || false,
+    transactionIndex: Number(entity.transactionIndex || 0),
+    topics: (entity.topics || []) as [`0x${string}`, ...`0x${string}`[]] | [],
+    data: (entity.data || '0x') as `0x${string}`,
+
+    // Required fields (validation ensures they exist, so no fallbacks needed)
+    blockNumber: BigInt(validatedEntity.blockNumber),
+    transactionHash: validatedEntity.transactionHash as `0x${string}`,
+    schemeId: BigInt(validatedEntity.schemeId),
+    stealthAddress: validatedEntity.stealthAddress as `0x${string}`,
+    caller: validatedEntity.caller as `0x${string}`,
+    ephemeralPubKey: validatedEntity.ephemeralPubKey as `0x${string}`,
+    metadata: validatedEntity.metadata as `0x${string}`
   };
 }

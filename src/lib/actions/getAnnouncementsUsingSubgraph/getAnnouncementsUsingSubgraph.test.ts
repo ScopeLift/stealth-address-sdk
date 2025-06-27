@@ -82,6 +82,94 @@ const getNetworksInfo = () => {
 
 const networks = getNetworksInfo();
 
+describe('getAnnouncementsUsingSubgraph input validation', () => {
+  test('should throw error for undefined subgraphUrl', async () => {
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: undefined as unknown as string
+      })
+    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
+
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: undefined as unknown as string
+      })
+    ).rejects.toMatchObject({
+      message: 'subgraphUrl must be a non-empty string'
+    });
+  });
+
+  test('should throw error for empty string subgraphUrl', async () => {
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: ''
+      })
+    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
+
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: '   '
+      })
+    ).rejects.toMatchObject({
+      message: 'subgraphUrl cannot be empty or whitespace'
+    });
+  });
+
+  test('should throw error for invalid URL format', async () => {
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'not-a-url'
+      })
+    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
+  });
+
+  test('should throw error for non-HTTP URL', async () => {
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'ftp://example.com/subgraph'
+      })
+    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
+  });
+
+  test('should throw error for invalid pageSize', async () => {
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'https://example.com',
+        pageSize: -1
+      })
+    ).rejects.toMatchObject({
+      message: 'pageSize must be a positive integer'
+    });
+
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'https://example.com',
+        pageSize: 0
+      })
+    ).rejects.toMatchObject({
+      message: 'pageSize must be a positive integer'
+    });
+
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'https://example.com',
+        pageSize: 1.5
+      })
+    ).rejects.toMatchObject({
+      message: 'pageSize must be a positive integer'
+    });
+
+    await expect(
+      getAnnouncementsUsingSubgraph({
+        subgraphUrl: 'https://example.com',
+        pageSize: 20000
+      })
+    ).rejects.toMatchObject({
+      message: 'pageSize cannot exceed 10000 to avoid subgraph limits'
+    });
+  });
+});
+
 describe('getAnnouncementsUsingSubgraph with real subgraph', () => {
   let testResults: TestResult[] = [];
 

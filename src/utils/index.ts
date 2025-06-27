@@ -11,9 +11,12 @@ export {
 export {
   generateRandomStealthMetaAddress,
   generateSignatureForRegisterKeysOnBehalf,
+  getLatestSubgraphIndexedBlock,
+  GetLatestSubgraphIndexedBlockError,
   getViewTagFromMetadata,
   type GenerateSignatureForRegisterKeysError,
-  type GenerateSignatureForRegisterKeysParams
+  type GenerateSignatureForRegisterKeysParams,
+  type GetLatestSubgraphIndexedBlockParams
 } from './helpers';
 
 export {
