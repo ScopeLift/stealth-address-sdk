@@ -166,7 +166,7 @@ function validateSubgraphAnnouncementEntity(
     );
   }
 
-  // Validate hex strings
+  // Validate hex strings (basic validation - just check they start with 0x)
   const hexFields = [
     'caller',
     'ephemeralPubKey',
@@ -176,11 +176,10 @@ function validateSubgraphAnnouncementEntity(
     'data',
     'metadata'
   ];
-  const hexRegex = /^0x[0-9a-fA-F]*$/; // Allows for '0x' and valid hex characters
 
   for (const field of hexFields) {
     const value = entity[field as keyof SubgraphAnnouncementEntity];
-    if (value && typeof value === 'string' && !hexRegex.test(value)) {
+    if (value && typeof value === 'string' && !value.startsWith('0x')) {
       throw new GetAnnouncementsUsingSubgraphError(
         `Invalid announcement entity: ${field} must be a valid hex string starting with '0x'`
       );
