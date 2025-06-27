@@ -1,0 +1,132 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  changeset-check:
+    name: Check for Changesets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Fetch both the PR branch and main branch
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Ensure main branch is available
+        run: |
+          git fetch origin main:main || git fetch origin main
+
+      - name: Check for changesets
+        id: changeset-check
+        run: |
+          # Check if this is a changeset release PR (created by the changeset bot)
+          if [[ "${{ github.head_ref }}" == changeset-release/* ]]; then
+            echo "This is a changeset release PR, skipping changeset check"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for changes in source files (not just docs, tests, configs)
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          
+          # Files that likely need a changeset
+          SOURCE_PATTERNS="^src/|^package\.json$|^README\.md$"
+          
+          # Files that don't need a changeset  
+          IGNORE_PATTERNS="\.test\.|\.spec\.|/__tests__/|/test/|\.config\.|^\.changeset/|^examples/|^scripts/|^docs/"
+          
+          # Special case: workflow files and configs usually don't need changesets unless they affect user experience
+          WORKFLOW_PATTERNS="^\.github/|\.ya?ml$|\.json$"
+          
+          NEEDS_CHANGESET=false
+          for file in $CHANGED_FILES; do
+            # Skip workflow and config files - they usually don't need changesets
+            if echo "$file" | grep -E "$WORKFLOW_PATTERNS" > /dev/null; then
+              echo "Skipping workflow/config file: $file"
+              continue
+            fi
+            
+            # Check if file matches source patterns and doesn't match ignore patterns
+            if echo "$file" | grep -E "$SOURCE_PATTERNS" > /dev/null; then
+              if ! echo "$file" | grep -E "$IGNORE_PATTERNS" > /dev/null; then
+                NEEDS_CHANGESET=true
+                echo "File $file indicates a changeset may be needed"
+                break
+              fi
+            fi
+          done
+          
+          # Check if changeset files exist
+          CHANGESET_FILES=$(find .changeset -name "*.md" -not -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          
+          echo "Source files changed: $NEEDS_CHANGESET"
+          echo "Changeset files found: $CHANGESET_FILES"
+          
+          if [ "$NEEDS_CHANGESET" = true ] && [ "$CHANGESET_FILES" -eq 0 ]; then
+            echo "❌ No changeset found, but source files were modified"
+            echo "Please run 'bun changeset' to create a changeset file"
+            echo "Or add a comment to your PR explaining why no changeset is needed"
+            echo "needs_changeset=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Changeset check passed"
+            echo "needs_changeset=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR if changeset needed
+        if: steps.changeset-check.outputs.needs_changeset == 'true' && steps.changeset-check.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `
+            ## 📝 Changeset Required
+
+            This PR modifies source files but doesn't include a changeset. 
+
+            **To add a changeset:**
+            \`\`\`bash
+            bun changeset
+            \`\`\`
+
+            **When is a changeset needed?**
+            - ✅ New features
+            - ✅ Bug fixes affecting users  
+            - ✅ Breaking changes
+            - ✅ Performance improvements
+            - ❌ Internal refactoring
+            - ❌ Test improvements
+            - ❌ Documentation updates
+            - ❌ CI/tooling changes
+
+            If you believe this PR doesn't need a changeset, please add a comment explaining why.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Validate changeset format
+        if: steps.changeset-check.outputs.skip != 'true'
+        run: |
+          # Run changeset status to validate any existing changesets
+          # Only run if we have changeset files to avoid git branch issues
+          CHANGESET_FILES=$(find .changeset -name "*.md" -not -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$CHANGESET_FILES" -gt 0 ]; then
+            echo "Validating $CHANGESET_FILES changeset file(s)..."
+            bun changeset status
+          else
+            echo "No changeset files to validate"
+          fi

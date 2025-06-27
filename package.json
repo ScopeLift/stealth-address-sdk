@@ -12,10 +12,16 @@
     "build": "biome check --apply . && bun tsc",
     "watch": "bun test --watch src",
     "check": "biome check .",
-    "publish": "bun run build && npm publish"
+    "publish": "bun run build && npm publish",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "bun run build && changeset publish",
+    "changeset:status": "changeset status",
+    "release": "bun run changeset:version && bun run changeset:publish"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
+    "@changesets/cli": "^2.29.4",
     "@types/bun": "latest",
     "typescript": "^5.3.3"
   },
