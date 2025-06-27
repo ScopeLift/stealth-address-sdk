@@ -1,22 +1,23 @@
 import type { GetAnnouncementsReturnType } from '../getAnnouncements/types';
 
 export type SubgraphAnnouncementEntity = {
-  blockNumber: string;
-  caller: string;
-  ephemeralPubKey: string;
+  // Core required fields
   id: string;
-  metadata: string;
-  schemeId: string;
-  stealthAddress: string;
-  transactionHash: string;
+  blockNumber?: string;
+  caller?: string;
+  ephemeralPubKey?: string;
+  metadata?: string;
+  schemeId?: string;
+  stealthAddress?: string;
+  transactionHash?: string;
 
-  // Additional log information
-  blockHash: string;
-  data: string;
-  logIndex: string;
-  removed: boolean;
-  topics: string[];
-  transactionIndex: string;
+  // Additional log information (may be missing in some subgraph implementations)
+  blockHash?: string;
+  data?: string;
+  logIndex?: string;
+  removed?: boolean;
+  topics?: string[];
+  transactionIndex?: string;
 };
 
 export type GetAnnouncementsUsingSubgraphParams = {

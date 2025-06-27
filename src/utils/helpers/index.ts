@@ -3,6 +3,13 @@ export type {
   GenerateSignatureForRegisterKeysParams
 } from './types';
 
+export type {
+  GetLatestSubgraphIndexedBlockParams,
+  GetLatestSubgraphIndexedBlockReturnType,
+  SubgraphMetaResponse,
+  GetLatestSubgraphIndexedBlockError
+} from './getLatestSubgraphIndexedBlock';
+
 export { default as generateKeysFromSignature } from './generateKeysFromSignature';
 export { default as generateRandomStealthMetaAddress } from './generateRandomStealthMetaAddress';
 export { default as generateSignatureForRegisterKeysOnBehalf } from './generateSignatureForRegisterKeysOnBehalf';
@@ -13,3 +20,4 @@ export { GetLatestSubgraphIndexedBlockError } from './getLatestSubgraphIndexedBl
 export type { GetLatestSubgraphIndexedBlockParams } from './getLatestSubgraphIndexedBlock';
 export { default as getViewTagFromMetadata } from './getViewTagFromMetadata';
 export { default as isValidPublicKey } from './isValidPublicKey';
+export { default as getLatestSubgraphIndexedBlock } from './getLatestSubgraphIndexedBlock';
