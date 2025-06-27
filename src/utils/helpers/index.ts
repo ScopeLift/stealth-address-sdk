@@ -6,8 +6,7 @@ export type {
 export type {
   GetLatestSubgraphIndexedBlockParams,
   GetLatestSubgraphIndexedBlockReturnType,
-  SubgraphMetaResponse,
-  GetLatestSubgraphIndexedBlockError
+  SubgraphMetaResponse
 } from './getLatestSubgraphIndexedBlock';
 
 export { default as generateKeysFromSignature } from './generateKeysFromSignature';
@@ -15,9 +14,9 @@ export { default as generateRandomStealthMetaAddress } from './generateRandomSte
 export { default as generateSignatureForRegisterKeysOnBehalf } from './generateSignatureForRegisterKeysOnBehalf';
 export { default as generateStealthMetaAddressFromKeys } from './generateStealthMetaAddressFromKeys';
 export { default as generateStealthMetaAddressFromSignature } from './generateStealthMetaAddressFromSignature';
-export { default as getLatestSubgraphIndexedBlock } from './getLatestSubgraphIndexedBlock';
-export { GetLatestSubgraphIndexedBlockError } from './getLatestSubgraphIndexedBlock';
-export type { GetLatestSubgraphIndexedBlockParams } from './getLatestSubgraphIndexedBlock';
+export {
+  default as getLatestSubgraphIndexedBlock,
+  GetLatestSubgraphIndexedBlockError
+} from './getLatestSubgraphIndexedBlock';
 export { default as getViewTagFromMetadata } from './getViewTagFromMetadata';
 export { default as isValidPublicKey } from './isValidPublicKey';
-export { default as getLatestSubgraphIndexedBlock } from './getLatestSubgraphIndexedBlock';
