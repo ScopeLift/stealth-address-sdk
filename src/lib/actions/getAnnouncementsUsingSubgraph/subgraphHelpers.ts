@@ -30,6 +30,7 @@ export const GET_ANNOUNCEMENTS_SUBGRAPH_QUERY = `
       removed
       schemeId
       stealthAddress
+      timestamp
       topics
       transactionHash
       transactionIndex
@@ -345,16 +346,17 @@ export function convertSubgraphEntityToAnnouncementLog(
     address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
     blockHash: entity.blockHash as `0x${string}`,
     blockNumber: BigInt(entity.blockNumber),
-    logIndex: Number(entity.logIndex),
+    logIndex: Number.parseInt(entity.logIndex, 10),
     removed: entity.removed,
     transactionHash: entity.transactionHash as `0x${string}`,
-    transactionIndex: Number(entity.transactionIndex),
+    transactionIndex: Number.parseInt(entity.transactionIndex, 10),
     topics: entity.topics as [`0x${string}`, ...`0x${string}`[]] | [],
     data: entity.data as `0x${string}`,
     schemeId: BigInt(entity.schemeId),
     stealthAddress: entity.stealthAddress as `0x${string}`,
     caller: entity.caller as `0x${string}`,
     ephemeralPubKey: entity.ephemeralPubKey as `0x${string}`,
-    metadata: entity.metadata as `0x${string}`
+    metadata: entity.metadata as `0x${string}`,
+    timestamp: BigInt(entity.timestamp)
   };
 }

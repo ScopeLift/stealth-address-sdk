@@ -288,12 +288,13 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         'topics',
         'transactionHash',
         'logIndex',
-        'schemeId',
-        'stealthAddress',
-        'caller',
-        'ephemeralPubKey',
-        'metadata'
-      ];
+      'schemeId',
+      'stealthAddress',
+      'caller',
+      'ephemeralPubKey',
+      'metadata',
+      'timestamp'
+    ];
 
       for (const result of testResults) {
         if (result.announcements.length > 0) {
@@ -301,6 +302,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
           for (const prop of expectedProperties) {
             expect(announcement).toHaveProperty(prop);
           }
+          expect(typeof announcement.timestamp).toBe('bigint');
         }
       }
     },
