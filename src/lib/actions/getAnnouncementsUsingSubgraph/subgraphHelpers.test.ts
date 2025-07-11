@@ -635,5 +635,4 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
     expect(result.schemeId).toEqual(BigInt('9876543210987654321'));
     expect(result.timestamp).toEqual(BigInt('1609459200'));
   });
-
 });
