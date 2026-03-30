@@ -2,15 +2,100 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { GraphQLClient } from 'graphql-request';
 import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import {
+  MAX_LEGACY_SUBGRAPH_PAGE_SIZE,
+  MAX_SUBGRAPH_PAGE_SIZE,
+  buildAnnouncementsWhereClause,
   convertSubgraphEntityToAnnouncementLog,
-  fetchPages
+  fetchAnnouncementsBatch,
+  fetchAnnouncementsPage
 } from './subgraphHelpers';
+import type { SubgraphAnnouncementEntity } from './types';
 
 type MockResponse = {
   [key: string]: { id: string }[];
 };
 
-describe('fetchPages', () => {
+const makeSubgraphEntity = (id: string): SubgraphAnnouncementEntity =>
+  ({
+    blockNumber: '1',
+    caller: '0x1234567890123456789012345678901234567890',
+    ephemeralPubKey: '0xephemeral',
+    id,
+    metadata: '0xmetadata',
+    schemeId: '1',
+    stealthAddress: '0xstealth',
+    transactionHash: `0x${id.padStart(64, '0')}`,
+    blockHash: '0xblockhash',
+    data: '0xdata',
+    logIndex: '0',
+    removed: false,
+    topics: [],
+    transactionIndex: '0'
+  }) as SubgraphAnnouncementEntity;
+
+const makeOrderedId = (value: number): string =>
+  value.toString().padStart(4, '0');
+
+const buildLegacyFilter = ({
+  caller,
+  fromBlock,
+  schemeId,
+  toBlock
+}: {
+  caller?: string;
+  fromBlock?: number;
+  schemeId?: number;
+  toBlock?: number;
+}): string =>
+  [
+    fromBlock !== undefined ? `blockNumber_gte: ${fromBlock}` : null,
+    toBlock !== undefined ? `blockNumber_lte: ${toBlock}` : null,
+    schemeId !== undefined ? `schemeId: "${schemeId}"` : null,
+    caller ? `caller: "${caller}"` : null
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+const createDatasetBackedMockClient = (
+  dataset: SubgraphAnnouncementEntity[]
+) => {
+  const request = mock(
+    (query: string, variables: Record<string, unknown> = {}) => {
+      const first = Number(variables.first);
+      const idLt =
+        typeof variables.id_lt === 'string' ? variables.id_lt : undefined;
+      const fromBlockMatch = query.match(/blockNumber_gte: (\d+)/);
+      const toBlockMatch = query.match(/blockNumber_lte: (\d+)/);
+      const schemeIdMatch = query.match(/schemeId: "(\d+)"/);
+      const callerMatch = query.match(/caller: "(0x[a-fA-F0-9]+)"/);
+
+      const filtered = dataset.filter(entity => {
+        const blockNumber = Number(entity.blockNumber);
+
+        return (
+          (!idLt || entity.id < idLt) &&
+          (!fromBlockMatch || blockNumber >= Number(fromBlockMatch[1])) &&
+          (!toBlockMatch || blockNumber <= Number(toBlockMatch[1])) &&
+          (!schemeIdMatch || entity.schemeId === schemeIdMatch[1]) &&
+          (!callerMatch || entity.caller === callerMatch[1])
+        );
+      });
+
+      return Promise.resolve({
+        announcements: filtered.slice(0, first)
+      });
+    }
+  );
+
+  return {
+    client: {
+      request
+    } as unknown as GraphQLClient,
+    request
+  };
+};
+
+describe('fetchAnnouncementsPage helpers', () => {
   let mockClient: GraphQLClient;
   let mockRequest: ReturnType<typeof mock>;
 
@@ -23,122 +108,360 @@ describe('fetchPages', () => {
     } as unknown as GraphQLClient;
   });
 
-  test('should fetch a single page when there are fewer items than the page size', async () => {
-    const mockResponse = { entities: [{ id: '1' }, { id: '2' }] };
-    mockRequest.mockReturnValue(Promise.resolve(mockResponse));
-
-    const generator = fetchPages({
-      client: mockClient,
-      gqlQuery: 'query { entities(__WHERE_CLAUSE__) { id } }',
-      pageSize: 5,
-      filter: 'someFilter: true',
-      entity: 'entities'
-    });
-
-    const result = await generator.next();
-    expect(result.value).toEqual(mockResponse.entities);
-    expect(result.done).toBe(false);
-
-    const endResult = await generator.next();
-    expect(endResult.done).toBe(true);
+  test('should build an empty where clause when no optional filters are provided', () => {
+    expect(buildAnnouncementsWhereClause({})).toBe('');
   });
 
-  test('should fetch multiple pages when there are more items than the page size', async () => {
-    const mockResponses = [
-      { entities: [{ id: '1' }, { id: '2' }, { id: '3' }] },
-      { entities: [{ id: '4' }, { id: '5' }] },
-      { entities: [] }
-    ];
-    mockRequest
-      .mockReturnValueOnce(Promise.resolve(mockResponses[0]))
-      .mockReturnValueOnce(Promise.resolve(mockResponses[1]))
-      .mockReturnValueOnce(Promise.resolve(mockResponses[2]));
-
-    const generator = fetchPages({
-      client: mockClient,
-      gqlQuery: 'query { entities(__WHERE_CLAUSE__) { id } }',
-      pageSize: 3,
-      filter: 'someFilter: true',
-      entity: 'entities'
-    });
-
-    const results = [];
-    for await (const batch of generator) {
-      results.push(...batch);
-    }
-
-    expect(results).toEqual([
-      { id: '1' },
-      { id: '2' },
-      { id: '3' },
-      { id: '4' },
-      { id: '5' }
-    ]);
-  });
-
-  test('should handle errors gracefully', async () => {
-    mockRequest.mockReturnValue(Promise.reject(new Error('GraphQL error')));
-
-    const generator = fetchPages({
-      client: mockClient,
-      gqlQuery: 'query { entities(__WHERE_CLAUSE__) { id } }',
-      pageSize: 3,
-      filter: 'someFilter: true',
-      entity: 'entities'
-    });
-
-    try {
-      await generator.next();
-    } catch (error) {
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toBe('GraphQL error');
-    }
-  });
-
-  test('should use lastId for pagination', async () => {
-    const mockResponses = [
-      { entities: [{ id: '3' }, { id: '2' }, { id: '1' }] },
-      { entities: [] }
-    ];
-    mockRequest
-      .mockReturnValueOnce(Promise.resolve(mockResponses[0]))
-      .mockReturnValueOnce(Promise.resolve(mockResponses[1]));
-
-    const generator = fetchPages({
-      client: mockClient,
-      gqlQuery: 'query { entities(__WHERE_CLAUSE__) { id } }',
-      pageSize: 3,
-      filter: 'someFilter: true',
-      entity: 'entities',
-      lastId: '4'
-    });
-
-    const results = [];
-    for await (const batch of generator) {
-      results.push(...batch);
-    }
-
-    expect(results).toEqual([{ id: '3' }, { id: '2' }, { id: '1' }]);
-    expect(mockRequest).toHaveBeenCalledWith(
-      expect.stringContaining('id_lt: $id_lt'),
-      expect.objectContaining({ id_lt: '4' })
+  test('should build a where clause with all supported typed filters', () => {
+    expect(
+      buildAnnouncementsWhereClause({
+        caller: '0x1234567890123456789012345678901234567890',
+        cursor: 'cursor-1',
+        fromBlock: 12n,
+        schemeId: 7n,
+        toBlock: 34
+      })
+    ).toBe(
+      'blockNumber_gte: 12, blockNumber_lte: 34, schemeId: "7", caller: "0x1234567890123456789012345678901234567890", id_lt: $id_lt'
     );
   });
 
-  test('should handle empty response', async () => {
-    mockRequest.mockReturnValue(Promise.resolve({ entities: [] }));
+  test('should preserve raw legacy filters when building the where clause', () => {
+    expect(
+      buildAnnouncementsWhereClause({
+        filter: 'someFilter: true',
+        cursor: 'cursor-1'
+      })
+    ).toBe('someFilter: true, id_lt: $id_lt');
+  });
 
-    const generator = fetchPages({
+  test('should normalize and escape typed filter values', () => {
+    expect(
+      buildAnnouncementsWhereClause({
+        caller: '0xA16081F360e3847006dB660bae1c6d1b2e17eC2A',
+        fromBlock: 12,
+        schemeId: 1
+      })
+    ).toBe(
+      'blockNumber_gte: 12, schemeId: "1", caller: "0xA16081F360e3847006dB660bae1c6d1b2e17eC2A"'
+    );
+  });
+
+  test('should reject invalid typed numeric filters', () => {
+    expect(() =>
+      buildAnnouncementsWhereClause({
+        fromBlock: -1
+      })
+    ).toThrow('fromBlock must be a non-negative integer');
+  });
+
+  test('should fetch a page with typed filters and return the next cursor for a full page', async () => {
+    mockRequest
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [
+            makeSubgraphEntity('3'),
+            makeSubgraphEntity('2'),
+            makeSubgraphEntity('1')
+          ]
+        })
+      )
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [makeSubgraphEntity('0')]
+        })
+      );
+
+    const result = await fetchAnnouncementsPage({
+      caller: '0x1234567890123456789012345678901234567890',
       client: mockClient,
-      gqlQuery: 'query { entities(__WHERE_CLAUSE__) { id } }',
+      cursor: '4',
+      fromBlock: 100,
       pageSize: 3,
-      filter: 'someFilter: true',
-      entity: 'entities'
+      schemeId: 1n,
+      toBlock: 200
     });
 
-    const result = await generator.next();
-    expect(result.done).toBe(true);
-    expect(result.value).toBeUndefined();
+    expect(result).toEqual({
+      announcements: [
+        makeSubgraphEntity('3'),
+        makeSubgraphEntity('2'),
+        makeSubgraphEntity('1')
+      ],
+      nextCursor: '1'
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining(
+        'blockNumber_gte: 100, blockNumber_lte: 200, schemeId: "1", caller: "0x1234567890123456789012345678901234567890", id_lt: $id_lt'
+      ),
+      { first: 3, id_lt: '4' }
+    );
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining(
+        'blockNumber_gte: 100, blockNumber_lte: 200, schemeId: "1", caller: "0x1234567890123456789012345678901234567890", id_lt: $id_lt'
+      ),
+      { first: 1, id_lt: '1' }
+    );
+  });
+
+  test('should omit the next cursor when the terminal page is not full', async () => {
+    mockRequest.mockReturnValue(
+      Promise.resolve({
+        announcements: [makeSubgraphEntity('2'), makeSubgraphEntity('1')]
+      })
+    );
+
+    const result = await fetchAnnouncementsPage({
+      client: mockClient,
+      pageSize: 3
+    });
+
+    expect(result).toEqual({
+      announcements: [makeSubgraphEntity('2'), makeSubgraphEntity('1')],
+      nextCursor: undefined
+    });
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  test('should omit the next cursor for an exact-multiple terminal page', async () => {
+    mockRequest
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [
+            makeSubgraphEntity('3'),
+            makeSubgraphEntity('2'),
+            makeSubgraphEntity('1')
+          ]
+        })
+      )
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: []
+        })
+      );
+
+    const result = await fetchAnnouncementsPage({
+      client: mockClient,
+      pageSize: 3
+    });
+
+    expect(result).toEqual({
+      announcements: [
+        makeSubgraphEntity('3'),
+        makeSubgraphEntity('2'),
+        makeSubgraphEntity('1')
+      ],
+      nextCursor: undefined
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(1, expect.any(String), {
+      first: 3
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(2, expect.any(String), {
+      first: 1,
+      id_lt: '1'
+    });
+  });
+
+  test('should probe one additional record at the maximum supported page size', async () => {
+    const fullPage = Array.from(
+      { length: MAX_SUBGRAPH_PAGE_SIZE },
+      (_, index) =>
+        makeSubgraphEntity(makeOrderedId(MAX_SUBGRAPH_PAGE_SIZE - index))
+    );
+
+    mockRequest
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: fullPage
+        })
+      )
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [makeSubgraphEntity(makeOrderedId(0))]
+        })
+      );
+
+    const result = await fetchAnnouncementsPage({
+      client: mockClient,
+      pageSize: MAX_SUBGRAPH_PAGE_SIZE
+    });
+
+    expect(result).toEqual({
+      announcements: fullPage,
+      nextCursor: makeOrderedId(1)
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(1, expect.any(String), {
+      first: MAX_SUBGRAPH_PAGE_SIZE
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(2, expect.any(String), {
+      first: 1,
+      id_lt: makeOrderedId(1)
+    });
+  });
+
+  test('should surface request errors', async () => {
+    mockRequest.mockReturnValue(Promise.reject(new Error('GraphQL error')));
+
+    expect(
+      fetchAnnouncementsPage({
+        client: mockClient,
+        pageSize: 3
+      })
+    ).rejects.toThrow('GraphQL error');
+  });
+
+  test('should reject oversized page sizes', async () => {
+    expect(
+      fetchAnnouncementsPage({
+        client: mockClient,
+        pageSize: MAX_SUBGRAPH_PAGE_SIZE + 1
+      })
+    ).rejects.toThrow(
+      `pageSize must be less than or equal to ${MAX_SUBGRAPH_PAGE_SIZE}`
+    );
+  });
+
+  test('should fetch a legacy batch with page size 1000', async () => {
+    const fullBatch = Array.from(
+      { length: MAX_LEGACY_SUBGRAPH_PAGE_SIZE },
+      (_, index) =>
+        makeSubgraphEntity(makeOrderedId(MAX_LEGACY_SUBGRAPH_PAGE_SIZE - index))
+    );
+
+    mockRequest.mockReturnValueOnce(
+      Promise.resolve({
+        announcements: fullBatch
+      })
+    );
+
+    const result = await fetchAnnouncementsBatch({
+      client: mockClient,
+      pageSize: MAX_LEGACY_SUBGRAPH_PAGE_SIZE
+    });
+
+    expect(result).toEqual({
+      announcements: fullBatch,
+      nextCursor: makeOrderedId(1)
+    });
+    expect(mockRequest).toHaveBeenCalledWith(expect.any(String), {
+      first: MAX_LEGACY_SUBGRAPH_PAGE_SIZE
+    });
+  });
+
+  test('should reject oversized legacy batch sizes', async () => {
+    expect(
+      fetchAnnouncementsBatch({
+        client: mockClient,
+        pageSize: MAX_LEGACY_SUBGRAPH_PAGE_SIZE + 1
+      })
+    ).rejects.toThrow(
+      `pageSize must be less than or equal to ${MAX_LEGACY_SUBGRAPH_PAGE_SIZE}`
+    );
+  });
+
+  test('should reject responses that are not in strict descending id order', async () => {
+    mockRequest.mockReturnValueOnce(
+      Promise.resolve({
+        announcements: [makeSubgraphEntity('2'), makeSubgraphEntity('3')]
+      })
+    );
+
+    expect(
+      fetchAnnouncementsPage({
+        client: mockClient,
+        pageSize: 2
+      })
+    ).rejects.toThrow(
+      'Subgraph announcements must be returned in strict descending id order'
+    );
+  });
+
+  test('should reject probe responses that violate the cursor boundary', async () => {
+    mockRequest
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [makeSubgraphEntity('3'), makeSubgraphEntity('2')]
+        })
+      )
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [makeSubgraphEntity('2')]
+        })
+      );
+
+    expect(
+      fetchAnnouncementsPage({
+        client: mockClient,
+        pageSize: 2
+      })
+    ).rejects.toThrow(
+      'Subgraph announcements must be returned in strict descending id order'
+    );
+  });
+
+  test('paged and legacy helpers should traverse the same filtered dataset across page sizes', async () => {
+    const callerA = '0x1234567890123456789012345678901234567890' as const;
+    const callerB = '0xA16081F360e3847006dB660bae1c6d1b2e17eC2A' as const;
+    const dataset = [
+      { ...makeSubgraphEntity('6'), blockNumber: '11', caller: callerA },
+      { ...makeSubgraphEntity('5'), blockNumber: '10', caller: callerA },
+      { ...makeSubgraphEntity('4'), blockNumber: '10', caller: callerA },
+      {
+        ...makeSubgraphEntity('3'),
+        blockNumber: '9',
+        caller: callerB,
+        schemeId: '2'
+      },
+      { ...makeSubgraphEntity('2'), blockNumber: '8', caller: callerA },
+      { ...makeSubgraphEntity('1'), blockNumber: '7', caller: callerA }
+    ];
+
+    const scenarios = [
+      {},
+      {
+        caller: callerA,
+        fromBlock: 8,
+        schemeId: 1,
+        toBlock: 10
+      }
+    ];
+
+    for (const scenario of scenarios) {
+      for (const pageSize of [1, 2, 3]) {
+        const { client } = createDatasetBackedMockClient(dataset);
+        const pagedIds: string[] = [];
+        let cursor: string | undefined;
+
+        do {
+          const page = await fetchAnnouncementsPage({
+            client,
+            cursor,
+            pageSize,
+            ...scenario
+          });
+          pagedIds.push(...page.announcements.map(entity => entity.id));
+          cursor = page.nextCursor;
+        } while (cursor);
+
+        const batchIds: string[] = [];
+        let batchCursor: string | undefined;
+
+        do {
+          const batch = await fetchAnnouncementsBatch({
+            client,
+            cursor: batchCursor,
+            pageSize,
+            filter: buildLegacyFilter(scenario)
+          });
+          batchIds.push(...batch.announcements.map(entity => entity.id));
+          batchCursor = batch.nextCursor;
+        } while (batchCursor);
+
+        expect(pagedIds).toEqual(batchIds);
+      }
+    }
   });
 });
 

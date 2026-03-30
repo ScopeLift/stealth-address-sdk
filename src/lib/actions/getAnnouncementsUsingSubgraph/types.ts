@@ -1,3 +1,4 @@
+import type { EthAddress } from '../../../utils/crypto/types';
 import type { GetAnnouncementsReturnType } from '../getAnnouncements/types';
 
 export type SubgraphAnnouncementEntity = {
@@ -24,12 +25,35 @@ export type GetAnnouncementsUsingSubgraphParams = {
   subgraphUrl: string;
   /** (Optional) The filter options to use when fetching announcements */
   filter?: string;
-  /** (Optional) The number of results to fetch per page; defaults to 1000 (max allowed by subgraph providers usually) */
+  /** (Optional) The number of results to fetch per page; defaults to 1000 for backward compatibility */
   pageSize?: number;
 };
 
 export type GetAnnouncementsUsingSubgraphReturnType =
   GetAnnouncementsReturnType;
+
+export type GetAnnouncementsPageUsingSubgraphParams = {
+  /** The URL of the subgraph to fetch announcements from */
+  subgraphUrl: string;
+  /** (Optional) The lower inclusive block bound for the scan */
+  fromBlock?: bigint | number;
+  /** (Optional) The upper inclusive block bound for the scan */
+  toBlock?: bigint | number;
+  /** (Optional) The scheme ID to filter by */
+  schemeId?: bigint | number;
+  /** (Optional) The caller address to filter by */
+  caller?: EthAddress;
+  /** (Optional) The number of results to fetch per page; defaults to 999 */
+  pageSize?: number;
+  /** (Optional) The exclusive prior-page announcement id used with the query's `id desc` ordering */
+  cursor?: string;
+};
+
+export type GetAnnouncementsPageUsingSubgraphReturnType = {
+  announcements: GetAnnouncementsReturnType;
+  /** Present only when another page exists for the same bounded query */
+  nextCursor?: string;
+};
 
 export class GetAnnouncementsUsingSubgraphError extends Error {
   constructor(

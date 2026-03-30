@@ -1,100 +1,262 @@
 import type { GraphQLClient } from 'graphql-request';
+import { getAddress } from 'viem';
 import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
-import type { SubgraphAnnouncementEntity } from './types';
+import type {
+  GetAnnouncementsPageUsingSubgraphParams,
+  SubgraphAnnouncementEntity
+} from './types';
 
-/**
- * The necessary pagination variables for the subgraph query.
- */
-export type PaginationVariables = {
-  first: number;
-  skip: number;
+// Cursor pagination is defined by the subgraph entity `id`, ordered descending.
+// The page API carries the last returned `id` forward as an exclusive `id_lt`
+// boundary, which is safe because `id` is unique per announcement entity.
+export const GET_ANNOUNCEMENTS_SUBGRAPH_QUERY = `
+  query GetAnnouncements($first: Int, $id_lt: ID) {
+    announcements(
+      where: { __WHERE_CLAUSE__ }
+      first: $first,
+      orderBy: id,
+      orderDirection: desc
+    ) {
+      id
+      blockNumber
+      blockHash
+      caller
+      data
+      ephemeralPubKey
+      logIndex
+      metadata
+      removed
+      schemeId
+      stealthAddress
+      topics
+      transactionHash
+      transactionIndex
+    }
+  }
+`;
+
+export const MAX_SUBGRAPH_PAGE_SIZE = 999;
+export const MAX_LEGACY_SUBGRAPH_PAGE_SIZE = 1000;
+
+type BuildAnnouncementsWhereClauseParams = Pick<
+  GetAnnouncementsPageUsingSubgraphParams,
+  'caller' | 'fromBlock' | 'schemeId' | 'toBlock'
+> & {
+  cursor?: string;
+  filter?: string;
 };
 
-/**
- * Asynchronous generator function to fetch paginated data from a subgraph.
- *
- * This function fetches data in reverse chronological order (newest first) by using
- * the 'id_lt' parameter for pagination. It recursively calls itself to fetch all pages
- * of data, using the lastId parameter as the starting point for each subsequent page.
- *
- * @template T - The type of entities being fetched, must have an 'id' property.
- * @param {Object} params - The parameters for the fetch operation.
- * @param {GraphQLClient} params.client - The GraphQL client instance.
- * @param {string} params.gqlQuery - The GraphQL query string with a '__WHERE_CLAUSE__' placeholder.
- * @param {number} params.pageSize - The number of items to fetch per page.
- * @param {string} params.filter - Additional filter criteria for the query.
- * @param {string} params.entity - The name of the entity being queried.
- * @param {string} [params.lastId] - The ID of the last item from the previous page, used for pagination.
- * @yields {T[]} An array of entities of type T for each page of results.
- * @throws {Error} If there's an error fetching the data from the subgraph.
- */
-export async function* fetchPages<T extends { id: string }>({
-  client,
-  gqlQuery,
-  pageSize,
-  filter,
-  entity,
-  lastId
-}: {
-  client: GraphQLClient;
-  gqlQuery: string;
-  pageSize: number;
-  filter: string;
-  entity: string;
-  lastId?: string;
-}): AsyncGenerator<T[], void, unknown> {
-  // Set up variables for the GraphQL query
-  const variables: { first: number; id_lt?: string } = {
-    first: pageSize
-  };
-
-  // If lastId is provided, set it as the upper bound for the pagination
-  if (lastId) {
-    variables.id_lt = lastId;
+function formatNonNegativeInteger(
+  fieldName: string,
+  value: bigint | number
+): string {
+  if (typeof value === 'number') {
+    if (!Number.isInteger(value) || value < 0) {
+      throw new Error(`${fieldName} must be a non-negative integer`);
+    }
+  } else if (value < 0n) {
+    throw new Error(`${fieldName} must be a non-negative integer`);
   }
 
-  // Construct the WHERE clause for the GraphQL query
-  const whereClause = [filter, lastId ? 'id_lt: $id_lt' : null]
+  return value.toString();
+}
+
+function normalizePageSize(pageSize: number, maxPageSize: number): number {
+  if (!Number.isInteger(pageSize) || pageSize < 1) {
+    throw new Error('pageSize must be a positive integer');
+  }
+
+  if (pageSize > maxPageSize) {
+    throw new Error(`pageSize must be less than or equal to ${maxPageSize}`);
+  }
+
+  return pageSize;
+}
+
+function assertStrictlyDescendingAnnouncementIds(
+  announcements: SubgraphAnnouncementEntity[],
+  cursor?: string
+): void {
+  let previousId = cursor;
+
+  for (const announcement of announcements) {
+    if (previousId !== undefined && announcement.id >= previousId) {
+      throw new Error(
+        'Subgraph announcements must be returned in strict descending id order'
+      );
+    }
+
+    previousId = announcement.id;
+  }
+}
+
+export function buildAnnouncementsWhereClause({
+  caller,
+  cursor,
+  filter,
+  fromBlock,
+  schemeId,
+  toBlock
+}: BuildAnnouncementsWhereClauseParams): string {
+  return [
+    filter?.trim() || null,
+    fromBlock !== undefined
+      ? `blockNumber_gte: ${formatNonNegativeInteger('fromBlock', fromBlock)}`
+      : null,
+    toBlock !== undefined
+      ? `blockNumber_lte: ${formatNonNegativeInteger('toBlock', toBlock)}`
+      : null,
+    schemeId !== undefined
+      ? `schemeId: "${formatNonNegativeInteger('schemeId', schemeId)}"`
+      : null,
+    caller ? `caller: ${JSON.stringify(getAddress(caller))}` : null,
+    cursor ? 'id_lt: $id_lt' : null
+  ]
     .filter(Boolean)
     .join(', ');
+}
 
-  // Replace the placeholder in the query with the constructed WHERE clause
-  const finalQuery = gqlQuery.replace('__WHERE_CLAUSE__', whereClause);
+async function requestAnnouncements({
+  caller,
+  client,
+  cursor,
+  filter,
+  first,
+  fromBlock,
+  schemeId,
+  toBlock
+}: BuildAnnouncementsWhereClauseParams & {
+  client: GraphQLClient;
+  first: number;
+}): Promise<SubgraphAnnouncementEntity[]> {
+  const variables: { first: number; id_lt?: string } = { first };
 
-  try {
-    const response = await client.request<{ [key: string]: T[] }>(
-      finalQuery,
-      variables
-    );
-    const batch = response[entity];
-
-    // If no results, end the generator
-    if (batch.length === 0) {
-      return;
-    }
-
-    yield batch;
-
-    // If we've received fewer items than the page size, we're done
-    if (batch.length < pageSize) {
-      return;
-    }
-
-    // Recursively fetch the next page
-    const newLastId = batch[batch.length - 1].id;
-    yield* fetchPages({
-      client,
-      gqlQuery,
-      pageSize,
-      filter,
-      entity,
-      lastId: newLastId
-    });
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
+  if (cursor) {
+    variables.id_lt = cursor;
   }
+
+  const whereClause = buildAnnouncementsWhereClause({
+    caller,
+    cursor,
+    filter,
+    fromBlock,
+    schemeId,
+    toBlock
+  });
+  const finalQuery = GET_ANNOUNCEMENTS_SUBGRAPH_QUERY.replace(
+    '__WHERE_CLAUSE__',
+    whereClause
+  );
+  const response = await client.request<{
+    announcements: SubgraphAnnouncementEntity[];
+  }>(finalQuery, variables);
+  assertStrictlyDescendingAnnouncementIds(response.announcements, cursor);
+
+  return response.announcements;
+}
+
+export async function fetchAnnouncementsPage({
+  caller,
+  client,
+  cursor,
+  filter,
+  fromBlock,
+  pageSize,
+  schemeId,
+  toBlock
+}: BuildAnnouncementsWhereClauseParams & {
+  client: GraphQLClient;
+  pageSize: number;
+}): Promise<{
+  announcements: SubgraphAnnouncementEntity[];
+  nextCursor?: string;
+}> {
+  const normalizedPageSize = normalizePageSize(
+    pageSize,
+    MAX_SUBGRAPH_PAGE_SIZE
+  );
+  const announcements = await requestAnnouncements({
+    caller,
+    client,
+    cursor,
+    filter,
+    first: normalizedPageSize,
+    fromBlock,
+    schemeId,
+    toBlock
+  });
+
+  if (announcements.length < normalizedPageSize) {
+    return {
+      announcements,
+      nextCursor: undefined
+    };
+  }
+
+  const lastAnnouncementId = announcements[announcements.length - 1]?.id;
+  const nextCursor = lastAnnouncementId
+    ? (
+        await requestAnnouncements({
+          client,
+          cursor: lastAnnouncementId,
+          filter,
+          first: 1,
+          caller,
+          fromBlock,
+          schemeId,
+          toBlock
+        })
+      ).length > 0
+      ? lastAnnouncementId
+      : undefined
+    : undefined;
+
+  return {
+    announcements,
+    nextCursor
+  };
+}
+
+export async function fetchAnnouncementsBatch({
+  caller,
+  client,
+  cursor,
+  filter,
+  fromBlock,
+  pageSize,
+  schemeId,
+  toBlock
+}: BuildAnnouncementsWhereClauseParams & {
+  client: GraphQLClient;
+  pageSize: number;
+}): Promise<{
+  announcements: SubgraphAnnouncementEntity[];
+  nextCursor?: string;
+}> {
+  const normalizedPageSize = normalizePageSize(
+    pageSize,
+    MAX_LEGACY_SUBGRAPH_PAGE_SIZE
+  );
+  const announcements = await requestAnnouncements({
+    caller,
+    client,
+    cursor,
+    filter,
+    first: normalizedPageSize,
+    fromBlock,
+    schemeId,
+    toBlock
+  });
+  const nextCursor =
+    announcements.length === normalizedPageSize
+      ? announcements[announcements.length - 1]?.id
+      : undefined;
+
+  return {
+    announcements,
+    nextCursor
+  };
 }
 
 /**

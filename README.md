@@ -178,6 +178,65 @@ async function fetchAnnouncementsForUser() {
 }
 ```
 
+### Fetching announcements from a subgraph
+
+Use `getAnnouncementsPageUsingSubgraph` when you want deterministic cursor-based
+pagination without building raw filter strings yourself.
+
+```ts
+import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
+
+const firstPage = await getAnnouncementsPageUsingSubgraph({
+  subgraphUrl: "https://your-subgraph.example/api",
+});
+
+console.log(firstPage.announcements);
+console.log(firstPage.nextCursor); // present only when another page exists
+```
+
+All scan-shaping options are optional.
+
+- `pageSize` defaults to `999`
+- `pageSize` must be between `1` and `999`
+- omitting `fromBlock`, `toBlock`, `schemeId`, and `caller` means no filter
+- omitting `cursor` starts from the newest page
+
+```ts
+import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
+
+let cursor: string | undefined;
+
+do {
+  const page = await getAnnouncementsPageUsingSubgraph({
+    subgraphUrl: "https://your-subgraph.example/api",
+    fromBlock: 12345678,
+    toBlock: 12349999,
+    schemeId: 1n,
+    caller: "0x1234567890123456789012345678901234567890",
+    pageSize: 100,
+    cursor,
+  });
+
+  for (const announcement of page.announcements) {
+    console.log(announcement.transactionHash);
+  }
+
+  cursor = page.nextCursor;
+} while (cursor);
+```
+
+Pass the previous page's `nextCursor` back into the same bounded query to fetch
+the next older page deterministically. If `nextCursor` is undefined, you are on
+the terminal page and no extra probe request is needed.
+
+Pagination is ordered by subgraph announcement `id` in descending order. The
+cursor is the last returned `id`, reused as an exclusive `id_lt` boundary for
+the next page.
+
+`getAnnouncementsUsingSubgraph` remains available as the legacy eager helper.
+It preserves the historical `pageSize` behavior for compatibility, while
+`getAnnouncementsPageUsingSubgraph` is the typed cursor-based API.
+
 ## License
 
 [MIT](/LICENSE) License
