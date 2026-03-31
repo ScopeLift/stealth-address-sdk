@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { getAddress } from 'viem';
 import { ERC5564_StartBlocks } from '../../../config/startBlocks';
 import type { AnnouncementLog } from '../getAnnouncements/types';
@@ -70,11 +70,69 @@ const hasCiSubgraphMatrix = Object.values(Network).every(network =>
   Boolean(getSubgraphUrlForNetwork(network))
 );
 const describeRealSubgraph = hasSubgraphEnv || isCi ? describe : describe.skip;
+const REAL_SUBGRAPH_TEST_TIMEOUT_MS = 30_000;
 
 describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
-  let testResults: TestResult[] = [];
+  let testResultsPromise: Promise<TestResult[]> | undefined;
 
-  const getResultWithAnnouncements = (minimumCount = 1): TestResult => {
+  const loadTestResults = (): Promise<TestResult[]> => {
+    if (testResultsPromise) {
+      return testResultsPromise;
+    }
+
+    testResultsPromise = (async () => {
+      if (!hasSubgraphEnv) {
+        throw new Error(
+          'At least one SUBGRAPH_URL_<NETWORK> or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_<NETWORK> pair is required to run real subgraph integration tests'
+        );
+      }
+
+      if (isCi && !hasCiSubgraphMatrix) {
+        throw new Error(
+          'CI requires subgraph configuration for every network via SUBGRAPH_URL_<NETWORK> or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_<NETWORK>'
+        );
+      }
+
+      const results = await Promise.all(
+        networks.map(async network => {
+          try {
+            const announcements = await getAnnouncementsUsingSubgraph({
+              subgraphUrl: network.url,
+              filter: `blockNumber_gte: ${network.startBlock}`
+            });
+            return { network, announcements };
+          } catch (error) {
+            return { network, announcements: [], error: error as Error };
+          }
+        })
+      );
+
+      for (const result of results) {
+        if (result.error) {
+          console.error(
+            `❌ Failed to fetch from ${result.network.name}: ${result.network.url}`
+          );
+          console.error(`   Error: ${result.error.message}`);
+        } else {
+          console.log(
+            `✅ Successfully fetched from ${result.network.name}: ${result.network.url}`
+          );
+          console.log(
+            `   Number of announcements: ${result.announcements.length}`
+          );
+        }
+      }
+
+      return results;
+    })();
+
+    return testResultsPromise;
+  };
+
+  const getResultWithAnnouncements = (
+    testResults: TestResult[],
+    minimumCount = 1
+  ): TestResult => {
     const result = testResults.find(
       candidate =>
         candidate.error === undefined &&
@@ -90,286 +148,278 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     return result;
   };
 
-  beforeAll(async () => {
-    if (!hasSubgraphEnv) {
-      throw new Error(
-        'At least one SUBGRAPH_URL_<NETWORK> or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_<NETWORK> pair is required to run real subgraph integration tests'
-      );
-    }
+  test(
+    'should successfully fetch from all subgraphs',
+    async () => {
+      const testResults = await loadTestResults();
 
-    if (isCi && !hasCiSubgraphMatrix) {
-      throw new Error(
-        'CI requires subgraph configuration for every network via SUBGRAPH_URL_<NETWORK> or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_<NETWORK>'
-      );
-    }
-
-    testResults = await Promise.all(
-      networks.map(async network => {
-        try {
-          const announcements = await getAnnouncementsUsingSubgraph({
-            subgraphUrl: network.url,
-            filter: `blockNumber_gte: ${network.startBlock}`
-          });
-          return { network, announcements };
-        } catch (error) {
-          return { network, announcements: [], error: error as Error };
-        }
-      })
-    );
-
-    // Log results after all fetches are complete
-    for (const result of testResults) {
-      if (result.error) {
-        console.error(
-          `❌ Failed to fetch from ${result.network.name}: ${result.network.url}`
-        );
-        console.error(`   Error: ${result.error.message}`);
-      } else {
-        console.log(
-          `✅ Successfully fetched from ${result.network.name}: ${result.network.url}`
-        );
-        console.log(
-          `   Number of announcements: ${result.announcements.length}`
-        );
+      for (const result of testResults) {
+        expect(result.error).toBeUndefined();
       }
-    }
-  });
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
 
-  test('should successfully fetch from all subgraphs', () => {
-    for (const result of testResults) {
-      expect(result.error).toBeUndefined();
-    }
-  });
+  test(
+    'announcement structure is correct for all subgraphs',
+    async () => {
+      const testResults = await loadTestResults();
+      const expectedProperties = [
+        'blockNumber',
+        'blockHash',
+        'transactionIndex',
+        'removed',
+        'address',
+        'data',
+        'topics',
+        'transactionHash',
+        'logIndex',
+        'schemeId',
+        'stealthAddress',
+        'caller',
+        'ephemeralPubKey',
+        'metadata'
+      ];
 
-  test('announcement structure is correct for all subgraphs', () => {
-    const expectedProperties = [
-      'blockNumber',
-      'blockHash',
-      'transactionIndex',
-      'removed',
-      'address',
-      'data',
-      'topics',
-      'transactionHash',
-      'logIndex',
-      'schemeId',
-      'stealthAddress',
-      'caller',
-      'ephemeralPubKey',
-      'metadata'
-    ];
-
-    for (const result of testResults) {
-      if (result.announcements.length > 0) {
-        const announcement = result.announcements[0];
-        for (const prop of expectedProperties) {
-          expect(announcement).toHaveProperty(prop);
+      for (const result of testResults) {
+        if (result.announcements.length > 0) {
+          const announcement = result.announcements[0];
+          for (const prop of expectedProperties) {
+            expect(announcement).toHaveProperty(prop);
+          }
         }
       }
-    }
-  });
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
 
-  test('applies caller filter correctly for all subgraphs', async () => {
-    for (const result of testResults) {
-      if (result.announcements.length === 0) {
-        console.warn(
-          `No announcements found to test caller filter for ${result.network.name}`
-        );
-        continue;
+  test(
+    'applies caller filter correctly for all subgraphs',
+    async () => {
+      const testResults = await loadTestResults();
+
+      for (const result of testResults) {
+        if (result.announcements.length === 0) {
+          console.warn(
+            `No announcements found to test caller filter for ${result.network.name}`
+          );
+          continue;
+        }
+
+        const caller = result.announcements[0].caller;
+        const filteredResult = await getAnnouncementsUsingSubgraph({
+          subgraphUrl: result.network.url,
+          filter: `caller: "${caller}"`
+        });
+
+        expect(filteredResult.length).toBeGreaterThan(0);
+        expect(
+          filteredResult.every(a => getAddress(a.caller) === getAddress(caller))
+        ).toBe(true);
       }
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
 
-      const caller = result.announcements[0].caller;
-      const filteredResult = await getAnnouncementsUsingSubgraph({
+  test(
+    'handles pagination correctly for all subgraphs',
+    async () => {
+      const testResults = await loadTestResults();
+      const largePageSize = MAX_LEGACY_SUBGRAPH_PAGE_SIZE;
+      const paginationResults = await Promise.all(
+        networks.map(async network => {
+          try {
+            const announcements = await getAnnouncementsUsingSubgraph({
+              subgraphUrl: network.url,
+              filter: `blockNumber_gte: ${network.startBlock}`,
+              pageSize: largePageSize
+            });
+            return { network, announcements };
+          } catch (error) {
+            return { network, announcements: [], error: error as Error };
+          }
+        })
+      );
+
+      for (let i = 0; i < testResults.length; i++) {
+        const initialResult = testResults[i];
+        const paginatedResult = paginationResults[i];
+
+        expect(initialResult.error).toBeUndefined();
+        expect(paginatedResult.error).toBeUndefined();
+
+        expect(paginatedResult.announcements.length).toBeGreaterThanOrEqual(
+          initialResult.announcements.length
+        );
+
+        const initialAnnouncementSet = new Set(
+          initialResult.announcements.map(
+            a => `${a.transactionHash}:${a.logIndex}`
+          )
+        );
+        const paginatedAnnouncementSet = new Set(
+          paginatedResult.announcements.map(
+            a => `${a.transactionHash}:${a.logIndex}`
+          )
+        );
+
+        for (const announcementKey of initialAnnouncementSet) {
+          expect(paginatedAnnouncementSet.has(announcementKey)).toBe(true);
+        }
+      }
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
+
+  test(
+    'fetches an unfiltered page from all subgraphs',
+    async () => {
+      for (const network of networks) {
+        const page = await getAnnouncementsPageUsingSubgraph({
+          subgraphUrl: network.url,
+          pageSize: 1
+        });
+
+        expect(Array.isArray(page.announcements)).toBe(true);
+        expect(page.announcements.length).toBeLessThanOrEqual(1);
+        expect(typeof page.snapshotBlock).toBe('bigint');
+        expect(page.snapshotBlock).toBeGreaterThan(0n);
+      }
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
+
+  test(
+    'supports deterministic multi-page bounded fetches',
+    async () => {
+      const testResults = await loadTestResults();
+      const result = getResultWithAnnouncements(testResults, 2);
+      const toBlock = result.announcements[0].blockNumber;
+      if (toBlock === null) {
+        throw new Error(
+          'Expected blockNumber to be present on subgraph results'
+        );
+      }
+      const eagerResult = await getAnnouncementsUsingSubgraph({
         subgraphUrl: result.network.url,
-        filter: `caller: "${caller}"`
-      });
-
-      expect(filteredResult.length).toBeGreaterThan(0);
-      expect(
-        filteredResult.every(a => getAddress(a.caller) === getAddress(caller))
-      ).toBe(true);
-    }
-  });
-
-  test('handles pagination correctly for all subgraphs', async () => {
-    const largePageSize = MAX_LEGACY_SUBGRAPH_PAGE_SIZE;
-    const paginationResults = await Promise.all(
-      networks.map(async network => {
-        try {
-          const announcements = await getAnnouncementsUsingSubgraph({
-            subgraphUrl: network.url,
-            filter: `blockNumber_gte: ${network.startBlock}`,
-            pageSize: largePageSize
-          });
-          return { network, announcements };
-        } catch (error) {
-          return { network, announcements: [], error: error as Error };
-        }
-      })
-    );
-
-    for (let i = 0; i < testResults.length; i++) {
-      const initialResult = testResults[i];
-      const paginatedResult = paginationResults[i];
-
-      expect(initialResult.error).toBeUndefined();
-      expect(paginatedResult.error).toBeUndefined();
-
-      expect(paginatedResult.announcements.length).toBeGreaterThanOrEqual(
-        initialResult.announcements.length
-      );
-
-      // Check that the paginated results contain at least all the announcements from the initial fetch
-      const initialAnnouncementSet = new Set(
-        initialResult.announcements.map(
-          a => `${a.transactionHash}:${a.logIndex}`
-        )
-      );
-      const paginatedAnnouncementSet = new Set(
-        paginatedResult.announcements.map(
-          a => `${a.transactionHash}:${a.logIndex}`
-        )
-      );
-
-      for (const announcementKey of initialAnnouncementSet) {
-        expect(paginatedAnnouncementSet.has(announcementKey)).toBe(true);
-      }
-    }
-  });
-
-  test('fetches an unfiltered page from all subgraphs', async () => {
-    for (const network of networks) {
-      const page = await getAnnouncementsPageUsingSubgraph({
-        subgraphUrl: network.url,
+        filter: `blockNumber_gte: ${
+          result.network.startBlock
+        }, blockNumber_lte: ${toBlock.toString()}`,
         pageSize: 1
       });
 
-      expect(Array.isArray(page.announcements)).toBe(true);
-      expect(page.announcements.length).toBeLessThanOrEqual(1);
-      expect(typeof page.snapshotBlock).toBe('bigint');
-      expect(page.snapshotBlock).toBeGreaterThan(0n);
-    }
-  });
-
-  test('supports deterministic multi-page bounded fetches', async () => {
-    const result = getResultWithAnnouncements(2);
-    const toBlock = result.announcements[0].blockNumber;
-    if (toBlock === null) {
-      throw new Error('Expected blockNumber to be present on subgraph results');
-    }
-    const eagerResult = await getAnnouncementsUsingSubgraph({
-      subgraphUrl: result.network.url,
-      filter: `blockNumber_gte: ${
-        result.network.startBlock
-      }, blockNumber_lte: ${toBlock.toString()}`,
-      pageSize: 1
-    });
-
-    const seen = new Set<string>();
-    const pagedResult: AnnouncementLog[] = [];
-    const firstPage = await getAnnouncementsPageUsingSubgraph({
-      subgraphUrl: result.network.url,
-      fromBlock: result.network.startBlock,
-      toBlock,
-      pageSize: 1
-    });
-    const snapshotBlock = firstPage.snapshotBlock;
-    let page = firstPage;
-    let cursor = page.nextCursor;
-
-    do {
-      expect(page.snapshotBlock).toBe(snapshotBlock);
-
-      for (const announcement of page.announcements) {
-        if (announcement.blockNumber === null) {
-          throw new Error(
-            'Expected blockNumber to be present on paged results'
-          );
-        }
-
-        const key = `${announcement.transactionHash}:${announcement.logIndex}`;
-        expect(seen.has(key)).toBe(false);
-        expect(announcement.blockNumber).toBeGreaterThanOrEqual(
-          BigInt(result.network.startBlock)
-        );
-        expect(announcement.blockNumber).toBeLessThanOrEqual(toBlock);
-        seen.add(key);
-      }
-
-      pagedResult.push(...page.announcements);
-      if (!cursor) {
-        break;
-      }
-
-      page = await getAnnouncementsPageUsingSubgraph({
+      const seen = new Set<string>();
+      const pagedResult: AnnouncementLog[] = [];
+      const firstPage = await getAnnouncementsPageUsingSubgraph({
         subgraphUrl: result.network.url,
         fromBlock: result.network.startBlock,
         toBlock,
-        pageSize: 1,
-        cursor,
-        snapshotBlock
+        pageSize: 1
       });
-      cursor = page.nextCursor;
-    } while (cursor);
+      const snapshotBlock = firstPage.snapshotBlock;
+      let page = firstPage;
+      let cursor = page.nextCursor;
 
-    expect(
-      pagedResult.map(
-        announcement =>
-          `${announcement.transactionHash}:${announcement.logIndex}`
-      )
-    ).toEqual(
-      eagerResult.map(
-        announcement =>
-          `${announcement.transactionHash}:${announcement.logIndex}`
-      )
-    );
-  });
+      do {
+        expect(page.snapshotBlock).toBe(snapshotBlock);
 
-  test('applies typed schemeId and caller filters', async () => {
-    const result = getResultWithAnnouncements(1);
-    const sample = result.announcements[0];
-    const filteredPage = await getAnnouncementsPageUsingSubgraph({
-      subgraphUrl: result.network.url,
-      fromBlock: result.network.startBlock,
-      schemeId: sample.schemeId,
-      caller: sample.caller,
-      pageSize: 5
-    });
+        for (const announcement of page.announcements) {
+          if (announcement.blockNumber === null) {
+            throw new Error(
+              'Expected blockNumber to be present on paged results'
+            );
+          }
 
-    expect(filteredPage.announcements.length).toBeGreaterThan(0);
-    expect(filteredPage.snapshotBlock).toBeGreaterThan(0n);
-    expect(
-      filteredPage.announcements.every(
-        announcement =>
-          announcement.blockNumber !== null &&
-          announcement.schemeId === sample.schemeId &&
-          getAddress(announcement.caller) === getAddress(sample.caller) &&
-          announcement.blockNumber >= BigInt(result.network.startBlock)
-      )
-    ).toBe(true);
+          const key = `${announcement.transactionHash}:${announcement.logIndex}`;
+          expect(seen.has(key)).toBe(false);
+          expect(announcement.blockNumber).toBeGreaterThanOrEqual(
+            BigInt(result.network.startBlock)
+          );
+          expect(announcement.blockNumber).toBeLessThanOrEqual(toBlock);
+          seen.add(key);
+        }
 
-    const eagerResult = await getAnnouncementsUsingSubgraph({
-      subgraphUrl: result.network.url,
-      filter: `blockNumber_gte: ${
-        result.network.startBlock
-      }, schemeId: "${sample.schemeId.toString()}", caller: "${sample.caller}"`,
-      pageSize: 5
-    });
+        pagedResult.push(...page.announcements);
+        if (!cursor) {
+          break;
+        }
 
-    expect(
-      filteredPage.announcements.map(
-        announcement =>
-          `${announcement.transactionHash}:${announcement.logIndex}`
-      )
-    ).toEqual(
-      eagerResult
-        .slice(0, filteredPage.announcements.length)
-        .map(
+        page = await getAnnouncementsPageUsingSubgraph({
+          subgraphUrl: result.network.url,
+          fromBlock: result.network.startBlock,
+          toBlock,
+          pageSize: 1,
+          cursor,
+          snapshotBlock
+        });
+        cursor = page.nextCursor;
+      } while (cursor);
+
+      expect(
+        pagedResult.map(
           announcement =>
             `${announcement.transactionHash}:${announcement.logIndex}`
         )
-    );
-  });
+      ).toEqual(
+        eagerResult.map(
+          announcement =>
+            `${announcement.transactionHash}:${announcement.logIndex}`
+        )
+      );
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
+
+  test(
+    'applies typed schemeId and caller filters',
+    async () => {
+      const testResults = await loadTestResults();
+      const result = getResultWithAnnouncements(testResults, 1);
+      const sample = result.announcements[0];
+      const filteredPage = await getAnnouncementsPageUsingSubgraph({
+        subgraphUrl: result.network.url,
+        fromBlock: result.network.startBlock,
+        schemeId: sample.schemeId,
+        caller: sample.caller,
+        pageSize: 5
+      });
+
+      expect(filteredPage.announcements.length).toBeGreaterThan(0);
+      expect(filteredPage.snapshotBlock).toBeGreaterThan(0n);
+      expect(
+        filteredPage.announcements.every(
+          announcement =>
+            announcement.blockNumber !== null &&
+            announcement.schemeId === sample.schemeId &&
+            getAddress(announcement.caller) === getAddress(sample.caller) &&
+            announcement.blockNumber >= BigInt(result.network.startBlock)
+        )
+      ).toBe(true);
+
+      const eagerResult = await getAnnouncementsUsingSubgraph({
+        subgraphUrl: result.network.url,
+        filter: `blockNumber_gte: ${
+          result.network.startBlock
+        }, schemeId: "${sample.schemeId.toString()}", caller: "${sample.caller}"`,
+        pageSize: 5
+      });
+
+      expect(
+        filteredPage.announcements.map(
+          announcement =>
+            `${announcement.transactionHash}:${announcement.logIndex}`
+        )
+      ).toEqual(
+        eagerResult
+          .slice(0, filteredPage.announcements.length)
+          .map(
+            announcement =>
+              `${announcement.transactionHash}:${announcement.logIndex}`
+          )
+      );
+    },
+    { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+  );
 
   test('rejects cursor without snapshotBlock', async () => {
     expect(
