@@ -10,6 +10,7 @@ import {
   scanAnnouncementsForUserUsingSubgraphWithPageFetcher,
   sortAnnouncementsByChainRecency
 } from './scanAnnouncementsForUserUsingSubgraph';
+import { ScanAnnouncementsForUserUsingSubgraphError } from './types';
 
 const SCHEME_ID = VALID_SCHEME_ID.SCHEME_ID_1;
 
@@ -78,7 +79,9 @@ function createPublicClientForAnnouncements(
     : new Map<`0x${string}`, `0x${string}`>(
         announcements.map(announcement => {
           if (!announcement.transactionHash) {
-            throw new Error('Expected mock announcements to include transaction hashes');
+            throw new Error(
+              'Expected mock announcements to include transaction hashes'
+            );
           }
 
           return [announcement.transactionHash, announcement.caller];
@@ -520,5 +523,19 @@ describe('scanAnnouncementsForUserUsingSubgraph', () => {
     ]);
     expect(compareAnnouncementsByChainRecency(sorted[0], sorted[1])).toBe(-1);
     expect(compareAnnouncementsByChainRecency(sorted[1], sorted[2])).toBe(-1);
+  });
+
+  test('exposes the wrapped scan error with the original error attached', () => {
+    const originalError = new Error('boom');
+    const error = new ScanAnnouncementsForUserUsingSubgraphError(
+      'Failed to scan announcements from the subgraph',
+      originalError
+    );
+
+    expect(error.name).toBe('ScanAnnouncementsForUserUsingSubgraphError');
+    expect(error.message).toBe(
+      'Failed to scan announcements from the subgraph'
+    );
+    expect(error.originalError).toBe(originalError);
   });
 });

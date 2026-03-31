@@ -25,7 +25,10 @@ type ScanConfig = {
   pageSize?: number;
 };
 
-function parseOptionalNumber(value: string, fieldName: string): number | undefined {
+function parseOptionalNumber(
+  value: string,
+  fieldName: string
+): number | undefined {
   if (!value.trim()) {
     return undefined;
   }
@@ -245,7 +248,9 @@ const Example = () => {
       <ul style={{ marginTop: '16px', paddingLeft: '20px' }}>
         {announcements.map(announcement => (
           <li key={`${announcement.transactionHash}:${announcement.logIndex}`}>
-            <div>Block: {announcement.blockNumber?.toString() ?? 'unknown'}</div>
+            <div>
+              Block: {announcement.blockNumber?.toString() ?? 'unknown'}
+            </div>
             <div>Tx: {announcement.transactionHash ?? 'missing'}</div>
             <div>Stealth address: {announcement.stealthAddress}</div>
           </li>
