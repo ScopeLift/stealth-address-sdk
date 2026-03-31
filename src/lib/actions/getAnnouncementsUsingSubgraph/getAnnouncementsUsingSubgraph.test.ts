@@ -20,6 +20,18 @@ enum Network {
   SEPOLIA = 'SEPOLIA'
 }
 
+const CI_REQUIRED_REAL_SUBGRAPH_NETWORKS = [
+  Network.ARBITRUM_ONE,
+  Network.ARBITRUM_SEPOLIA,
+  Network.BASE,
+  Network.BASE_SEPOLIA,
+  Network.MAINNET,
+  Network.MATIC,
+  Network.OPTIMISM,
+  Network.OPTIMISM_SEPOLIA,
+  Network.SEPOLIA
+] as const;
+
 type NetworkInfo = {
   name: Network;
   url: string;
@@ -88,7 +100,7 @@ const getNetworksInfo = (): NetworkConfig[] =>
 const networkConfigs = getNetworksInfo();
 const hasSubgraphEnv = networkConfigs.length > 0;
 const isCi = process.env.CI === 'true';
-const hasCiSubgraphMatrix = Object.values(Network).every(
+const hasCiSubgraphMatrix = CI_REQUIRED_REAL_SUBGRAPH_NETWORKS.every(
   network => buildSubgraphUrlCandidatesForNetwork(network).length > 0
 );
 const describeRealSubgraph = hasSubgraphEnv || isCi ? describe : describe.skip;
@@ -111,7 +123,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
       if (isCi && !hasCiSubgraphMatrix) {
         throw new Error(
-          'CI requires subgraph configuration for every network via SUBGRAPH_URL_<NETWORK> or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_<NETWORK>'
+          'CI requires explicit SUBGRAPH_URL_<NETWORK> configuration for every deployed real-subgraph network'
         );
       }
 
