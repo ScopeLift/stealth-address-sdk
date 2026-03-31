@@ -44,7 +44,7 @@ export function compareAnnouncementsByChainRecency(
 
   if (leftBlockNumber === null || rightBlockNumber === null) {
     throw new Error(
-      'Subgraph pages must include blockNumber to preserve strict chain recency'
+      'Subgraph pages must include blockNumber for per-page recency sorting'
     );
   }
 
@@ -57,7 +57,7 @@ export function compareAnnouncementsByChainRecency(
 
   if (leftTransactionIndex === null || rightTransactionIndex === null) {
     throw new Error(
-      'Subgraph pages must include transactionIndex to preserve strict chain recency'
+      'Subgraph pages must include transactionIndex for per-page recency sorting'
     );
   }
 
@@ -70,7 +70,7 @@ export function compareAnnouncementsByChainRecency(
 
   if (leftLogIndex === null || rightLogIndex === null) {
     throw new Error(
-      'Subgraph pages must include logIndex to preserve strict chain recency'
+      'Subgraph pages must include logIndex for per-page recency sorting'
     );
   }
 
