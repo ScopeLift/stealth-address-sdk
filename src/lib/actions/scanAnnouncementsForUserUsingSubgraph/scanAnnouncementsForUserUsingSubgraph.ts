@@ -81,6 +81,19 @@ export function compareAnnouncementsByChainRecency(
   return 0;
 }
 
+/**
+ * Compares two announcements by on-chain recency for per-page sorting.
+ *
+ * Announcements are ordered by descending `blockNumber`, then descending
+ * `transactionIndex`, then descending `logIndex`.
+ *
+ * This comparator is intended for sorting announcements within a single fetched
+ * page. It does not imply that separately paginated subgraph pages are globally
+ * ordered by chain recency.
+ *
+ * Throws when the announcement data is missing any chain-position field needed
+ * to perform the comparison.
+ */
 export function sortAnnouncementsByChainRecency(
   announcements: AnnouncementLog[]
 ): AnnouncementLog[] {
