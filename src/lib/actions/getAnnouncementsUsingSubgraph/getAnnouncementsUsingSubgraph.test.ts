@@ -50,6 +50,62 @@ type TestResult = {
   error?: Error;
 };
 
+const REAL_SUBGRAPH_RETRY_ATTEMPTS = 4;
+const REAL_SUBGRAPH_RETRY_DELAY_MS = 2_000;
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, ms));
+
+const isRateLimitedSubgraphError = (error: unknown): boolean => {
+  const visited = new Set<unknown>();
+  let current = error;
+
+  while (current && !visited.has(current)) {
+    visited.add(current);
+
+    if (current instanceof Error) {
+      const message = current.message.toLowerCase();
+      if (
+        message.includes('429') ||
+        message.includes('too many requests') ||
+        message.includes('retry-after')
+      ) {
+        return true;
+      }
+
+      current =
+        'originalError' in current
+          ? (current as { originalError?: unknown }).originalError
+          : undefined;
+      continue;
+    }
+
+    current = undefined;
+  }
+
+  return false;
+};
+
+const withRealSubgraphRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
+  let attempt = 0;
+
+  while (true) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt += 1;
+      if (
+        attempt >= REAL_SUBGRAPH_RETRY_ATTEMPTS ||
+        !isRateLimitedSubgraphError(error)
+      ) {
+        throw error;
+      }
+
+      await sleep(REAL_SUBGRAPH_RETRY_DELAY_MS * attempt);
+    }
+  }
+};
+
 const buildSubgraphUrlCandidatesForNetwork = (network: Network): string[] => {
   const explicitUrl = process.env[`SUBGRAPH_URL_${network}`];
   if (explicitUrl) {
@@ -133,10 +189,12 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
           for (const url of network.urls) {
             try {
-              const announcements = await getAnnouncementsUsingSubgraph({
-                subgraphUrl: url,
-                filter: `blockNumber_gte: ${network.startBlock}`
-              });
+              const announcements = await withRealSubgraphRetry(() =>
+                getAnnouncementsUsingSubgraph({
+                  subgraphUrl: url,
+                  filter: `blockNumber_gte: ${network.startBlock}`
+                })
+              );
 
               return {
                 network: {
@@ -263,10 +321,12 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         }
 
         const caller = result.announcements[0].caller;
-        const filteredResult = await getAnnouncementsUsingSubgraph({
-          subgraphUrl: result.network.url,
-          filter: `caller: "${caller}"`
-        });
+        const filteredResult = await withRealSubgraphRetry(() =>
+          getAnnouncementsUsingSubgraph({
+            subgraphUrl: result.network.url,
+            filter: `caller: "${caller}"`
+          })
+        );
 
         expect(filteredResult.length).toBeGreaterThan(0);
         expect(
@@ -285,11 +345,13 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       const paginationResults = await Promise.all(
         testResults.map(async ({ network }) => {
           try {
-            const announcements = await getAnnouncementsUsingSubgraph({
-              subgraphUrl: network.url,
-              filter: `blockNumber_gte: ${network.startBlock}`,
-              pageSize: largePageSize
-            });
+            const announcements = await withRealSubgraphRetry(() =>
+              getAnnouncementsUsingSubgraph({
+                subgraphUrl: network.url,
+                filter: `blockNumber_gte: ${network.startBlock}`,
+                pageSize: largePageSize
+              })
+            );
             return { network, announcements };
           } catch (error) {
             return { network, announcements: [], error: error as Error };
@@ -333,10 +395,12 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       const testResults = await loadTestResults();
 
       for (const { network } of testResults) {
-        const page = await getAnnouncementsPageUsingSubgraph({
-          subgraphUrl: network.url,
-          pageSize: 1
-        });
+        const page = await withRealSubgraphRetry(() =>
+          getAnnouncementsPageUsingSubgraph({
+            subgraphUrl: network.url,
+            pageSize: 1
+          })
+        );
 
         expect(Array.isArray(page.announcements)).toBe(true);
         expect(page.announcements.length).toBeLessThanOrEqual(1);
@@ -358,22 +422,28 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
           'Expected blockNumber to be present on subgraph results'
         );
       }
-      const eagerResult = await getAnnouncementsUsingSubgraph({
-        subgraphUrl: result.network.url,
-        filter: `blockNumber_gte: ${
-          result.network.startBlock
-        }, blockNumber_lte: ${toBlock.toString()}`,
-        pageSize: 1
-      });
+      const eagerKeys = result.announcements
+        .filter(
+          announcement =>
+            announcement.blockNumber !== null &&
+            announcement.blockNumber >= BigInt(result.network.startBlock) &&
+            announcement.blockNumber <= toBlock
+        )
+        .map(
+          announcement =>
+            `${announcement.transactionHash}:${announcement.logIndex}`
+        );
 
       const seen = new Set<string>();
       const pagedResult: AnnouncementLog[] = [];
-      const firstPage = await getAnnouncementsPageUsingSubgraph({
-        subgraphUrl: result.network.url,
-        fromBlock: result.network.startBlock,
-        toBlock,
-        pageSize: 1
-      });
+      const firstPage = await withRealSubgraphRetry(() =>
+        getAnnouncementsPageUsingSubgraph({
+          subgraphUrl: result.network.url,
+          fromBlock: result.network.startBlock,
+          toBlock,
+          pageSize: 1
+        })
+      );
       const snapshotBlock = firstPage.snapshotBlock;
       let page = firstPage;
       let cursor = page.nextCursor;
@@ -398,18 +468,21 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         }
 
         pagedResult.push(...page.announcements);
-        if (!cursor) {
+        const nextCursor = cursor;
+        if (!nextCursor) {
           break;
         }
 
-        page = await getAnnouncementsPageUsingSubgraph({
-          subgraphUrl: result.network.url,
-          fromBlock: result.network.startBlock,
-          toBlock,
-          pageSize: 1,
-          cursor,
-          snapshotBlock
-        });
+        page = await withRealSubgraphRetry(() =>
+          getAnnouncementsPageUsingSubgraph({
+            subgraphUrl: result.network.url,
+            fromBlock: result.network.startBlock,
+            toBlock,
+            pageSize: 1,
+            cursor: nextCursor,
+            snapshotBlock
+          })
+        );
         cursor = page.nextCursor;
       } while (cursor);
 
@@ -418,12 +491,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
           announcement =>
             `${announcement.transactionHash}:${announcement.logIndex}`
         )
-      ).toEqual(
-        eagerResult.map(
-          announcement =>
-            `${announcement.transactionHash}:${announcement.logIndex}`
-        )
-      );
+      ).toEqual(eagerKeys);
     },
     { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
   );
@@ -454,29 +522,26 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         )
       ).toBe(true);
 
-      const eagerResult = await getAnnouncementsUsingSubgraph({
-        subgraphUrl: result.network.url,
-        filter: `blockNumber_gte: ${
-          result.network.startBlock
-        }, schemeId: "${sample.schemeId.toString()}", caller: "${
-          sample.caller
-        }"`,
-        pageSize: 5
-      });
+      const eagerKeys = result.announcements
+        .filter(
+          announcement =>
+            announcement.blockNumber !== null &&
+            announcement.blockNumber >= BigInt(result.network.startBlock) &&
+            announcement.schemeId === sample.schemeId &&
+            getAddress(announcement.caller) === getAddress(sample.caller)
+        )
+        .slice(0, filteredPage.announcements.length)
+        .map(
+          announcement =>
+            `${announcement.transactionHash}:${announcement.logIndex}`
+        );
 
       expect(
         filteredPage.announcements.map(
           announcement =>
             `${announcement.transactionHash}:${announcement.logIndex}`
         )
-      ).toEqual(
-        eagerResult
-          .slice(0, filteredPage.announcements.length)
-          .map(
-            announcement =>
-              `${announcement.transactionHash}:${announcement.logIndex}`
-          )
-      );
+      ).toEqual(eagerKeys);
     },
     { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
   );
