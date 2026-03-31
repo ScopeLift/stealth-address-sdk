@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
-import type { Account, PublicClient } from 'viem';
+import type { Account } from 'viem';
 import type { AnnouncementLog } from '..';
 import { getViewTagFromMetadata } from '../../..';
 import { VALID_SCHEME_ID, generateStealthAddress } from '../../../utils/crypto';
@@ -197,16 +197,13 @@ describe('getAnnouncementsForUser', () => {
     };
 
     expect(
-      processAnnouncement(
-        announcementWithoutHash,
-        walletClient as PublicClient,
-        {
-          spendingPublicKey,
-          viewingPrivateKey,
-          excludeList: new Set([]),
-          includeList: new Set([])
-        }
-      )
+      processAnnouncement(announcementWithoutHash, {
+        spendingPublicKey,
+        viewingPrivateKey,
+        publicClient: walletClient,
+        excludeList: new Set([]),
+        includeList: new Set([])
+      })
     ).rejects.toBeInstanceOf(TransactionHashRequiredError);
   });
 
@@ -215,7 +212,7 @@ describe('getAnnouncementsForUser', () => {
 
     expect(
       getTransactionFrom({
-        publicClient: walletClient as PublicClient,
+        publicClient: walletClient,
         hash: invalidHash
       })
     ).rejects.toBeInstanceOf(FromValueNotFoundError);

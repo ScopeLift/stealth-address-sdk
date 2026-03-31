@@ -1,4 +1,4 @@
-import { type PublicClient, getAddress } from 'viem';
+import { getAddress } from 'viem';
 import {
   type EthAddress,
   checkStealthAddress,
@@ -7,13 +7,69 @@ import {
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
+  type AnnouncementTransactionLookupClient,
+  type FilterAnnouncementsForUserBatchParams,
   FromValueNotFoundError,
   type GetAnnouncementsForUserParams,
   type GetAnnouncementsForUserReturnType,
+  type NormalizedAnnouncementAddressFilters,
   type ProcessAnnouncementParams,
   type ProcessAnnouncementReturnType,
   TransactionHashRequiredError
 } from './types';
+
+export function normalizeAnnouncementAddressFilters({
+  excludeList = [],
+  includeList = []
+}: Pick<
+  GetAnnouncementsForUserParams,
+  'excludeList' | 'includeList'
+>): NormalizedAnnouncementAddressFilters {
+  return {
+    excludeList: new Set(
+      [...new Set(excludeList).values()].map(address => getAddress(address))
+    ),
+    includeList: new Set(
+      [...new Set(includeList).values()].map(address => getAddress(address))
+    )
+  };
+}
+
+export function announcementFiltersRequireTransactionLookup({
+  excludeList,
+  includeList
+}: NormalizedAnnouncementAddressFilters): boolean {
+  return excludeList.size > 0 || includeList.size > 0;
+}
+
+export async function filterAnnouncementsForUserBatch({
+  announcements,
+  excludeList,
+  includeList,
+  publicClient,
+  spendingPublicKey,
+  viewingPrivateKey
+}: FilterAnnouncementsForUserBatchParams): Promise<GetAnnouncementsForUserReturnType> {
+  const processedAnnouncements = await Promise.allSettled(
+    announcements.map(announcement =>
+      processAnnouncement(announcement, {
+        excludeList,
+        includeList,
+        publicClient,
+        spendingPublicKey,
+        viewingPrivateKey
+      })
+    )
+  );
+
+  return processedAnnouncements.reduce<AnnouncementLog[]>(
+    (acc, result) =>
+      result.status === 'fulfilled' && result.value !== null
+        ? acc.concat(result.value)
+        : acc,
+    []
+  );
+}
 
 /**
  * @description Fetches and processes a list of announcements to determine which are relevant for the user.
@@ -36,39 +92,24 @@ async function getAnnouncementsForUser({
   excludeList = [],
   includeList = []
 }: GetAnnouncementsForUserParams): Promise<GetAnnouncementsForUserReturnType> {
-  const publicClient = handleViemPublicClient(clientParams);
+  const normalizedAddressFilters = normalizeAnnouncementAddressFilters({
+    excludeList,
+    includeList
+  });
+  const publicClient = announcementFiltersRequireTransactionLookup(
+    normalizedAddressFilters
+  )
+    ? handleViemPublicClient(clientParams)
+    : undefined;
 
-  // Validate excludeList and includeList
-  const _excludeList = new Set(
-    [...new Set(excludeList).values()].map(address => getAddress(address))
-  );
-  const _includeList = new Set(
-    [...new Set(includeList).values()].map(address => getAddress(address))
-  );
-
-  const processedAnnouncements = await Promise.allSettled(
-    announcements.map(announcement =>
-      processAnnouncement(announcement, publicClient, {
-        spendingPublicKey,
-        viewingPrivateKey,
-        clientParams,
-        excludeList: _excludeList,
-        includeList: _includeList
-      })
-    )
-  );
-
-  const relevantAnnouncements = processedAnnouncements.reduce<
-    AnnouncementLog[]
-  >(
-    (acc, result) =>
-      result.status === 'fulfilled' && result.value !== null
-        ? acc.concat(result.value)
-        : acc,
-    []
-  );
-
-  return relevantAnnouncements;
+  return filterAnnouncementsForUserBatch({
+    announcements,
+    excludeList: normalizedAddressFilters.excludeList,
+    includeList: normalizedAddressFilters.includeList,
+    publicClient,
+    spendingPublicKey,
+    viewingPrivateKey
+  });
 }
 
 /**
@@ -86,12 +127,12 @@ async function getAnnouncementsForUser({
  */
 export async function processAnnouncement(
   announcement: AnnouncementLog,
-  publicClient: PublicClient,
   {
-    spendingPublicKey,
-    viewingPrivateKey,
     excludeList,
-    includeList
+    includeList,
+    publicClient,
+    spendingPublicKey,
+    viewingPrivateKey
   }: ProcessAnnouncementParams
 ): Promise<ProcessAnnouncementReturnType> {
   const {
@@ -150,9 +191,14 @@ async function shouldIncludeAnnouncement({
   hash: `0x${string}`;
   excludeList: Set<EthAddress>;
   includeList: Set<EthAddress>;
-  publicClient: PublicClient;
+  publicClient?: AnnouncementTransactionLookupClient;
 }): Promise<boolean> {
   if (excludeList.size === 0 && includeList.size === 0) return true; // No filters applied, include announcement
+  if (!publicClient) {
+    throw new Error(
+      'publicClient or chainId and rpcUrl must be provided when includeList or excludeList is used'
+    );
+  }
 
   const from = await getTransactionFrom({ hash, publicClient });
 
@@ -177,7 +223,7 @@ export async function getTransactionFrom({
   publicClient,
   hash
 }: {
-  publicClient: PublicClient;
+  publicClient: AnnouncementTransactionLookupClient;
   hash: `0x${string}`;
 }): Promise<`0x${string}`> {
   try {

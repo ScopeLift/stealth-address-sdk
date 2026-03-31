@@ -259,6 +259,41 @@ the next page, and page queries are pinned to one subgraph block snapshot.
 It preserves the historical `pageSize` behavior for compatibility, while
 `getAnnouncementsPageUsingSubgraph` is the typed cursor-based API.
 
+### Streaming announcements for a user from a subgraph
+
+Use `scanAnnouncementsForUserUsingSubgraph` when you want to fetch one bounded
+page at a time, scan it locally for a user, and surface matches incrementally.
+
+```ts
+import { scanAnnouncementsForUserUsingSubgraph } from "@scopelift/stealth-address-sdk";
+
+for await (const batch of scanAnnouncementsForUserUsingSubgraph({
+  subgraphUrl: "https://your-subgraph.example/api",
+  fromBlock: 12345678,
+  toBlock: 12349999,
+  spendingPublicKey: "0xUserSpendingPublicKey",
+  viewingPrivateKey: "0xUserViewingPrivateKey",
+})) {
+  console.log(batch.announcements);
+}
+```
+
+Batches arrive newest to oldest within the requested block range.
+
+Each yielded batch includes:
+
+- `announcements`: the matches found in that scanned page
+- `scannedCount`: the number of candidate announcements scanned in that page
+- `nextCursor`: the resume token for the next older page, when another page exists
+- `snapshotBlock`: the fixed subgraph snapshot block for the full bounded scan
+
+Persist `nextCursor` and `snapshotBlock` from any yielded batch if you want to
+resume the scan later from the next older page.
+
+If you use `includeList` or `excludeList`, provide `clientParams` or call the
+helper through `createStealthClient(...)` so the SDK can resolve transaction
+senders for those filters.
+
 ## License
 
 [MIT](/LICENSE) License

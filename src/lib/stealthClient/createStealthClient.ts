@@ -46,6 +46,11 @@ function createStealthClient({
       stealthActions.getAnnouncementsPageUsingSubgraph({
         ...params
       }),
+    scanAnnouncementsForUserUsingSubgraph: params =>
+      stealthActions.scanAnnouncementsForUserUsingSubgraph({
+        clientParams: { publicClient },
+        ...params
+      }),
     getAnnouncementsUsingSubgraph: params =>
       stealthActions.getAnnouncementsUsingSubgraph({
         ...params
