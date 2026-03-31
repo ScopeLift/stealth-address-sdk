@@ -5,7 +5,7 @@ import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import getAnnouncementsForUser from '../getAnnouncementsForUser/getAnnouncementsForUser';
 import type { GetAnnouncementsPageUsingSubgraphParams } from '../getAnnouncementsUsingSubgraph/types';
-import {
+import scanAnnouncementsForUserUsingSubgraph, {
   compareAnnouncementsByChainRecency,
   scanAnnouncementsForUserUsingSubgraphWithPageFetcher,
   sortAnnouncementsByChainRecency
@@ -17,6 +17,11 @@ const SCHEME_ID = VALID_SCHEME_ID.SCHEME_ID_1;
 const allowedFrom = '0x00000000000000000000000000000000000000AA';
 const secondAllowedFrom = '0x00000000000000000000000000000000000000BB';
 const blockedFrom = '0x00000000000000000000000000000000000000CC';
+const REAL_SUBGRAPH_RETRY_ATTEMPTS = 4;
+const REAL_SUBGRAPH_RETRY_DELAY_MS = 2_000;
+const REAL_SUBGRAPH_TEST_TIMEOUT_MS = 30_000;
+const DEFAULT_BASE_SEPOLIA_PUBLIC_SUBGRAPH_URL =
+  'https://api.goldsky.com/api/public/project_cmmiaq2g3rzcq01wv00814i31/subgraphs/stealth-address-erc-base-sepolia/v0.0.1/gn';
 
 const userKeys = setupTestStealthKeys(SCHEME_ID);
 const alternateKeys = setupTestStealthKeys(SCHEME_ID);
@@ -136,6 +141,100 @@ async function collectAll<T>(
 
   return values;
 }
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, ms));
+
+const isRateLimitedSubgraphError = (error: unknown): boolean => {
+  const visited = new Set<unknown>();
+  let current = error;
+
+  while (current && !visited.has(current)) {
+    visited.add(current);
+
+    if (current instanceof Error) {
+      const message = current.message.toLowerCase();
+      if (
+        message.includes('429') ||
+        message.includes('too many requests') ||
+        message.includes('retry-after')
+      ) {
+        return true;
+      }
+
+      current =
+        'originalError' in current
+          ? (current as { originalError?: unknown }).originalError
+          : undefined;
+      continue;
+    }
+
+    current = undefined;
+  }
+
+  return false;
+};
+
+const withRealSubgraphRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
+  let attempt = 0;
+
+  while (true) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt += 1;
+      if (
+        attempt >= REAL_SUBGRAPH_RETRY_ATTEMPTS ||
+        !isRateLimitedSubgraphError(error)
+      ) {
+        throw error;
+      }
+
+      await sleep(REAL_SUBGRAPH_RETRY_DELAY_MS * attempt);
+    }
+  }
+};
+
+const buildBaseSepoliaSubgraphUrlCandidates = (): string[] => {
+  const explicitUrl = process.env.SUBGRAPH_URL_BASE_SEPOLIA;
+  if (explicitUrl) {
+    return [explicitUrl, DEFAULT_BASE_SEPOLIA_PUBLIC_SUBGRAPH_URL];
+  }
+
+  const subgraphUrlPrefix = process.env.SUBGRAPH_URL_PREFIX;
+  const subgraphName = process.env.SUBGRAPH_NAME_BASE_SEPOLIA;
+  if (!subgraphUrlPrefix || !subgraphName) {
+    return [];
+  }
+
+  if (
+    subgraphName.startsWith('http://') ||
+    subgraphName.startsWith('https://')
+  ) {
+    return [subgraphName, DEFAULT_BASE_SEPOLIA_PUBLIC_SUBGRAPH_URL];
+  }
+
+  const normalizedPrefix = subgraphUrlPrefix.replace(/\/+$/, '');
+  const normalizedSubgraphName = subgraphName.replace(/^\/+/, '');
+  const baseUrl = `${normalizedPrefix}/${normalizedSubgraphName}`;
+  const candidates = [baseUrl];
+
+  if (!baseUrl.endsWith('/api') && !baseUrl.endsWith('/gn')) {
+    candidates.push(`${baseUrl}/api`);
+  }
+
+  candidates.push(DEFAULT_BASE_SEPOLIA_PUBLIC_SUBGRAPH_URL);
+
+  return [...new Set(candidates)];
+};
+
+const baseSepoliaSubgraphUrlCandidates =
+  buildBaseSepoliaSubgraphUrlCandidates();
+const hasBaseSepoliaSubgraph =
+  baseSepoliaSubgraphUrlCandidates.length > 0 || process.env.CI === 'true';
+const describeRealBaseSepolia = hasBaseSepoliaSubgraph
+  ? describe
+  : describe.skip;
 
 describe('scanAnnouncementsForUserUsingSubgraph', () => {
   test('yields one scanned batch per page without speculative prefetch', async () => {
@@ -539,3 +638,59 @@ describe('scanAnnouncementsForUserUsingSubgraph', () => {
     expect(error.originalError).toBe(originalError);
   });
 });
+
+describeRealBaseSepolia(
+  'scanAnnouncementsForUserUsingSubgraph with real subgraph',
+  () => {
+    test(
+      'streams multiple pages from Base Sepolia without throwing',
+      async () => {
+        if (baseSepoliaSubgraphUrlCandidates.length === 0) {
+          throw new Error(
+            'SUBGRAPH_URL_BASE_SEPOLIA or SUBGRAPH_URL_PREFIX + SUBGRAPH_NAME_BASE_SEPOLIA is required to run the real streaming integration test'
+          );
+        }
+
+        const result = await withRealSubgraphRetry(async () => {
+          let lastError: Error | undefined;
+
+          for (const subgraphUrl of baseSepoliaSubgraphUrlCandidates) {
+            try {
+              const batches = await collectAll(
+                scanAnnouncementsForUserUsingSubgraph({
+                  pageSize: 50,
+                  spendingPublicKey: userKeys.spendingPublicKey,
+                  subgraphUrl,
+                  viewingPrivateKey: userKeys.viewingPrivateKey
+                })
+              );
+
+              return {
+                batches,
+                subgraphUrl
+              };
+            } catch (error) {
+              lastError = error as Error;
+            }
+          }
+
+          throw (
+            lastError ?? new Error('No Base Sepolia subgraph URL succeeded')
+          );
+        });
+
+        expect(result.batches.length).toBeGreaterThan(1);
+        expect(result.batches[0]?.nextCursor).toBeDefined();
+        expect(
+          result.batches.every(
+            batch => batch.snapshotBlock === result.batches[0]?.snapshotBlock
+          )
+        ).toBe(true);
+        expect(
+          result.batches.reduce((total, batch) => total + batch.scannedCount, 0)
+        ).toBeGreaterThan(50);
+      },
+      { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
+    );
+  }
+);
