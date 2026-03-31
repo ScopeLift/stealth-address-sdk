@@ -26,48 +26,70 @@ type NetworkInfo = {
   startBlock: number;
 };
 
+type NetworkConfig = {
+  name: Network;
+  urls: string[];
+  startBlock: number;
+};
+
 type TestResult = {
   network: NetworkInfo;
   announcements: AnnouncementLog[];
   error?: Error;
 };
 
-const getSubgraphUrlForNetwork = (network: Network): string | undefined => {
+const buildSubgraphUrlCandidatesForNetwork = (network: Network): string[] => {
   const explicitUrl = process.env[`SUBGRAPH_URL_${network}`];
   if (explicitUrl) {
-    return explicitUrl;
+    return [explicitUrl];
   }
 
   const subgraphUrlPrefix = process.env.SUBGRAPH_URL_PREFIX;
   const subgraphName = process.env[`SUBGRAPH_NAME_${network}`];
   if (subgraphUrlPrefix && subgraphName) {
-    return `${subgraphUrlPrefix}/${subgraphName}/api`;
+    if (
+      subgraphName.startsWith('http://') ||
+      subgraphName.startsWith('https://')
+    ) {
+      return [subgraphName];
+    }
+
+    const normalizedPrefix = subgraphUrlPrefix.replace(/\/+$/, '');
+    const normalizedSubgraphName = subgraphName.replace(/^\/+/, '');
+    const baseUrl = `${normalizedPrefix}/${normalizedSubgraphName}`;
+    const candidates = [baseUrl];
+
+    if (!baseUrl.endsWith('/api') && !baseUrl.endsWith('/gn')) {
+      candidates.push(`${baseUrl}/api`);
+    }
+
+    return [...new Set(candidates)];
   }
 
-  return undefined;
+  return [];
 };
 
-const getNetworksInfo = (): NetworkInfo[] =>
+const getNetworksInfo = (): NetworkConfig[] =>
   Object.values(Network).flatMap(network => {
-    const url = getSubgraphUrlForNetwork(network);
-    if (!url) {
+    const urls = buildSubgraphUrlCandidatesForNetwork(network);
+    if (urls.length === 0) {
       return [];
     }
 
     return [
       {
         name: network,
-        url,
+        urls,
         startBlock: ERC5564_StartBlocks[network]
       }
     ];
   });
 
-const networks = getNetworksInfo();
-const hasSubgraphEnv = networks.length > 0;
+const networkConfigs = getNetworksInfo();
+const hasSubgraphEnv = networkConfigs.length > 0;
 const isCi = process.env.CI === 'true';
-const hasCiSubgraphMatrix = Object.values(Network).every(network =>
-  Boolean(getSubgraphUrlForNetwork(network))
+const hasCiSubgraphMatrix = Object.values(Network).every(
+  network => buildSubgraphUrlCandidatesForNetwork(network).length > 0
 );
 const describeRealSubgraph = hasSubgraphEnv || isCi ? describe : describe.skip;
 const REAL_SUBGRAPH_TEST_TIMEOUT_MS = 30_000;
@@ -94,16 +116,38 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       }
 
       const results = await Promise.all(
-        networks.map(async network => {
-          try {
-            const announcements = await getAnnouncementsUsingSubgraph({
-              subgraphUrl: network.url,
-              filter: `blockNumber_gte: ${network.startBlock}`
-            });
-            return { network, announcements };
-          } catch (error) {
-            return { network, announcements: [], error: error as Error };
+        networkConfigs.map(async network => {
+          let lastError: Error | undefined;
+
+          for (const url of network.urls) {
+            try {
+              const announcements = await getAnnouncementsUsingSubgraph({
+                subgraphUrl: url,
+                filter: `blockNumber_gte: ${network.startBlock}`
+              });
+
+              return {
+                network: {
+                  name: network.name,
+                  url,
+                  startBlock: network.startBlock
+                },
+                announcements
+              };
+            } catch (error) {
+              lastError = error as Error;
+            }
           }
+
+          return {
+            network: {
+              name: network.name,
+              url: network.urls[0],
+              startBlock: network.startBlock
+            },
+            announcements: [],
+            error: lastError
+          };
         })
       );
 
@@ -227,7 +271,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       const testResults = await loadTestResults();
       const largePageSize = MAX_LEGACY_SUBGRAPH_PAGE_SIZE;
       const paginationResults = await Promise.all(
-        networks.map(async network => {
+        testResults.map(async ({ network }) => {
           try {
             const announcements = await getAnnouncementsUsingSubgraph({
               subgraphUrl: network.url,
@@ -274,7 +318,9 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
   test(
     'fetches an unfiltered page from all subgraphs',
     async () => {
-      for (const network of networks) {
+      const testResults = await loadTestResults();
+
+      for (const { network } of testResults) {
         const page = await getAnnouncementsPageUsingSubgraph({
           subgraphUrl: network.url,
           pageSize: 1
@@ -400,7 +446,9 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         subgraphUrl: result.network.url,
         filter: `blockNumber_gte: ${
           result.network.startBlock
-        }, schemeId: "${sample.schemeId.toString()}", caller: "${sample.caller}"`,
+        }, schemeId: "${sample.schemeId.toString()}", caller: "${
+          sample.caller
+        }"`,
         pageSize: 5
       });
 
@@ -424,7 +472,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
   test('rejects cursor without snapshotBlock', async () => {
     expect(
       getAnnouncementsPageUsingSubgraph({
-        subgraphUrl: networks[0].url,
+        subgraphUrl: 'https://example.com/subgraph',
         cursor: 'cursor-1'
       } as never)
     ).rejects.toThrow(
@@ -435,7 +483,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
   test('rejects snapshotBlock without cursor', async () => {
     expect(
       getAnnouncementsPageUsingSubgraph({
-        subgraphUrl: networks[0].url,
+        subgraphUrl: 'https://example.com/subgraph',
         snapshotBlock: 1n
       } as never)
     ).rejects.toThrow(
