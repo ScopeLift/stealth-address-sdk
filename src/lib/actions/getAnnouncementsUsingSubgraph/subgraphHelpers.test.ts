@@ -12,7 +12,7 @@ import {
 import type { SubgraphAnnouncementEntity } from './types';
 
 type MockResponse = {
-  [key: string]: { id: string }[];
+  [key: string]: unknown;
 };
 
 const makeSubgraphEntity = (id: string): SubgraphAnnouncementEntity =>
@@ -35,6 +35,14 @@ const makeSubgraphEntity = (id: string): SubgraphAnnouncementEntity =>
 
 const makeOrderedId = (value: number): string =>
   value.toString().padStart(4, '0');
+
+const makeSnapshotMetaResponse = (number: number | string) => ({
+  _meta: {
+    block: {
+      number
+    }
+  }
+});
 
 const buildLegacyFilter = ({
   caller,
@@ -155,6 +163,54 @@ describe('fetchAnnouncementsPage helpers', () => {
     ).toThrow('fromBlock must be a non-negative integer');
   });
 
+  test('should resolve the snapshot block when omitted and reuse it for the probe', async () => {
+    mockRequest
+      .mockReturnValueOnce(Promise.resolve(makeSnapshotMetaResponse(123)))
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [
+            makeSubgraphEntity('3'),
+            makeSubgraphEntity('2'),
+            makeSubgraphEntity('1')
+          ]
+        })
+      )
+      .mockReturnValueOnce(
+        Promise.resolve({
+          announcements: [makeSubgraphEntity('0')]
+        })
+      );
+
+    const result = await fetchAnnouncementsPage({
+      client: mockClient,
+      pageSize: 3
+    });
+
+    expect(result).toEqual({
+      announcements: [
+        makeSubgraphEntity('3'),
+        makeSubgraphEntity('2'),
+        makeSubgraphEntity('1')
+      ],
+      nextCursor: '1',
+      snapshotBlock: 123n
+    });
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('_meta')
+    );
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('block: { number: 123 }'),
+      { first: 3 }
+    );
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('block: { number: 123 }'),
+      { first: 1, id_lt: '1' }
+    );
+  });
+
   test('should fetch a page with typed filters and return the next cursor for a full page', async () => {
     mockRequest
       .mockReturnValueOnce(
@@ -179,6 +235,7 @@ describe('fetchAnnouncementsPage helpers', () => {
       fromBlock: 100,
       pageSize: 3,
       schemeId: 1n,
+      snapshotBlock: 123,
       toBlock: 200
     });
 
@@ -188,14 +245,25 @@ describe('fetchAnnouncementsPage helpers', () => {
         makeSubgraphEntity('2'),
         makeSubgraphEntity('1')
       ],
-      nextCursor: '1'
+      nextCursor: '1',
+      snapshotBlock: 123n
     });
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('block: { number: 123 }'),
+      { first: 3, id_lt: '4' }
+    );
     expect(mockRequest).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining(
         'blockNumber_gte: 100, blockNumber_lte: 200, schemeId: "1", caller: "0x1234567890123456789012345678901234567890", id_lt: $id_lt'
       ),
       { first: 3, id_lt: '4' }
+    );
+    expect(mockRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('block: { number: 123 }'),
+      { first: 1, id_lt: '1' }
     );
     expect(mockRequest).toHaveBeenNthCalledWith(
       2,
@@ -215,12 +283,14 @@ describe('fetchAnnouncementsPage helpers', () => {
 
     const result = await fetchAnnouncementsPage({
       client: mockClient,
-      pageSize: 3
+      pageSize: 3,
+      snapshotBlock: 123
     });
 
     expect(result).toEqual({
       announcements: [makeSubgraphEntity('2'), makeSubgraphEntity('1')],
-      nextCursor: undefined
+      nextCursor: undefined,
+      snapshotBlock: 123n
     });
     expect(mockRequest).toHaveBeenCalledTimes(1);
   });
@@ -244,7 +314,8 @@ describe('fetchAnnouncementsPage helpers', () => {
 
     const result = await fetchAnnouncementsPage({
       client: mockClient,
-      pageSize: 3
+      pageSize: 3,
+      snapshotBlock: 123
     });
 
     expect(result).toEqual({
@@ -253,7 +324,8 @@ describe('fetchAnnouncementsPage helpers', () => {
         makeSubgraphEntity('2'),
         makeSubgraphEntity('1')
       ],
-      nextCursor: undefined
+      nextCursor: undefined,
+      snapshotBlock: 123n
     });
     expect(mockRequest).toHaveBeenNthCalledWith(1, expect.any(String), {
       first: 3
@@ -285,12 +357,14 @@ describe('fetchAnnouncementsPage helpers', () => {
 
     const result = await fetchAnnouncementsPage({
       client: mockClient,
-      pageSize: MAX_SUBGRAPH_PAGE_SIZE
+      pageSize: MAX_SUBGRAPH_PAGE_SIZE,
+      snapshotBlock: 123
     });
 
     expect(result).toEqual({
       announcements: fullPage,
-      nextCursor: makeOrderedId(1)
+      nextCursor: makeOrderedId(1),
+      snapshotBlock: 123n
     });
     expect(mockRequest).toHaveBeenNthCalledWith(1, expect.any(String), {
       first: MAX_SUBGRAPH_PAGE_SIZE
@@ -307,7 +381,8 @@ describe('fetchAnnouncementsPage helpers', () => {
     expect(
       fetchAnnouncementsPage({
         client: mockClient,
-        pageSize: 3
+        pageSize: 3,
+        snapshotBlock: 123
       })
     ).rejects.toThrow('GraphQL error');
   });
@@ -371,7 +446,8 @@ describe('fetchAnnouncementsPage helpers', () => {
     expect(
       fetchAnnouncementsPage({
         client: mockClient,
-        pageSize: 2
+        pageSize: 2,
+        snapshotBlock: 123
       })
     ).rejects.toThrow(
       'Subgraph announcements must be returned in strict descending id order'
@@ -394,7 +470,8 @@ describe('fetchAnnouncementsPage helpers', () => {
     expect(
       fetchAnnouncementsPage({
         client: mockClient,
-        pageSize: 2
+        pageSize: 2,
+        snapshotBlock: 123
       })
     ).rejects.toThrow(
       'Subgraph announcements must be returned in strict descending id order'
@@ -439,6 +516,7 @@ describe('fetchAnnouncementsPage helpers', () => {
             client,
             cursor,
             pageSize,
+            snapshotBlock: 123,
             ...scenario
           });
           pagedIds.push(...page.announcements.map(entity => entity.id));

@@ -192,6 +192,7 @@ const firstPage = await getAnnouncementsPageUsingSubgraph({
 
 console.log(firstPage.announcements);
 console.log(firstPage.nextCursor); // present only when another page exists
+console.log(firstPage.snapshotBlock); // reuse for every later page in the same scan
 ```
 
 All scan-shaping options are optional.
@@ -200,11 +201,13 @@ All scan-shaping options are optional.
 - `pageSize` must be between `1` and `999`
 - omitting `fromBlock`, `toBlock`, `schemeId`, and `caller` means no filter
 - omitting `cursor` starts from the newest page
+- omitting `snapshotBlock` on page 1 makes the SDK resolve the current subgraph snapshot automatically
 
 ```ts
 import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
 
 let cursor: string | undefined;
+let snapshotBlock: bigint | undefined;
 
 do {
   const page = await getAnnouncementsPageUsingSubgraph({
@@ -215,6 +218,7 @@ do {
     caller: "0x1234567890123456789012345678901234567890",
     pageSize: 100,
     cursor,
+    snapshotBlock,
   });
 
   for (const announcement of page.announcements) {
@@ -222,6 +226,7 @@ do {
   }
 
   cursor = page.nextCursor;
+  snapshotBlock = page.snapshotBlock;
 } while (cursor);
 ```
 
@@ -229,9 +234,13 @@ Pass the previous page's `nextCursor` back into the same bounded query to fetch
 the next older page deterministically. If `nextCursor` is undefined, you are on
 the terminal page and no extra probe request is needed.
 
+`cursor` is pagination position. `snapshotBlock` is consistency. Reuse the same
+`snapshotBlock` for every page in a multi-page scan so each request reads the
+same frozen subgraph view.
+
 Pagination is ordered by subgraph announcement `id` in descending order. The
 cursor is the last returned `id`, reused as an exclusive `id_lt` boundary for
-the next page.
+the next page, and page queries are pinned to one subgraph block snapshot.
 
 `getAnnouncementsUsingSubgraph` remains available as the legacy eager helper.
 It preserves the historical `pageSize` behavior for compatibility, while

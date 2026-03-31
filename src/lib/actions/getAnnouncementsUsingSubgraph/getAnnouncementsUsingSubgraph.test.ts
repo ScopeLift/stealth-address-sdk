@@ -246,6 +246,8 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
       expect(Array.isArray(page.announcements)).toBe(true);
       expect(page.announcements.length).toBeLessThanOrEqual(1);
+      expect(typeof page.snapshotBlock).toBe('bigint');
+      expect(page.snapshotBlock).toBeGreaterThan(0n);
     }
   });
 
@@ -266,6 +268,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     const seen = new Set<string>();
     const pagedResult: AnnouncementLog[] = [];
     let cursor: string | undefined;
+    let snapshotBlock: bigint | undefined;
 
     do {
       const page = await getAnnouncementsPageUsingSubgraph({
@@ -273,8 +276,15 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         fromBlock: result.network.startBlock,
         toBlock,
         pageSize: 1,
-        cursor
+        cursor,
+        snapshotBlock
       });
+
+      if (snapshotBlock === undefined) {
+        snapshotBlock = page.snapshotBlock;
+      } else {
+        expect(page.snapshotBlock).toBe(snapshotBlock);
+      }
 
       for (const announcement of page.announcements) {
         if (announcement.blockNumber === null) {
@@ -295,6 +305,8 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       pagedResult.push(...page.announcements);
       cursor = page.nextCursor;
     } while (cursor);
+
+    expect(snapshotBlock).toBeDefined();
 
     expect(
       pagedResult.map(
@@ -321,6 +333,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     });
 
     expect(filteredPage.announcements.length).toBeGreaterThan(0);
+    expect(filteredPage.snapshotBlock).toBeGreaterThan(0n);
     expect(
       filteredPage.announcements.every(
         announcement =>

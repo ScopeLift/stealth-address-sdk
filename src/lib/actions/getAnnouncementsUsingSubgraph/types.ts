@@ -47,12 +47,16 @@ export type GetAnnouncementsPageUsingSubgraphParams = {
   pageSize?: number;
   /** (Optional) The exclusive prior-page announcement id used with the query's `id desc` ordering */
   cursor?: string;
+  /** (Optional) The fixed subgraph block used to keep every page in the same snapshot */
+  snapshotBlock?: bigint | number;
 };
 
 export type GetAnnouncementsPageUsingSubgraphReturnType = {
   announcements: GetAnnouncementsReturnType;
   /** Present only when another page exists for the same bounded query */
   nextCursor?: string;
+  /** The fixed subgraph block used for this page and any subsequent pages in the same scan */
+  snapshotBlock: bigint;
 };
 
 export class GetAnnouncementsUsingSubgraphError extends Error {

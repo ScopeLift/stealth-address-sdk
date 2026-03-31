@@ -49,6 +49,7 @@ export type StealthActions = {
     fromBlock,
     pageSize,
     schemeId,
+    snapshotBlock,
     subgraphUrl,
     toBlock
   }: GetAnnouncementsPageUsingSubgraphParams) => Promise<GetAnnouncementsPageUsingSubgraphReturnType>;

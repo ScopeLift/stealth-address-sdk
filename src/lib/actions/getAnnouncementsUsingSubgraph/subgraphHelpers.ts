@@ -13,6 +13,7 @@ import type {
 export const GET_ANNOUNCEMENTS_SUBGRAPH_QUERY = `
   query GetAnnouncements($first: Int, $id_lt: ID) {
     announcements(
+      __BLOCK_ARGUMENT__
       where: { __WHERE_CLAUSE__ }
       first: $first,
       orderBy: id,
@@ -36,6 +37,16 @@ export const GET_ANNOUNCEMENTS_SUBGRAPH_QUERY = `
   }
 `;
 
+const GET_SUBGRAPH_META_QUERY = `
+  query GetSubgraphMeta {
+    _meta {
+      block {
+        number
+      }
+    }
+  }
+`;
+
 export const MAX_SUBGRAPH_PAGE_SIZE = 999;
 export const MAX_LEGACY_SUBGRAPH_PAGE_SIZE = 1000;
 
@@ -49,9 +60,13 @@ type BuildAnnouncementsWhereClauseParams = Pick<
 
 function formatNonNegativeInteger(
   fieldName: string,
-  value: bigint | number
+  value: bigint | number | string
 ): string {
-  if (typeof value === 'number') {
+  if (typeof value === 'string') {
+    if (!/^\d+$/.test(value)) {
+      throw new Error(`${fieldName} must be a non-negative integer`);
+    }
+  } else if (typeof value === 'number') {
     if (!Number.isInteger(value) || value < 0) {
       throw new Error(`${fieldName} must be a non-negative integer`);
     }
@@ -60,6 +75,19 @@ function formatNonNegativeInteger(
   }
 
   return value.toString();
+}
+
+function buildAnnouncementsQuery({
+  snapshotBlock,
+  whereClause
+}: {
+  snapshotBlock?: string;
+  whereClause: string;
+}): string {
+  return GET_ANNOUNCEMENTS_SUBGRAPH_QUERY.replace(
+    '__BLOCK_ARGUMENT__',
+    snapshotBlock ? `block: { number: ${snapshotBlock} },` : ''
+  ).replace('__WHERE_CLAUSE__', whereClause);
 }
 
 function normalizePageSize(pageSize: number, maxPageSize: number): number {
@@ -72,6 +100,16 @@ function normalizePageSize(pageSize: number, maxPageSize: number): number {
   }
 
   return pageSize;
+}
+
+function normalizeOptionalSnapshotBlock(
+  snapshotBlock?: bigint | number
+): string | undefined {
+  if (snapshotBlock === undefined) {
+    return undefined;
+  }
+
+  return formatNonNegativeInteger('snapshotBlock', snapshotBlock);
 }
 
 function assertStrictlyDescendingAnnouncementIds(
@@ -117,6 +155,23 @@ export function buildAnnouncementsWhereClause({
     .join(', ');
 }
 
+async function resolveSnapshotBlock(client: GraphQLClient): Promise<string> {
+  const response = await client.request<{
+    _meta?: {
+      block?: {
+        number?: number | string | null;
+      } | null;
+    } | null;
+  }>(GET_SUBGRAPH_META_QUERY);
+  const snapshotBlock = response._meta?.block?.number;
+
+  if (snapshotBlock === undefined || snapshotBlock === null) {
+    throw new Error('Subgraph did not return a snapshot block');
+  }
+
+  return formatNonNegativeInteger('snapshotBlock', snapshotBlock);
+}
+
 async function requestAnnouncements({
   caller,
   client,
@@ -124,11 +179,13 @@ async function requestAnnouncements({
   filter,
   first,
   fromBlock,
+  snapshotBlock,
   schemeId,
   toBlock
 }: BuildAnnouncementsWhereClauseParams & {
   client: GraphQLClient;
   first: number;
+  snapshotBlock?: string;
 }): Promise<SubgraphAnnouncementEntity[]> {
   const variables: { first: number; id_lt?: string } = { first };
 
@@ -144,10 +201,10 @@ async function requestAnnouncements({
     schemeId,
     toBlock
   });
-  const finalQuery = GET_ANNOUNCEMENTS_SUBGRAPH_QUERY.replace(
-    '__WHERE_CLAUSE__',
+  const finalQuery = buildAnnouncementsQuery({
+    snapshotBlock,
     whereClause
-  );
+  });
   const response = await client.request<{
     announcements: SubgraphAnnouncementEntity[];
   }>(finalQuery, variables);
@@ -163,19 +220,25 @@ export async function fetchAnnouncementsPage({
   filter,
   fromBlock,
   pageSize,
+  snapshotBlock,
   schemeId,
   toBlock
 }: BuildAnnouncementsWhereClauseParams & {
   client: GraphQLClient;
   pageSize: number;
+  snapshotBlock?: bigint | number;
 }): Promise<{
   announcements: SubgraphAnnouncementEntity[];
   nextCursor?: string;
+  snapshotBlock: bigint;
 }> {
   const normalizedPageSize = normalizePageSize(
     pageSize,
     MAX_SUBGRAPH_PAGE_SIZE
   );
+  const resolvedSnapshotBlock =
+    normalizeOptionalSnapshotBlock(snapshotBlock) ??
+    (await resolveSnapshotBlock(client));
   const announcements = await requestAnnouncements({
     caller,
     client,
@@ -183,6 +246,7 @@ export async function fetchAnnouncementsPage({
     filter,
     first: normalizedPageSize,
     fromBlock,
+    snapshotBlock: resolvedSnapshotBlock,
     schemeId,
     toBlock
   });
@@ -190,7 +254,8 @@ export async function fetchAnnouncementsPage({
   if (announcements.length < normalizedPageSize) {
     return {
       announcements,
-      nextCursor: undefined
+      nextCursor: undefined,
+      snapshotBlock: BigInt(resolvedSnapshotBlock)
     };
   }
 
@@ -204,6 +269,7 @@ export async function fetchAnnouncementsPage({
           first: 1,
           caller,
           fromBlock,
+          snapshotBlock: resolvedSnapshotBlock,
           schemeId,
           toBlock
         })
@@ -214,7 +280,8 @@ export async function fetchAnnouncementsPage({
 
   return {
     announcements,
-    nextCursor
+    nextCursor,
+    snapshotBlock: BigInt(resolvedSnapshotBlock)
   };
 }
 

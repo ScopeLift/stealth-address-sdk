@@ -21,25 +21,32 @@ async function getAnnouncementsPageUsingSubgraph({
   fromBlock,
   pageSize = 999,
   schemeId,
+  snapshotBlock,
   subgraphUrl,
   toBlock
 }: GetAnnouncementsPageUsingSubgraphParams): Promise<GetAnnouncementsPageUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
 
   try {
-    const { announcements, nextCursor } = await fetchAnnouncementsPage({
+    const {
+      announcements,
+      nextCursor,
+      snapshotBlock: resolvedSnapshotBlock
+    } = await fetchAnnouncementsPage({
       caller,
       client,
       cursor,
       fromBlock,
       pageSize,
       schemeId,
+      snapshotBlock,
       toBlock
     });
 
     return {
       announcements: announcements.map(convertSubgraphEntityToAnnouncementLog),
-      nextCursor
+      nextCursor,
+      snapshotBlock: resolvedSnapshotBlock
     };
   } catch (error) {
     throw new GetAnnouncementsUsingSubgraphError(
