@@ -47,7 +47,7 @@ function makeAnnouncement({
       schemeId: SCHEME_ID
     });
 
-  return {
+  const announcement: AnnouncementLog = {
     address: ERC5564_CONTRACT_ADDRESS,
     blockHash: hex64(sequence + 10_000),
     blockNumber: BigInt(blockNumber),
@@ -62,20 +62,27 @@ function makeAnnouncement({
     topics: [],
     transactionHash: hex64(sequence),
     transactionIndex
-  } as AnnouncementLog;
+  };
+
+  return announcement;
 }
 
 function createPublicClientForAnnouncements(
   announcements: AnnouncementLog[],
-  fromByHash?: Record<string, `0x${string}`>
+  fromByHash?: Record<`0x${string}`, `0x${string}`>
 ) {
   const lookup = fromByHash
-    ? new Map(Object.entries(fromByHash))
-    : new Map(
-        announcements.map(announcement => [
-          announcement.transactionHash as string,
-          announcement.caller
-        ])
+    ? new Map<`0x${string}`, `0x${string}`>(
+        Object.entries(fromByHash) as Array<[`0x${string}`, `0x${string}`]>
+      )
+    : new Map<`0x${string}`, `0x${string}`>(
+        announcements.map(announcement => {
+          if (!announcement.transactionHash) {
+            throw new Error('Expected mock announcements to include transaction hashes');
+          }
+
+          return [announcement.transactionHash, announcement.caller];
+        })
       );
 
   return {
@@ -414,7 +421,7 @@ describe('scanAnnouncementsForUserUsingSubgraph', () => {
     );
   });
 
-  test('rejects later pages that violate the strict chain-recency contract', async () => {
+  test('continues scanning when later pages are newer than earlier pages in subgraph id order', async () => {
     const firstPage = [
       makeAnnouncement({
         blockNumber: 100,
@@ -456,11 +463,24 @@ describe('scanAnnouncementsForUserUsingSubgraph', () => {
       fetcher
     );
 
-    await iterator.next();
-
-    expect(iterator.next()).rejects.toThrow(
-      'Failed to scan announcements from the subgraph'
-    );
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        announcements: firstPage,
+        nextCursor: 'cursor-3',
+        scannedCount: 1,
+        snapshotBlock: 902n
+      }
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        announcements: secondPage,
+        nextCursor: undefined,
+        scannedCount: 1,
+        snapshotBlock: 902n
+      }
+    });
   });
 
   test('sorts announcements by block number, transaction index, then log index', () => {

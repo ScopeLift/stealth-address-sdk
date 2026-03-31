@@ -104,30 +104,6 @@ function assertStrictlyDescendingChainRecency(
   }
 }
 
-function assertPageDoesNotViolateGlobalChainRecency({
-  currentPage,
-  previousOldestAnnouncement
-}: {
-  currentPage: AnnouncementLog[];
-  previousOldestAnnouncement?: AnnouncementLog;
-}): void {
-  if (!previousOldestAnnouncement || currentPage.length === 0) {
-    return;
-  }
-
-  const newestAnnouncementInCurrentPage = currentPage[0];
-  if (
-    compareAnnouncementsByChainRecency(
-      newestAnnouncementInCurrentPage,
-      previousOldestAnnouncement
-    ) < 0
-  ) {
-    throw new Error(
-      'Subgraph pages must preserve strict chain recency across yielded batches'
-    );
-  }
-}
-
 function buildPageParams({
   caller,
   cursor,
@@ -183,7 +159,6 @@ export async function* scanAnnouncementsForUserUsingSubgraphWithPageFetcher(
     : undefined;
 
   let pageParams = buildPageParams(params);
-  let previousOldestAnnouncement: AnnouncementLog | undefined;
 
   try {
     while (true) {
@@ -193,10 +168,6 @@ export async function* scanAnnouncementsForUserUsingSubgraphWithPageFetcher(
       );
 
       assertStrictlyDescendingChainRecency(sortedPageAnnouncements);
-      assertPageDoesNotViolateGlobalChainRecency({
-        currentPage: sortedPageAnnouncements,
-        previousOldestAnnouncement
-      });
 
       const announcements = await filterAnnouncementsForUserBatch({
         announcements: sortedPageAnnouncements,
@@ -215,10 +186,6 @@ export async function* scanAnnouncementsForUserUsingSubgraphWithPageFetcher(
       };
 
       yield batch;
-
-      previousOldestAnnouncement =
-        sortedPageAnnouncements[sortedPageAnnouncements.length - 1] ??
-        previousOldestAnnouncement;
 
       if (!page.nextCursor) {
         return;

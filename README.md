@@ -278,7 +278,9 @@ for await (const batch of scanAnnouncementsForUserUsingSubgraph({
 }
 ```
 
-Batches arrive newest to oldest within the requested block range.
+Batches are sorted newest to oldest within each scanned page. The overall
+stream follows subgraph cursor order, so consumers that need a single global
+ordering should re-sort after accumulation.
 
 Each yielded batch includes:
 
