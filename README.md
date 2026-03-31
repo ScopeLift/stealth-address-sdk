@@ -192,24 +192,37 @@ const firstPage = await getAnnouncementsPageUsingSubgraph({
 
 console.log(firstPage.announcements);
 console.log(firstPage.nextCursor); // present only when another page exists
-console.log(firstPage.snapshotBlock); // reuse for every later page in the same scan
+console.log(firstPage.snapshotBlock); // required for every later page in the same scan
 ```
 
-All scan-shaping options are optional.
+Scan filters are optional on the initial page.
 
 - `pageSize` defaults to `999`
 - `pageSize` must be between `1` and `999`
 - omitting `fromBlock`, `toBlock`, `schemeId`, and `caller` means no filter
-- omitting `cursor` starts from the newest page
-- omitting `snapshotBlock` on page 1 makes the SDK resolve the current subgraph snapshot automatically
+- the initial page must omit both `cursor` and `snapshotBlock`
+- the SDK resolves `snapshotBlock` on the initial page and returns it
+- every subsequent page must provide both `cursor` and `snapshotBlock`
 
 ```ts
 import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
 
-let cursor: string | undefined;
-let snapshotBlock: bigint | undefined;
+const firstPage = await getAnnouncementsPageUsingSubgraph({
+  subgraphUrl: "https://your-subgraph.example/api",
+  fromBlock: 12345678,
+  toBlock: 12349999,
+  schemeId: 1n,
+  caller: "0x1234567890123456789012345678901234567890",
+  pageSize: 100,
+});
 
-do {
+for (const announcement of firstPage.announcements) {
+  console.log(announcement.transactionHash);
+}
+
+let cursor = firstPage.nextCursor;
+
+while (cursor) {
   const page = await getAnnouncementsPageUsingSubgraph({
     subgraphUrl: "https://your-subgraph.example/api",
     fromBlock: 12345678,
@@ -218,7 +231,7 @@ do {
     caller: "0x1234567890123456789012345678901234567890",
     pageSize: 100,
     cursor,
-    snapshotBlock,
+    snapshotBlock: firstPage.snapshotBlock,
   });
 
   for (const announcement of page.announcements) {
@@ -226,13 +239,13 @@ do {
   }
 
   cursor = page.nextCursor;
-  snapshotBlock = page.snapshotBlock;
-} while (cursor);
+}
 ```
 
-Pass the previous page's `nextCursor` back into the same bounded query to fetch
-the next older page deterministically. If `nextCursor` is undefined, you are on
-the terminal page and no extra probe request is needed.
+Pass the previous page's `nextCursor` and the initial page's `snapshotBlock`
+back into the same bounded query to fetch the next older page deterministically.
+If `nextCursor` is undefined, you are on the terminal page and no extra probe
+request is needed.
 
 `cursor` is pagination position. `snapshotBlock` is consistency. Reuse the same
 `snapshotBlock` for every page in a multi-page scan so each request reads the

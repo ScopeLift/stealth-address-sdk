@@ -3,7 +3,7 @@ import { getAddress } from 'viem';
 import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import type {
-  GetAnnouncementsPageUsingSubgraphParams,
+  GetAnnouncementsPageUsingSubgraphUnsafeParams,
   SubgraphAnnouncementEntity
 } from './types';
 
@@ -51,7 +51,7 @@ export const MAX_SUBGRAPH_PAGE_SIZE = 999;
 export const MAX_LEGACY_SUBGRAPH_PAGE_SIZE = 1000;
 
 type BuildAnnouncementsWhereClauseParams = Pick<
-  GetAnnouncementsPageUsingSubgraphParams,
+  GetAnnouncementsPageUsingSubgraphUnsafeParams,
   'caller' | 'fromBlock' | 'schemeId' | 'toBlock'
 > & {
   cursor?: string;

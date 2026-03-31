@@ -267,24 +267,18 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
 
     const seen = new Set<string>();
     const pagedResult: AnnouncementLog[] = [];
-    let cursor: string | undefined;
-    let snapshotBlock: bigint | undefined;
+    const firstPage = await getAnnouncementsPageUsingSubgraph({
+      subgraphUrl: result.network.url,
+      fromBlock: result.network.startBlock,
+      toBlock,
+      pageSize: 1
+    });
+    const snapshotBlock = firstPage.snapshotBlock;
+    let page = firstPage;
+    let cursor = page.nextCursor;
 
     do {
-      const page = await getAnnouncementsPageUsingSubgraph({
-        subgraphUrl: result.network.url,
-        fromBlock: result.network.startBlock,
-        toBlock,
-        pageSize: 1,
-        cursor,
-        snapshotBlock
-      });
-
-      if (snapshotBlock === undefined) {
-        snapshotBlock = page.snapshotBlock;
-      } else {
-        expect(page.snapshotBlock).toBe(snapshotBlock);
-      }
+      expect(page.snapshotBlock).toBe(snapshotBlock);
 
       for (const announcement of page.announcements) {
         if (announcement.blockNumber === null) {
@@ -303,10 +297,20 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
       }
 
       pagedResult.push(...page.announcements);
+      if (!cursor) {
+        break;
+      }
+
+      page = await getAnnouncementsPageUsingSubgraph({
+        subgraphUrl: result.network.url,
+        fromBlock: result.network.startBlock,
+        toBlock,
+        pageSize: 1,
+        cursor,
+        snapshotBlock
+      });
       cursor = page.nextCursor;
     } while (cursor);
-
-    expect(snapshotBlock).toBeDefined();
 
     expect(
       pagedResult.map(
@@ -364,6 +368,28 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
           announcement =>
             `${announcement.transactionHash}:${announcement.logIndex}`
         )
+    );
+  });
+
+  test('rejects cursor without snapshotBlock', async () => {
+    expect(
+      getAnnouncementsPageUsingSubgraph({
+        subgraphUrl: networks[0].url,
+        cursor: 'cursor-1'
+      } as never)
+    ).rejects.toThrow(
+      'cursor and snapshotBlock must either both be omitted for the initial page or both be provided for subsequent pages'
+    );
+  });
+
+  test('rejects snapshotBlock without cursor', async () => {
+    expect(
+      getAnnouncementsPageUsingSubgraph({
+        subgraphUrl: networks[0].url,
+        snapshotBlock: 1n
+      } as never)
+    ).rejects.toThrow(
+      'cursor and snapshotBlock must either both be omitted for the initial page or both be provided for subsequent pages'
     );
   });
 

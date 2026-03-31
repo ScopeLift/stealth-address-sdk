@@ -6,14 +6,30 @@ import {
 import {
   type GetAnnouncementsPageUsingSubgraphParams,
   type GetAnnouncementsPageUsingSubgraphReturnType,
+  type GetAnnouncementsPageUsingSubgraphUnsafeParams,
   GetAnnouncementsUsingSubgraphError
 } from './types';
+
+function assertValidPageParams({
+  cursor,
+  snapshotBlock
+}: Pick<
+  GetAnnouncementsPageUsingSubgraphUnsafeParams,
+  'cursor' | 'snapshotBlock'
+>): void {
+  if ((cursor === undefined) !== (snapshotBlock === undefined)) {
+    throw new Error(
+      'cursor and snapshotBlock must either both be omitted for the initial page or both be provided for subsequent pages'
+    );
+  }
+}
 
 /**
  * Fetches a single deterministic page of announcements from a subgraph.
  *
- * All scan-shaping options are optional. Omitting them fetches the newest page
- * of announcements for the provided subgraph URL.
+ * The initial page omits `cursor` and `snapshotBlock`. Every subsequent page
+ * must provide both values returned by the initial page so the scan continues
+ * through the same pinned subgraph snapshot.
  */
 async function getAnnouncementsPageUsingSubgraph({
   caller,
@@ -26,6 +42,10 @@ async function getAnnouncementsPageUsingSubgraph({
   toBlock
 }: GetAnnouncementsPageUsingSubgraphParams): Promise<GetAnnouncementsPageUsingSubgraphReturnType> {
   const client = new GraphQLClient(subgraphUrl);
+  assertValidPageParams({
+    cursor,
+    snapshotBlock
+  });
 
   try {
     const {
