@@ -686,87 +686,83 @@ describe('watchAnnouncementsForUser', () => {
     }
   });
 
-  test(
-    'lets the in-flight batch finish after unwatch and stops later batches',
-    async () => {
-      const firstHandlerGate = createDeferred();
-      const handledAnnouncements: AnnouncementLog[] = [];
-      const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+  test('lets the in-flight batch finish after unwatch and stops later batches', async () => {
+    const firstHandlerGate = createDeferred();
+    const handledAnnouncements: AnnouncementLog[] = [];
+    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
 
-      const unwatch = await stealthClient.watchAnnouncementsForUser({
+    const unwatch = await stealthClient.watchAnnouncementsForUser({
+      ERC5564Address,
+      args: {
+        schemeId: schemeIdBigInt,
+        caller: walletClient.account?.address
+      },
+      fromBlock,
+      handleLogsForUser: async logs => {
+        if (logs.length === 0) {
+          return;
+        }
+
+        if (handledAnnouncements.length === 0) {
+          await firstHandlerGate.promise;
+        }
+
+        handledAnnouncements.push(...logs);
+      },
+      spendingPublicKey,
+      viewingPrivateKey,
+      pollOptions: {
+        pollingInterval: WATCH_POLLING_INTERVAL
+      }
+    });
+
+    try {
+      const firstAnnouncement = generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId
+      });
+
+      await announce({
+        walletClient,
         ERC5564Address,
         args: {
           schemeId: schemeIdBigInt,
-          caller: walletClient.account?.address
-        },
-        fromBlock,
-        handleLogsForUser: async logs => {
-          if (logs.length === 0) {
-            return;
-          }
-
-          if (handledAnnouncements.length === 0) {
-            await firstHandlerGate.promise;
-          }
-
-          handledAnnouncements.push(...logs);
-        },
-        spendingPublicKey,
-        viewingPrivateKey,
-        pollOptions: {
-          pollingInterval: WATCH_POLLING_INTERVAL
+          stealthAddress: firstAnnouncement.stealthAddress,
+          ephemeralPublicKey: firstAnnouncement.ephemeralPublicKey,
+          viewTag: firstAnnouncement.viewTag
         }
       });
 
-      try {
-        const firstAnnouncement = generateStealthAddress({
-          stealthMetaAddressURI,
-          schemeId
-        });
+      await sleep(WATCH_POLLING_INTERVAL * 2);
+      unwatch();
+      firstHandlerGate.resolve();
 
-        await announce({
-          walletClient,
-          ERC5564Address,
-          args: {
-            schemeId: schemeIdBigInt,
-            stealthAddress: firstAnnouncement.stealthAddress,
-            ephemeralPublicKey: firstAnnouncement.ephemeralPublicKey,
-            viewTag: firstAnnouncement.viewTag
-          }
-        });
+      await waitForCondition(() => handledAnnouncements.length === 1);
 
-        await sleep(WATCH_POLLING_INTERVAL * 2);
-        unwatch();
-        firstHandlerGate.resolve();
+      const secondAnnouncement = generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId
+      });
 
-        await waitForCondition(() => handledAnnouncements.length === 1);
+      await announce({
+        walletClient,
+        ERC5564Address,
+        args: {
+          schemeId: schemeIdBigInt,
+          stealthAddress: secondAnnouncement.stealthAddress,
+          ephemeralPublicKey: secondAnnouncement.ephemeralPublicKey,
+          viewTag: secondAnnouncement.viewTag
+        }
+      });
 
-        const secondAnnouncement = generateStealthAddress({
-          stealthMetaAddressURI,
-          schemeId
-        });
+      await sleep(WATCH_POLLING_INTERVAL * 3);
 
-        await announce({
-          walletClient,
-          ERC5564Address,
-          args: {
-            schemeId: schemeIdBigInt,
-            stealthAddress: secondAnnouncement.stealthAddress,
-            ephemeralPublicKey: secondAnnouncement.ephemeralPublicKey,
-            viewTag: secondAnnouncement.viewTag
-          }
-        });
-
-        await sleep(WATCH_POLLING_INTERVAL * 3);
-
-        expect(handledAnnouncements).toHaveLength(1);
-      } finally {
-        firstHandlerGate.resolve();
-        unwatch();
-      }
-    },
-    10_000
-  );
+      expect(handledAnnouncements).toHaveLength(1);
+    } finally {
+      firstHandlerGate.resolve();
+      unwatch();
+    }
+  }, 10_000);
 
   test('does not emit announcements that do not apply to the user', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
