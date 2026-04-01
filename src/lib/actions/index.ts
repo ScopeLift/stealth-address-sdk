@@ -48,6 +48,8 @@ export {
   type GetAnnouncementsUsingSubgraphReturnType
 } from './getAnnouncementsUsingSubgraph/types';
 export {
+  type WatchAnnouncementsForUserErrorHandler,
+  type WatchAnnouncementsForUserHandler,
   type WatchAnnouncementsForUserParams,
   type WatchAnnouncementsForUserReturnType
 } from './watchAnnouncementsForUser/types';
