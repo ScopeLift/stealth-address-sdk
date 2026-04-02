@@ -187,7 +187,7 @@ export async function processWatchedAnnouncementsBatch<T = void>({
   }
 }
 
-function startWatchHeartbeat<T = void>({
+export function startWatchHeartbeat<T = void>({
   fromBlock,
   onError,
   onHeartbeat,

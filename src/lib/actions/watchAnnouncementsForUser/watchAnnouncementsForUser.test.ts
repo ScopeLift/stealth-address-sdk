@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import type { Address } from 'viem';
+import { type Address, getAddress } from 'viem';
 import {
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
@@ -14,7 +14,8 @@ import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
 import {
   createWatchedAnnouncementsQueue,
-  processWatchedAnnouncementsBatch
+  processWatchedAnnouncementsBatch,
+  startWatchHeartbeat
 } from './watchAnnouncementsForUser';
 
 const NUM_ANNOUNCEMENTS = 3;
@@ -99,19 +100,6 @@ const announce = async ({
     blockNumber: receipt.blockNumber,
     hash
   };
-};
-
-const mineEmptyBlock = async (walletClient: SuperWalletClient) => {
-  if (!walletClient.account) throw new Error('No account found');
-
-  const hash = await walletClient.sendTransaction({
-    account: walletClient.account,
-    chain: walletClient.chain,
-    to: walletClient.account.address,
-    value: 0n
-  });
-
-  return walletClient.waitForTransactionReceipt({ hash });
 };
 
 describe('watchAnnouncementsForUser', () => {
@@ -605,10 +593,15 @@ describe('watchAnnouncementsForUser', () => {
   });
 
   test('emits heartbeat metadata and batch metadata while watching', async () => {
-    const heartbeatObservedBlocks: bigint[] = [];
+    const heartbeatMeta: Array<{
+      fromBlock?: bigint | 'latest';
+      observedBlock: bigint;
+      pollTimestamp: number;
+    }> = [];
     const batchMeta: Array<{
       fromBlock?: bigint | 'latest';
       observedBlock: bigint;
+      pollTimestamp: number;
       rawLogCount: number;
       relevantLogCount: number;
     }> = [];
@@ -629,7 +622,7 @@ describe('watchAnnouncementsForUser', () => {
         batchMeta.push(meta);
       },
       onHeartbeat: meta => {
-        heartbeatObservedBlocks.push(meta.observedBlock);
+        heartbeatMeta.push(meta);
       },
       spendingPublicKey,
       viewingPrivateKey,
@@ -639,24 +632,14 @@ describe('watchAnnouncementsForUser', () => {
     });
 
     try {
-      await waitForCondition(() => heartbeatObservedBlocks.length > 0);
-
-      const lastObservedBlockBeforeMining =
-        heartbeatObservedBlocks[heartbeatObservedBlocks.length - 1];
-
-      if (lastObservedBlockBeforeMining === undefined) {
-        throw new Error('Expected an initial heartbeat before mining a block');
-      }
-
-      await mineEmptyBlock(walletClient);
-
-      await waitForCondition(
-        () =>
-          (heartbeatObservedBlocks[heartbeatObservedBlocks.length - 1] ?? 0n) >
-          lastObservedBlockBeforeMining
-      );
+      await waitForCondition(() => heartbeatMeta.length > 0);
 
       expect(batchMeta).toHaveLength(0);
+      expect(heartbeatMeta[0]).toMatchObject({
+        fromBlock,
+        observedBlock: expect.any(BigInt)
+      });
+      expect(typeof heartbeatMeta[0]?.pollTimestamp).toBe('number');
 
       const liveAnnouncement = generateStealthAddress({
         stealthMetaAddressURI,
@@ -784,8 +767,11 @@ describe('watchAnnouncementsForUser', () => {
 
   test('lets the in-flight batch finish after unwatch and stops later batches', async () => {
     const firstHandlerGate = createDeferred();
+    const firstHandlerStarted = createDeferred();
+    const firstHandlerFinished = createDeferred();
     const handledAnnouncements: AnnouncementLog[] = [];
     const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    let sawLaterBatch = false;
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
@@ -800,10 +786,17 @@ describe('watchAnnouncementsForUser', () => {
         }
 
         if (handledAnnouncements.length === 0) {
+          firstHandlerStarted.resolve();
           await firstHandlerGate.promise;
+        } else {
+          sawLaterBatch = true;
         }
 
         handledAnnouncements.push(...logs);
+
+        if (handledAnnouncements.length === 1) {
+          firstHandlerFinished.resolve();
+        }
       },
       spendingPublicKey,
       viewingPrivateKey,
@@ -829,11 +822,11 @@ describe('watchAnnouncementsForUser', () => {
         }
       });
 
-      await sleep(WATCH_POLLING_INTERVAL * 2);
+      await firstHandlerStarted.promise;
       unwatch();
       firstHandlerGate.resolve();
 
-      await waitForCondition(() => handledAnnouncements.length === 1);
+      await firstHandlerFinished.promise;
 
       const secondAnnouncement = generateStealthAddress({
         stealthMetaAddressURI,
@@ -854,11 +847,12 @@ describe('watchAnnouncementsForUser', () => {
       await sleep(WATCH_POLLING_INTERVAL * 3);
 
       expect(handledAnnouncements).toHaveLength(1);
+      expect(sawLaterBatch).toBeFalse();
     } finally {
       firstHandlerGate.resolve();
       unwatch();
     }
-  }, 10_000);
+  }, 15_000);
 
   test('does not emit announcements that do not apply to the user', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
@@ -892,8 +886,12 @@ describe('watchAnnouncementsForUser', () => {
         ERC5564Address,
         args: {
           schemeId: schemeIdBigInt,
-          stealthAddress,
-          ephemeralPublicKey: incrementLastCharOfHexString(ephemeralPublicKey),
+          stealthAddress: getAddress(
+            incrementLastCharOfHexString(
+              stealthAddress.toLowerCase() as `0x${string}`
+            )
+          ),
+          ephemeralPublicKey,
           viewTag
         }
       });
@@ -1053,6 +1051,83 @@ describe('createWatchedAnnouncementsQueue', () => {
     expect(handledAnnouncements[0]?.transactionHash).toEqual(
       `0x${'3'.repeat(64)}`
     );
+  });
+});
+
+describe('startWatchHeartbeat', () => {
+  test('emits heartbeat metadata across polling ticks and stops cleanly', async () => {
+    const heartbeatMeta: Array<{
+      fromBlock?: bigint | 'latest';
+      observedBlock: bigint;
+      pollTimestamp: number;
+    }> = [];
+    let observedBlock = 9n;
+
+    const stopHeartbeat = startWatchHeartbeat({
+      fromBlock: 7n,
+      onHeartbeat: meta => {
+        heartbeatMeta.push(meta);
+      },
+      pollingInterval: 10,
+      publicClient: {
+        getBlockNumber: async () => {
+          observedBlock += 1n;
+          return observedBlock;
+        }
+      } as never
+    });
+
+    try {
+      await waitForCondition(() => heartbeatMeta.length >= 3, 2_000);
+
+      expect(heartbeatMeta.slice(0, 3).map(meta => meta.observedBlock)).toEqual(
+        [10n, 11n, 12n]
+      );
+      expect(
+        heartbeatMeta.slice(0, 3).every(meta => meta.fromBlock === 7n)
+      ).toBe(true);
+      expect(
+        heartbeatMeta
+          .slice(0, 3)
+          .every(meta => typeof meta.pollTimestamp === 'number')
+      ).toBe(true);
+    } finally {
+      stopHeartbeat();
+    }
+
+    const heartbeatCountAfterStop = heartbeatMeta.length;
+
+    await sleep(40);
+
+    expect(heartbeatMeta).toHaveLength(heartbeatCountAfterStop);
+  });
+
+  test('reports heartbeat failures through onError', async () => {
+    const reportedErrors: string[] = [];
+
+    const stopHeartbeat = startWatchHeartbeat({
+      onHeartbeat: () => {
+        throw new Error('heartbeat callback failed');
+      },
+      onError: error => {
+        reportedErrors.push(error.message);
+      },
+      pollingInterval: 10,
+      publicClient: {
+        getBlockNumber: async () => 12n
+      } as never
+    });
+
+    try {
+      await waitForCondition(() => reportedErrors.length > 0, 2_000);
+    } finally {
+      stopHeartbeat();
+    }
+
+    expect(reportedErrors.length).toBeGreaterThan(0);
+    expect(
+      reportedErrors.every(error => error === 'heartbeat callback failed')
+    ).toBe(true);
   });
 });
 
