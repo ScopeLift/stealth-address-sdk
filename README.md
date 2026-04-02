@@ -327,14 +327,30 @@ const unwatch = await stealthClient.watchAnnouncementsForUser({
   fromBlock: snapshotBlock + 1n,
   spendingPublicKey: "0xUserSpendingPublicKey",
   viewingPrivateKey: "0xUserViewingPrivateKey",
-  handleLogsForUser: async logs => {
-    console.log("live matches", logs);
+  handleLogsForUser: async (logs, meta) => {
+    console.log("live matches", logs, meta);
+  },
+  onHeartbeat: meta => {
+    console.log("watch heartbeat", meta.observedBlock.toString());
   },
   onError: error => {
     console.error("watch handler failed", error);
   },
 });
 ```
+
+`handleLogsForUser` receives a second `meta` argument with:
+
+- `fromBlock`
+- `observedBlock`
+- `pollTimestamp`
+- `rawLogCount`
+- `relevantLogCount`
+
+If you also provide `onHeartbeat`, the SDK calls it whenever the watcher
+observes a chain head while polling. That lets the app distinguish "watch is
+alive but there were no matching logs" from "watch appears stalled" without
+adding a separate head-polling loop.
 
 The SDK ignores `handleLogsForUser`'s return value, but it awaits any returned
 promise before considering that batch processed. Watched batches are processed

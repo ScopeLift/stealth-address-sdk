@@ -48,9 +48,12 @@ export {
   type GetAnnouncementsUsingSubgraphReturnType
 } from './getAnnouncementsUsingSubgraph/types';
 export {
+  type WatchAnnouncementsForUserBatchMeta,
   type WatchAnnouncementsForUserErrorHandler,
+  type WatchAnnouncementsForUserHeartbeatHandler,
   type WatchAnnouncementsForUserHandler,
   type WatchAnnouncementsForUserParams,
+  type WatchAnnouncementsForUserPollMeta,
   type WatchAnnouncementsForUserReturnType
 } from './watchAnnouncementsForUser/types';
 export {

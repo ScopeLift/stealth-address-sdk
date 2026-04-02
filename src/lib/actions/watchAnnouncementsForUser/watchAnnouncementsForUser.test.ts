@@ -101,6 +101,19 @@ const announce = async ({
   };
 };
 
+const mineEmptyBlock = async (walletClient: SuperWalletClient) => {
+  if (!walletClient.account) throw new Error('No account found');
+
+  const hash = await walletClient.sendTransaction({
+    account: walletClient.account,
+    chain: walletClient.chain,
+    to: walletClient.account.address,
+    value: 0n
+  });
+
+  return walletClient.waitForTransactionReceipt({ hash });
+};
+
 describe('watchAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
@@ -591,6 +604,89 @@ describe('watchAnnouncementsForUser', () => {
     }
   });
 
+  test('emits heartbeat metadata and batch metadata while watching', async () => {
+    const heartbeatObservedBlocks: bigint[] = [];
+    const batchMeta: Array<{
+      fromBlock?: bigint | 'latest';
+      observedBlock: bigint;
+      rawLogCount: number;
+      relevantLogCount: number;
+    }> = [];
+    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+
+    const unwatch = await stealthClient.watchAnnouncementsForUser({
+      ERC5564Address,
+      args: {
+        schemeId: schemeIdBigInt,
+        caller: walletClient.account?.address
+      },
+      fromBlock,
+      handleLogsForUser: (logs, meta) => {
+        if (logs.length === 0) {
+          return;
+        }
+
+        batchMeta.push(meta);
+      },
+      onHeartbeat: meta => {
+        heartbeatObservedBlocks.push(meta.observedBlock);
+      },
+      spendingPublicKey,
+      viewingPrivateKey,
+      pollOptions: {
+        pollingInterval: WATCH_POLLING_INTERVAL
+      }
+    });
+
+    try {
+      await waitForCondition(() => heartbeatObservedBlocks.length > 0);
+
+      const lastObservedBlockBeforeMining =
+        heartbeatObservedBlocks[heartbeatObservedBlocks.length - 1];
+
+      if (lastObservedBlockBeforeMining === undefined) {
+        throw new Error('Expected an initial heartbeat before mining a block');
+      }
+
+      await mineEmptyBlock(walletClient);
+
+      await waitForCondition(
+        () =>
+          (heartbeatObservedBlocks[heartbeatObservedBlocks.length - 1] ?? 0n) >
+          lastObservedBlockBeforeMining
+      );
+
+      expect(batchMeta).toHaveLength(0);
+
+      const liveAnnouncement = generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId
+      });
+
+      const liveReceipt = await announce({
+        walletClient,
+        ERC5564Address,
+        args: {
+          schemeId: schemeIdBigInt,
+          stealthAddress: liveAnnouncement.stealthAddress,
+          ephemeralPublicKey: liveAnnouncement.ephemeralPublicKey,
+          viewTag: liveAnnouncement.viewTag
+        }
+      });
+
+      await waitForCondition(() => batchMeta.length === 1);
+
+      expect(batchMeta[0]).toMatchObject({
+        fromBlock,
+        rawLogCount: 1,
+        relevantLogCount: 1
+      });
+      expect(batchMeta[0]?.observedBlock).toEqual(liveReceipt.blockNumber);
+    } finally {
+      unwatch();
+    }
+  });
+
   test('serializes async handler batches without overlap', async () => {
     const firstHandlerGate = createDeferred();
     const handlerOrder: string[] = [];
@@ -957,5 +1053,74 @@ describe('createWatchedAnnouncementsQueue', () => {
     expect(handledAnnouncements[0]?.transactionHash).toEqual(
       `0x${'3'.repeat(64)}`
     );
+  });
+});
+
+describe('processWatchedAnnouncementsBatch', () => {
+  test('passes watcher metadata to the batch handler', async () => {
+    const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+    const schemeIdBigInt = BigInt(schemeId);
+    const caller = '0x00000000000000000000000000000000000000AA' as Address;
+    const fromBlock = 40n;
+    const { spendingPublicKey, viewingPrivateKey, stealthMetaAddressURI } =
+      setupTestStealthKeys(schemeId);
+    const { stealthAddress, ephemeralPublicKey, viewTag } =
+      generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId
+      });
+    const handledAnnouncements: AnnouncementLog[] = [];
+    let handledMeta:
+      | {
+          fromBlock?: bigint | 'latest';
+          observedBlock: bigint;
+          pollTimestamp: number;
+          rawLogCount: number;
+          relevantLogCount: number;
+        }
+      | undefined;
+
+    await processWatchedAnnouncementsBatch({
+      logs: [
+        {
+          address: ERC5564_CONTRACT_ADDRESS as `0x${string}`,
+          blockHash: `0x${'1'.repeat(64)}` as `0x${string}`,
+          blockNumber: 42n,
+          data: '0x' as `0x${string}`,
+          logIndex: 0,
+          removed: false,
+          topics: [`0x${'4'.repeat(64)}` as `0x${string}`],
+          transactionHash: `0x${'2'.repeat(64)}` as `0x${string}`,
+          transactionIndex: 0,
+          args: {
+            caller,
+            ephemeralPubKey: ephemeralPublicKey,
+            metadata: viewTag,
+            schemeId: schemeIdBigInt,
+            stealthAddress
+          }
+        }
+      ],
+      spendingPublicKey,
+      viewingPrivateKey,
+      publicClient: {
+        getBlockNumber: async () => 99n
+      } as never,
+      fromBlock,
+      handleLogsForUser: (logs, meta) => {
+        handledAnnouncements.push(...logs);
+        handledMeta = meta;
+      },
+      filterAnnouncementsForUser: async ({ announcements }) => announcements
+    });
+
+    expect(handledAnnouncements).toHaveLength(1);
+    expect(handledMeta).toEqual({
+      fromBlock,
+      observedBlock: 42n,
+      pollTimestamp: expect.any(Number),
+      rawLogCount: 1,
+      relevantLogCount: 1
+    });
   });
 });

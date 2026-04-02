@@ -12,12 +12,29 @@ import type {
 
 export type WatchAnnouncementsForUserPollingOptions = GetPollOptions<Transport>;
 
+export type WatchAnnouncementsForUserPollMeta = {
+  fromBlock?: bigint | 'latest';
+  observedBlock: bigint;
+  pollTimestamp: number;
+};
+
+export type WatchAnnouncementsForUserBatchMeta =
+  WatchAnnouncementsForUserPollMeta & {
+    rawLogCount: number;
+    relevantLogCount: number;
+  };
+
 export type WatchAnnouncementsForUserHandler<T = void> = (
-  logs: AnnouncementLog[]
+  logs: AnnouncementLog[],
+  meta: WatchAnnouncementsForUserBatchMeta
 ) => T | Promise<T>;
 
 export type WatchAnnouncementsForUserErrorHandler = (
   error: Error
+) => void | Promise<void>;
+
+export type WatchAnnouncementsForUserHeartbeatHandler = (
+  meta: WatchAnnouncementsForUserPollMeta
 ) => void | Promise<void>;
 
 export type WatchAnnouncementsForUserParams<T = void> = {
@@ -31,6 +48,8 @@ export type WatchAnnouncementsForUserParams<T = void> = {
   handleLogsForUser: WatchAnnouncementsForUserHandler<T>;
   /** Optional error handler for asynchronous watch processing failures. */
   onError?: WatchAnnouncementsForUserErrorHandler;
+  /** Optional callback invoked whenever the watcher observes a chain head while polling. */
+  onHeartbeat?: WatchAnnouncementsForUserHeartbeatHandler;
   /** Optional polling options  */
   pollOptions?: WatchAnnouncementsForUserPollingOptions;
 } & Omit<GetAnnouncementsForUserParams, 'announcements'>;

@@ -1,5 +1,4 @@
 import {
-  type AnnouncementLog,
   ERC5564_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
   createStealthClient
@@ -40,8 +39,19 @@ const unwatch = await stealthClient.watchAnnouncementsForUser({
   ...(fromBlock === undefined ? {} : { fromBlock }),
   spendingPublicKey,
   viewingPrivateKey,
-  handleLogsForUser: async (logs: AnnouncementLog[]) => {
+  handleLogsForUser: async (logs, meta) => {
+    console.log('watch batch', {
+      observedBlock: meta.observedBlock.toString(),
+      rawLogCount: meta.rawLogCount,
+      relevantLogCount: meta.relevantLogCount
+    });
     console.log(logs);
+  },
+  onHeartbeat: meta => {
+    console.log('watch heartbeat', {
+      observedBlock: meta.observedBlock.toString(),
+      pollTimestamp: new Date(meta.pollTimestamp).toISOString()
+    });
   },
   onError: (error: Error) => {
     console.error('watchAnnouncementsForUser failed to process a batch', error);

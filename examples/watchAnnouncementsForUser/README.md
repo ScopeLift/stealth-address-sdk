@@ -6,4 +6,6 @@ For the normal no-gap/no-dup flow, complete historical catch-up first and then
 start watching from `snapshotBlock + 1n`.
 
 Run the script and leave it running while you wait for live announcements.
+It logs both live batches and watcher heartbeat metadata.
+
 Press `Ctrl+C` to stop watching.

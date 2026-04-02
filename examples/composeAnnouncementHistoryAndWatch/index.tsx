@@ -6,12 +6,10 @@ import {
 import {
   QueryClient,
   QueryClientProvider,
-  useInfiniteQuery,
-  useQuery
+  useInfiniteQuery
 } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { http, createPublicClient } from 'viem';
 
 const DEFAULT_CHAIN_ID = import.meta.env.VITE_CHAIN_ID ?? '11155111';
 const DEFAULT_RPC_URL = import.meta.env.VITE_RPC_URL ?? '';
@@ -235,6 +233,12 @@ function InboxExample() {
   const [sessionLiveFromBlock, setSessionLiveFromBlock] = useState<
     bigint | undefined
   >();
+  const [latestObservedBlock, setLatestObservedBlock] = useState<
+    bigint | undefined
+  >();
+  const [lastHeartbeatTimestamp, setLastHeartbeatTimestamp] = useState<
+    number | undefined
+  >();
 
   const inboxKey = appliedConfig
     ? createInboxKey(appliedConfig)
@@ -299,29 +303,6 @@ function InboxExample() {
         : undefined,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY
-  });
-
-  const currentBlockQuery = useQuery({
-    enabled: appliedConfig !== null,
-    queryKey: [
-      'current-block',
-      appliedConfig?.chainId,
-      appliedConfig?.rpcUrl
-    ] as const,
-    queryFn: async () => {
-      if (!appliedConfig) {
-        throw new Error(
-          'Configuration is required before loading the chain head'
-        );
-      }
-
-      const publicClient = createPublicClient({
-        transport: http(appliedConfig.rpcUrl)
-      });
-
-      return publicClient.getBlockNumber();
-    },
-    refetchInterval: appliedConfig?.pollingInterval ?? false
   });
 
   useEffect(() => {
@@ -407,6 +388,14 @@ function InboxExample() {
               mergeAnnouncements(current, liveAnnouncements)
             );
           },
+          onHeartbeat: meta => {
+            if (cancelled) {
+              return;
+            }
+
+            setLatestObservedBlock(meta.observedBlock);
+            setLastHeartbeatTimestamp(meta.pollTimestamp);
+          },
           onError: error => {
             if (!cancelled) {
               setLiveError(error.message);
@@ -462,15 +451,14 @@ function InboxExample() {
       queryClient.removeQueries({
         queryKey: ['announcement-history', nextInboxKey]
       });
-      queryClient.removeQueries({
-        queryKey: ['current-block', nextConfig.chainId, nextConfig.rpcUrl]
-      });
       setAppliedConfig(nextConfig);
       setConfigError(undefined);
       setLiveError(undefined);
       setSessionAnnouncements([]);
       setSessionSnapshotBlock(undefined);
       setSessionLiveFromBlock(undefined);
+      setLatestObservedBlock(undefined);
+      setLastHeartbeatTimestamp(undefined);
     } catch (error) {
       setConfigError(
         error instanceof Error ? error.message : 'Failed to apply settings'
@@ -483,9 +471,6 @@ function InboxExample() {
       queryClient.removeQueries({
         queryKey: ['announcement-history', createInboxKey(appliedConfig)]
       });
-      queryClient.removeQueries({
-        queryKey: ['current-block', appliedConfig.chainId, appliedConfig.rpcUrl]
-      });
     }
 
     setAppliedConfig(null);
@@ -494,6 +479,8 @@ function InboxExample() {
     setSessionAnnouncements([]);
     setSessionSnapshotBlock(undefined);
     setSessionLiveFromBlock(undefined);
+    setLatestObservedBlock(undefined);
+    setLastHeartbeatTimestamp(undefined);
   };
 
   let syncState = 'Idle';
@@ -516,14 +503,13 @@ function InboxExample() {
       (count, page) => count + page.scannedCount,
       0
     ) ?? 0;
-  const currentBlock = currentBlockQuery.data;
   const blocksSinceSnapshot =
-    currentBlock !== undefined && sessionSnapshotBlock !== undefined
-      ? currentBlock - sessionSnapshotBlock
+    latestObservedBlock !== undefined && sessionSnapshotBlock !== undefined
+      ? latestObservedBlock - sessionSnapshotBlock
       : undefined;
   const blocksSinceLiveWatchStart =
-    currentBlock !== undefined && sessionLiveFromBlock !== undefined
-      ? currentBlock - sessionLiveFromBlock
+    latestObservedBlock !== undefined && sessionLiveFromBlock !== undefined
+      ? latestObservedBlock - sessionLiveFromBlock
       : undefined;
 
   return (
@@ -649,8 +635,16 @@ function InboxExample() {
         <div>Candidate announcements scanned: {scannedCount}</div>
         <div>Session inbox size: {sessionAnnouncements.length}</div>
         <div>
-          Current chain head:{' '}
-          {currentBlock !== undefined ? currentBlock.toString() : 'pending'}
+          Latest observed block:{' '}
+          {latestObservedBlock !== undefined
+            ? latestObservedBlock.toString()
+            : 'pending'}
+        </div>
+        <div>
+          Last watch heartbeat:{' '}
+          {lastHeartbeatTimestamp !== undefined
+            ? new Date(lastHeartbeatTimestamp).toLocaleTimeString()
+            : 'pending'}
         </div>
         <div>
           Snapshot block:{' '}
@@ -683,9 +677,6 @@ function InboxExample() {
         {configError ? <div>Error: {configError}</div> : null}
         {historyQuery.error ? (
           <div>Error: {historyQuery.error.message}</div>
-        ) : null}
-        {currentBlockQuery.error ? (
-          <div>Error: {currentBlockQuery.error.message}</div>
         ) : null}
         {liveError ? <div>Live watch error: {liveError}</div> : null}
       </div>

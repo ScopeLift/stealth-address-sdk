@@ -92,6 +92,7 @@ export type StealthActions = {
     args,
     fromBlock,
     handleLogsForUser,
+    onHeartbeat,
     onError,
     spendingPublicKey,
     viewingPrivateKey,
