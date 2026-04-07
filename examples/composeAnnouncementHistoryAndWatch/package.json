@@ -1,0 +1,20 @@
+{
+  "name": "example-compose-announcement-history-and-watch",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.59.20",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

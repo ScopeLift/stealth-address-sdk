@@ -296,6 +296,101 @@ If you use `includeList` or `excludeList`, provide `clientParams` or call the
 helper through `createStealthClient(...)` so the SDK can resolve transaction
 senders for those filters.
 
+Historical scan work is pinned to one `snapshotBlock`. Complete the historical
+scan against that fixed snapshot before you start live watching.
+
+### Watching live announcements for a user
+
+Use `watchAnnouncementsForUser` when you want to process live announcement
+batches after historical catch-up is complete.
+
+```ts
+import {
+  ERC5564_CONTRACT_ADDRESS,
+  VALID_SCHEME_ID,
+  createStealthClient,
+} from "@scopelift/stealth-address-sdk";
+
+const stealthClient = createStealthClient({
+  chainId: 11155111,
+  rpcUrl: process.env.RPC_URL!,
+});
+
+const snapshotBlock = 12349999n;
+
+const unwatch = await stealthClient.watchAnnouncementsForUser({
+  ERC5564Address: ERC5564_CONTRACT_ADDRESS,
+  args: {
+    schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
+    caller: "0xYourCallingContractAddress",
+  },
+  fromBlock: snapshotBlock + 1n,
+  spendingPublicKey: "0xUserSpendingPublicKey",
+  viewingPrivateKey: "0xUserViewingPrivateKey",
+  handleLogsForUser: async (logs, meta) => {
+    console.log("live matches", logs, meta);
+  },
+  onHeartbeat: meta => {
+    console.log("watch heartbeat", meta.observedBlock.toString());
+  },
+  onError: error => {
+    console.error("watch handler failed", error);
+  },
+});
+```
+
+`handleLogsForUser` receives a second `meta` argument with:
+
+- `fromBlock`
+- `observedBlock`
+- `pollTimestamp`
+- `rawLogCount`
+- `relevantLogCount`
+
+If you also provide `onHeartbeat`, the SDK calls it whenever the watcher
+observes a chain head while polling. That lets the app distinguish "watch is
+alive but there were no matching logs" from "watch appears stalled" without
+adding a separate head-polling loop.
+
+The SDK ignores `handleLogsForUser`'s return value, but it awaits any returned
+promise before considering that batch processed. Watched batches are processed
+one at a time in arrival order. If one batch takes a long time to finish, later
+batches wait behind it.
+
+If watched batch processing fails:
+
+- the SDK reports that failure once through `onError` when provided
+- if `onError` is omitted, the SDK logs the error to `console.error`
+- the watcher stays alive for later batches
+- the failed batch is not replayed automatically
+- if `onError` also throws, that secondary failure is swallowed so the watcher
+  can continue
+- if both `onError` and fallback logging fail, that reporting failure is
+  swallowed as a last resort so the watcher can continue processing later
+  batches
+
+Calling `unwatch()` stops future watched batches, but it does not cancel a batch
+that is already in flight.
+
+### Recommended scan -> watch handoff
+
+The clean no-gap/no-dup handoff is:
+
+1. Fetch historical pages with `getAnnouncementsPageUsingSubgraph(...)` or
+   stream them with `scanAnnouncementsForUserUsingSubgraph(...)`.
+2. Reuse the first page's `snapshotBlock` for every later historical page in
+   that catch-up sequence.
+3. Persist and dedupe the historical matches locally.
+4. Only after historical catch-up completes, start
+   `watchAnnouncementsForUser(...)` at `fromBlock: snapshotBlock + 1n`.
+
+That boundary keeps historical reads pinned to one frozen subgraph view and
+starts live watching strictly after that snapshot, so the normal path avoids
+gaps and avoids duplicate delivery.
+
+See the runnable React/TanStack composition example in
+`examples/composeAnnouncementHistoryAndWatch`.
+
 ## License
 
 [MIT](/LICENSE) License

@@ -90,7 +90,10 @@ export type StealthActions = {
   watchAnnouncementsForUser: <T>({
     ERC5564Address,
     args,
+    fromBlock,
     handleLogsForUser,
+    onHeartbeat,
+    onError,
     spendingPublicKey,
     viewingPrivateKey,
     pollOptions

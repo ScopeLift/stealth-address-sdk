@@ -4,14 +4,23 @@ import {
   createStealthClient
 } from '@scopelift/stealth-address-sdk';
 
-// Initialize your environment variables or configuration
-const chainId = 11155111; // Example chain ID
+const chainId = Number.parseInt(process.env.CHAIN_ID ?? '84532', 10);
 const rpcUrl = process.env.RPC_URL; // Your Ethereum RPC URL
 if (!rpcUrl) throw new Error('Missing RPC_URL environment variable');
 
-// User's keys and stealth address details
-const spendingPublicKey = '0xUserSpendingPublicKey';
-const viewingPrivateKey = '0xUserViewingPrivateKey';
+const spendingPublicKey = process.env.SPENDING_PUBLIC_KEY as `0x${string}`;
+if (!spendingPublicKey) {
+  throw new Error('Missing SPENDING_PUBLIC_KEY environment variable');
+}
+
+const viewingPrivateKey = process.env.VIEWING_PRIVATE_KEY as `0x${string}`;
+if (!viewingPrivateKey) {
+  throw new Error('Missing VIEWING_PRIVATE_KEY environment variable');
+}
+
+const caller = process.env.CALLER as `0x${string}` | undefined;
+const fromBlockEnv = process.env.FROM_BLOCK;
+const fromBlock = fromBlockEnv ? BigInt(fromBlockEnv) : undefined;
 
 // The contract address of the ERC5564Announcer on your target blockchain
 // You can use the provided ERC5564_CONTRACT_ADDRESS get the singleton contract address for a valid chain ID
@@ -24,15 +33,41 @@ const stealthClient = createStealthClient({ chainId, rpcUrl });
 const unwatch = await stealthClient.watchAnnouncementsForUser({
   ERC5564Address,
   args: {
-    schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1), // Your scheme ID
-    caller: '0xYourCallingContractAddress' // Use the address of your calling contract if applicable
+    schemeId: BigInt(VALID_SCHEME_ID.SCHEME_ID_1),
+    ...(caller ? { caller } : {})
   },
+  ...(fromBlock === undefined ? {} : { fromBlock }),
   spendingPublicKey,
   viewingPrivateKey,
-  handleLogsForUser: logs => {
+  handleLogsForUser: async (logs, meta) => {
+    console.log('watch batch', {
+      observedBlock: meta.observedBlock.toString(),
+      rawLogCount: meta.rawLogCount,
+      relevantLogCount: meta.relevantLogCount
+    });
     console.log(logs);
-  } // Your callback function to handle incoming logs
+  },
+  onHeartbeat: meta => {
+    console.log('watch heartbeat', {
+      observedBlock: meta.observedBlock.toString(),
+      pollTimestamp: new Date(meta.pollTimestamp).toISOString()
+    });
+  },
+  onError: (error: Error) => {
+    console.error('watchAnnouncementsForUser failed to process a batch', error);
+  }
 });
 
-// Stop watching for announcements
-unwatch();
+console.log('Watching for announcements. Press Ctrl+C to stop.');
+
+await new Promise<void>(resolve => {
+  const stopWatching = () => {
+    unwatch();
+    process.off('SIGINT', stopWatching);
+    process.off('SIGTERM', stopWatching);
+    resolve();
+  };
+
+  process.once('SIGINT', stopWatching);
+  process.once('SIGTERM', stopWatching);
+});
