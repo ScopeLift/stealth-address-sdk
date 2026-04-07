@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun tsc` - Run TypeScript compiler
 
 ### Publishing
+- Follow [RELEASING.md](RELEASING.md) for the current release procedure
 - `bun run publish` - Build and publish to npm
 
 ## Architecture Overview
