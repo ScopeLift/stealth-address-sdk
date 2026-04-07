@@ -3,13 +3,12 @@ import { validateSubgraphUrl } from '../../../utils/validation/validateSubgraphU
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
   convertSubgraphEntityToAnnouncementLog,
-  fetchPages
+  fetchAnnouncementsBatch
 } from './subgraphHelpers';
 import {
   GetAnnouncementsUsingSubgraphError,
   type GetAnnouncementsUsingSubgraphParams,
-  type GetAnnouncementsUsingSubgraphReturnType,
-  type SubgraphAnnouncementEntity
+  type GetAnnouncementsUsingSubgraphReturnType
 } from './types';
 
 /**
@@ -53,9 +52,8 @@ function validateGetAnnouncementsParams(
  *    caller: "0x123456789"
  *   "
  *
- * `pageSize` can also be adjusted to optimize performance and/or align with the subgraph's pagination limits.
- * The default value is 1000, which is a common maximum allowed by the subgraph providers.
- * If the subgraph provider has a higher limit, it can be adjusted accordingly.
+ * `pageSize` can also be adjusted to optimize performance. The legacy eager
+ * helper keeps the historical default value of 1000 for backward compatibility.
  *
  * @param {Object} params - The parameters for the function.
  * @param {string} params.subgraphUrl - The URL of the subgraph to query.
@@ -76,46 +74,24 @@ async function getAnnouncementsUsingSubgraph({
   // Validate input parameters
   validateGetAnnouncementsParams(subgraphUrl, pageSize);
   const client = new GraphQLClient(subgraphUrl);
-  const gqlQuery = `
-  query GetAnnouncements($first: Int, $id_lt: ID) {
-    announcements(
-      where: { __WHERE_CLAUSE__ }
-      first: $first,
-      orderBy: id,
-      orderDirection: desc
-    ) {
-      id
-      blockNumber
-      blockHash
-      caller
-      data
-      ephemeralPubKey
-      logIndex
-      metadata
-      removed
-      schemeId
-      stealthAddress
-      topics
-      transactionHash
-      transactionIndex
-    }
-  }
-`;
-
   const allAnnouncements: AnnouncementLog[] = [];
 
   try {
-    for await (const batch of fetchPages<SubgraphAnnouncementEntity>({
-      client,
-      gqlQuery,
-      pageSize,
-      filter,
-      entity: 'announcements'
-    })) {
+    let cursor: string | undefined;
+
+    do {
+      const { announcements, nextCursor } = await fetchAnnouncementsBatch({
+        client,
+        cursor,
+        filter: filter || undefined,
+        pageSize
+      });
+
       allAnnouncements.push(
-        ...batch.map(convertSubgraphEntityToAnnouncementLog)
+        ...announcements.map(convertSubgraphEntityToAnnouncementLog)
       );
-    }
+      cursor = nextCursor;
+    } while (cursor);
   } catch (error) {
     throw new GetAnnouncementsUsingSubgraphError(
       'Failed to fetch announcements from the subgraph',
