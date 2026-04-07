@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { http, createPublicClient } from 'viem';
 import { foundry } from 'viem/chains';
+import { actions } from '../actions';
 import { LOCAL_ENDPOINT } from '../helpers/test/setupTestEnv';
 import type { VALID_CHAIN_IDS } from '../helpers/types';
 import createStealthClient, {
@@ -17,6 +18,105 @@ describe('createStealthClient', () => {
         rpcUrl: LOCAL_ENDPOINT
       })
     ).toThrow(new Error('Invalid chainId: 9999'));
+  });
+
+  test('wires subgraph helpers through the initialized client', async () => {
+    const originalGetAnnouncementsPageUsingSubgraph =
+      actions.getAnnouncementsPageUsingSubgraph;
+    const originalScanAnnouncementsForUserUsingSubgraph =
+      actions.scanAnnouncementsForUserUsingSubgraph;
+    const originalGetAnnouncementsUsingSubgraph =
+      actions.getAnnouncementsUsingSubgraph;
+    const pageResult = {
+      announcements: [],
+      nextCursor: undefined,
+      snapshotBlock: 123n
+    };
+    const scanResult = {
+      announcements: [],
+      nextCursor: undefined,
+      scannedCount: 0,
+      snapshotBlock: 456n
+    };
+    const announcementsUsingSubgraphResult: [] = [];
+    const pageCalls: unknown[] = [];
+    const scanCalls: unknown[] = [];
+    const announcementsUsingSubgraphCalls: unknown[] = [];
+
+    actions.getAnnouncementsPageUsingSubgraph = params => {
+      pageCalls.push(params);
+      return Promise.resolve(pageResult);
+    };
+    actions.scanAnnouncementsForUserUsingSubgraph = params => {
+      scanCalls.push(params);
+
+      return (async function* () {
+        yield scanResult;
+      })();
+    };
+    actions.getAnnouncementsUsingSubgraph = params => {
+      announcementsUsingSubgraphCalls.push(params);
+      return Promise.resolve(announcementsUsingSubgraphResult);
+    };
+
+    try {
+      const client = createStealthClient({
+        chainId: foundry.id as VALID_CHAIN_IDS,
+        rpcUrl: LOCAL_ENDPOINT
+      });
+
+      await expect(
+        client.getAnnouncementsPageUsingSubgraph({
+          pageSize: 5,
+          subgraphUrl: 'https://example.com/subgraph'
+        })
+      ).resolves.toEqual(pageResult);
+
+      const iterator = client.scanAnnouncementsForUserUsingSubgraph({
+        spendingPublicKey: '0x01',
+        subgraphUrl: 'https://example.com/subgraph',
+        viewingPrivateKey: '0x02'
+      });
+
+      await expect(iterator.next()).resolves.toEqual({
+        done: false,
+        value: scanResult
+      });
+
+      await expect(
+        client.getAnnouncementsUsingSubgraph({
+          subgraphUrl: 'https://example.com/subgraph'
+        })
+      ).resolves.toEqual(announcementsUsingSubgraphResult);
+
+      expect(pageCalls).toEqual([
+        {
+          pageSize: 5,
+          subgraphUrl: 'https://example.com/subgraph'
+        }
+      ]);
+      expect(announcementsUsingSubgraphCalls).toEqual([
+        {
+          subgraphUrl: 'https://example.com/subgraph'
+        }
+      ]);
+      expect(scanCalls).toHaveLength(1);
+      expect(scanCalls[0]).toMatchObject({
+        clientParams: {
+          publicClient: expect.any(Object)
+        },
+        spendingPublicKey: '0x01',
+        subgraphUrl: 'https://example.com/subgraph',
+        viewingPrivateKey: '0x02'
+      });
+    } finally {
+      actions.getAnnouncementsPageUsingSubgraph =
+        originalGetAnnouncementsPageUsingSubgraph;
+      actions.scanAnnouncementsForUserUsingSubgraph =
+        originalScanAnnouncementsForUserUsingSubgraph;
+      actions.getAnnouncementsUsingSubgraph =
+        originalGetAnnouncementsUsingSubgraph;
+    }
   });
 });
 

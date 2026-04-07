@@ -15,6 +15,8 @@ import type {
   PrepareRegisterKeysOnBehalfReturnType,
   PrepareRegisterKeysParams,
   PrepareRegisterKeysReturnType,
+  ScanAnnouncementsForUserUsingSubgraphParams,
+  ScanAnnouncementsForUserUsingSubgraphReturnType,
   WatchAnnouncementsForUserParams,
   WatchAnnouncementsForUserReturnType
 } from '../actions/';
@@ -53,6 +55,21 @@ export type StealthActions = {
     subgraphUrl,
     toBlock
   }: GetAnnouncementsPageUsingSubgraphParams) => Promise<GetAnnouncementsPageUsingSubgraphReturnType>;
+  scanAnnouncementsForUserUsingSubgraph: ({
+    caller,
+    clientParams,
+    cursor,
+    excludeList,
+    fromBlock,
+    includeList,
+    pageSize,
+    schemeId,
+    snapshotBlock,
+    spendingPublicKey,
+    subgraphUrl,
+    toBlock,
+    viewingPrivateKey
+  }: ScanAnnouncementsForUserUsingSubgraphParams) => ScanAnnouncementsForUserUsingSubgraphReturnType;
   getAnnouncementsUsingSubgraph: ({
     subgraphUrl,
     filter,
