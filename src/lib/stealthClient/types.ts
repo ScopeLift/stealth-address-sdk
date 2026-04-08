@@ -1,6 +1,8 @@
 import type { PublicClient } from 'viem';
 import type {
   GetAnnouncementsForUserParams,
+  GetAnnouncementsPageUsingSubgraphParams,
+  GetAnnouncementsPageUsingSubgraphReturnType,
   GetAnnouncementsParams,
   GetAnnouncementsReturnType,
   GetAnnouncementsUsingSubgraphParams,
@@ -41,6 +43,16 @@ export type StealthActions = {
     fromBlock,
     toBlock
   }: GetAnnouncementsParams) => Promise<GetAnnouncementsReturnType>;
+  getAnnouncementsPageUsingSubgraph: ({
+    caller,
+    cursor,
+    fromBlock,
+    pageSize,
+    schemeId,
+    snapshotBlock,
+    subgraphUrl,
+    toBlock
+  }: GetAnnouncementsPageUsingSubgraphParams) => Promise<GetAnnouncementsPageUsingSubgraphReturnType>;
   getAnnouncementsUsingSubgraph: ({
     subgraphUrl,
     filter,

@@ -178,6 +178,87 @@ async function fetchAnnouncementsForUser() {
 }
 ```
 
+### Fetching announcements from a subgraph
+
+Use `getAnnouncementsPageUsingSubgraph` when you want deterministic cursor-based
+pagination without building raw filter strings yourself.
+
+```ts
+import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
+
+const firstPage = await getAnnouncementsPageUsingSubgraph({
+  subgraphUrl: "https://your-subgraph.example/api",
+});
+
+console.log(firstPage.announcements);
+console.log(firstPage.nextCursor); // present only when another page exists
+console.log(firstPage.snapshotBlock); // required for every later page in the same scan
+```
+
+Scan filters are optional on the initial page.
+
+- `pageSize` defaults to `999`
+- `pageSize` must be between `1` and `999`
+- omitting `fromBlock`, `toBlock`, `schemeId`, and `caller` means no filter
+- the initial page must omit both `cursor` and `snapshotBlock`
+- the SDK resolves `snapshotBlock` on the initial page and returns it
+- every subsequent page must provide both `cursor` and `snapshotBlock`
+
+```ts
+import { getAnnouncementsPageUsingSubgraph } from "@scopelift/stealth-address-sdk";
+
+const firstPage = await getAnnouncementsPageUsingSubgraph({
+  subgraphUrl: "https://your-subgraph.example/api",
+  fromBlock: 12345678,
+  toBlock: 12349999,
+  schemeId: 1n,
+  caller: "0x1234567890123456789012345678901234567890",
+  pageSize: 100,
+});
+
+for (const announcement of firstPage.announcements) {
+  console.log(announcement.transactionHash);
+}
+
+let cursor = firstPage.nextCursor;
+
+while (cursor) {
+  const page = await getAnnouncementsPageUsingSubgraph({
+    subgraphUrl: "https://your-subgraph.example/api",
+    fromBlock: 12345678,
+    toBlock: 12349999,
+    schemeId: 1n,
+    caller: "0x1234567890123456789012345678901234567890",
+    pageSize: 100,
+    cursor,
+    snapshotBlock: firstPage.snapshotBlock,
+  });
+
+  for (const announcement of page.announcements) {
+    console.log(announcement.transactionHash);
+  }
+
+  cursor = page.nextCursor;
+}
+```
+
+Pass the previous page's `nextCursor` and the initial page's `snapshotBlock`
+back into the same bounded query to fetch the next older page deterministically.
+If `nextCursor` is undefined, you are on the terminal page and no extra probe
+request is needed.
+
+`cursor` is pagination position. `snapshotBlock` is consistency. Reuse the same
+`snapshotBlock` for every page in a multi-page scan so each request reads the
+same frozen subgraph view.
+
+Pagination is ordered by subgraph announcement `id` in descending order. The
+cursor is the last returned `id`, reused as an exclusive `id_lt` boundary for
+the next page, and page queries are pinned to one subgraph block snapshot.
+
+`getAnnouncementsUsingSubgraph` remains available as the legacy eager helper.
+It preserves the historical `pageSize` behavior for compatibility, while
+`getAnnouncementsPageUsingSubgraph` is the typed cursor-based API.
+
 ## License
 
 [MIT](/LICENSE) License

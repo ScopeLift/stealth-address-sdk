@@ -1,6 +1,7 @@
 import type { StealthActions } from '../stealthClient/types';
 import getAnnouncements from './getAnnouncements/getAnnouncements';
 import getAnnouncementsForUser from './getAnnouncementsForUser/getAnnouncementsForUser';
+import getAnnouncementsPageUsingSubgraph from './getAnnouncementsUsingSubgraph/getAnnouncementsPageUsingSubgraph';
 import getAnnouncementsUsingSubgraph from './getAnnouncementsUsingSubgraph/getAnnouncementsUsingSubgraph';
 import getStealthMetaAddress from './getStealthMetaAddress/getStealthMetaAddress';
 import prepareAnnounce from './prepareAnnounce/prepareAnnounce';
@@ -9,6 +10,7 @@ import prepareRegisterKeysOnBehalf from './prepareRegisterKeysOnBehalf/prepareRe
 import watchAnnouncementsForUser from './watchAnnouncementsForUser/watchAnnouncementsForUser';
 export { default as getAnnouncements } from './getAnnouncements/getAnnouncements';
 export { default as getAnnouncementsForUser } from './getAnnouncementsForUser/getAnnouncementsForUser';
+export { default as getAnnouncementsPageUsingSubgraph } from './getAnnouncementsUsingSubgraph/getAnnouncementsPageUsingSubgraph';
 export { default as getAnnouncementsUsingSubgraph } from './getAnnouncementsUsingSubgraph/getAnnouncementsUsingSubgraph';
 export { default as getStealthMetaAddress } from './getStealthMetaAddress/getStealthMetaAddress';
 export { default as prepareAnnounce } from './prepareAnnounce/prepareAnnounce';
@@ -31,6 +33,8 @@ export {
   type GetAnnouncementsForUserReturnType
 } from './getAnnouncementsForUser/types';
 export {
+  type GetAnnouncementsPageUsingSubgraphParams,
+  type GetAnnouncementsPageUsingSubgraphReturnType,
   type GetAnnouncementsUsingSubgraphParams,
   type GetAnnouncementsUsingSubgraphReturnType
 } from './getAnnouncementsUsingSubgraph/types';
@@ -54,6 +58,7 @@ export {
 export const actions: StealthActions = {
   getAnnouncements,
   getAnnouncementsForUser,
+  getAnnouncementsPageUsingSubgraph,
   getAnnouncementsUsingSubgraph,
   getStealthMetaAddress,
   prepareAnnounce,
