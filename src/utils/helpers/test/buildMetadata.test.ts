@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseUnits } from 'viem';
+import { type Address, parseUnits } from 'viem';
 import {
   ERC20_FUNCTION_SELECTORS,
   ERC721_FUNCTION_SELECTORS,
@@ -9,6 +9,7 @@ import {
   buildMetadataForETH,
   parseMetadata
 } from '../buildMetadata.js';
+import type { TokenAmount } from '../types/buildMetadata.js';
 
 const MOCK_VIEW_TAG = '0x99' as const;
 const MOCK_TOKEN_ADDRESS =
@@ -35,13 +36,14 @@ describe('buildMetadata', () => {
     test('should handle different ETH amounts', () => {
       const testCases = [
         { amount: '0', description: 'zero ETH' },
+        { amount: '1', description: 'single wei as string' },
         { amount: parseUnits('0.001', 18), description: 'small amount' },
         { amount: parseUnits('1000', 18), description: 'large amount' },
         {
           amount: BigInt('999999999999999999999999'),
           description: 'very large amount'
         }
-      ];
+      ] satisfies Array<{ amount: TokenAmount; description: string }>;
 
       for (const { amount } of testCases) {
         const metadata = buildMetadataForETH({
@@ -60,6 +62,17 @@ describe('buildMetadata', () => {
           MOCK_ETH_ADDRESS.toLowerCase()
         );
       }
+    });
+
+    test('should accept the maximum uint256 value', () => {
+      const amount = (1n << 256n) - 1n;
+      const metadata = buildMetadataForETH({
+        viewTag: MOCK_VIEW_TAG,
+        amount
+      });
+
+      const parsed = parseMetadata(metadata);
+      expect(BigInt(parsed.amount)).toBe(amount);
     });
   });
 
@@ -103,11 +116,11 @@ describe('buildMetadata', () => {
 
     test('should handle different token amounts', () => {
       const testCases = [
-        { amount: 0, description: 'zero tokens' },
-        { amount: 1, description: 'single token' },
+        { amount: '0', description: 'zero tokens' },
+        { amount: '1', description: 'single token' },
         { amount: parseUnits('0.000001', 18), description: 'tiny amount' },
         { amount: parseUnits('1000000', 18), description: 'large amount' }
-      ];
+      ] satisfies Array<{ amount: TokenAmount; description: string }>;
 
       for (const { amount } of testCases) {
         const metadata = buildMetadataForERC20({
@@ -128,7 +141,7 @@ describe('buildMetadata', () => {
 
   describe('buildMetadataForERC721', () => {
     test('should build correct metadata for ERC721 transfer with default function selector', () => {
-      const tokenId = 12345;
+      const tokenId = 12345n;
       const metadata = buildMetadataForERC721({
         viewTag: MOCK_VIEW_TAG,
         tokenAddress: MOCK_TOKEN_ADDRESS,
@@ -166,14 +179,14 @@ describe('buildMetadata', () => {
 
     test('should handle different token IDs', () => {
       const testCases = [
-        { tokenId: 0, description: 'token ID 0' },
-        { tokenId: 1, description: 'token ID 1' },
-        { tokenId: 999999, description: 'large token ID' },
+        { tokenId: '0', description: 'token ID 0' },
+        { tokenId: '1', description: 'token ID 1' },
+        { tokenId: '999999', description: 'large token ID' },
         {
           tokenId: BigInt('18446744073709551615'),
           description: 'max uint64 token ID'
         }
-      ];
+      ] satisfies Array<{ tokenId: TokenAmount; description: string }>;
 
       for (const { tokenId } of testCases) {
         const metadata = buildMetadataForERC721({
@@ -282,23 +295,30 @@ describe('buildMetadata', () => {
       expect(() => {
         buildMetadataForETH({
           viewTag: '0x999' as unknown as `0x${string}`, // Too long
-          amount: 100
+          amount: 100n
         });
-      }).toThrow('View tag must be exactly 1 byte');
+      }).toThrow('View tag must be exactly 1 byte of hex');
 
       expect(() => {
         buildMetadataForETH({
           viewTag: '0x' as unknown as `0x${string}`, // Too short
-          amount: 100
+          amount: 100n
         });
-      }).toThrow('View tag must be exactly 1 byte');
+      }).toThrow('View tag must be exactly 1 byte of hex');
 
       expect(() => {
         buildMetadataForETH({
           viewTag: '99' as unknown as `0x${string}`, // Missing 0x prefix
-          amount: 100
+          amount: 100n
         });
-      }).toThrow('View tag must be exactly 1 byte');
+      }).toThrow('View tag must be exactly 1 byte of hex');
+
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: '0xGG' as unknown as `0x${string}`, // Invalid hex
+          amount: 100n
+        });
+      }).toThrow('View tag must be exactly 1 byte of hex');
     });
 
     test('should throw error for invalid function selector', () => {
@@ -306,19 +326,106 @@ describe('buildMetadata', () => {
         buildMetadataForERC20({
           viewTag: MOCK_VIEW_TAG,
           tokenAddress: MOCK_TOKEN_ADDRESS,
-          amount: 100,
+          amount: 100n,
           functionSelector: '0x12345' as unknown as `0x${string}` // Too short
         });
-      }).toThrow('Function selector must be exactly 4 bytes');
+      }).toThrow('Function selector must be exactly 4 bytes of hex');
 
       expect(() => {
         buildMetadataForERC20({
           viewTag: MOCK_VIEW_TAG,
           tokenAddress: MOCK_TOKEN_ADDRESS,
-          amount: 100,
+          amount: 100n,
           functionSelector: '0x123456789' as unknown as `0x${string}` // Too long
         });
-      }).toThrow('Function selector must be exactly 4 bytes');
+      }).toThrow('Function selector must be exactly 4 bytes of hex');
+
+      expect(() => {
+        buildMetadataForERC20({
+          viewTag: MOCK_VIEW_TAG,
+          tokenAddress: MOCK_TOKEN_ADDRESS,
+          amount: 100n,
+          functionSelector: '0xGGGGGGGG' as unknown as `0x${string}` // Invalid hex
+        });
+      }).toThrow('Function selector must be exactly 4 bytes of hex');
+    });
+
+    test('should throw error for invalid contract address', () => {
+      expect(() => {
+        buildMetadataForERC20({
+          viewTag: MOCK_VIEW_TAG,
+          tokenAddress: '0x1234' as Address,
+          amount: 100n
+        });
+      }).toThrow('Contract address must be exactly 20 bytes of hex');
+    });
+
+    test('should reject numeric metadata values', () => {
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: 1 as unknown as TokenAmount
+        });
+      }).toThrow(
+        'Numeric metadata values must be provided as bigint or integer string'
+      );
+    });
+
+    test('should reject negative metadata values', () => {
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: -1n
+        });
+      }).toThrow('Metadata values must be unsigned integers');
+
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: '-1' as TokenAmount
+        });
+      }).toThrow(
+        'Metadata values must be unsigned integers provided as bigint or integer string'
+      );
+    });
+
+    test('should reject metadata values larger than uint256', () => {
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: 1n << 256n
+        });
+      }).toThrow('Metadata values must fit within 32 bytes');
+    });
+
+    test('should reject empty or whitespace integer strings', () => {
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: '' as TokenAmount
+        });
+      }).toThrow(
+        'Metadata values must be unsigned integers provided as bigint or integer string'
+      );
+
+      expect(() => {
+        buildMetadataForETH({
+          viewTag: MOCK_VIEW_TAG,
+          amount: '   ' as TokenAmount
+        });
+      }).toThrow(
+        'Metadata values must be unsigned integers provided as bigint or integer string'
+      );
+    });
+
+    test('should normalize leading-zero integer strings', () => {
+      const metadata = buildMetadataForETH({
+        viewTag: MOCK_VIEW_TAG,
+        amount: '00042' as TokenAmount
+      });
+
+      const parsed = parseMetadata(metadata);
+      expect(BigInt(parsed.amount)).toBe(42n);
     });
 
     test('should throw error for invalid metadata format in parseMetadata', () => {

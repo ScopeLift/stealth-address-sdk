@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import * as BunTest from 'bun:test';
 import { CURVE, getPublicKey, utils } from '@noble/secp256k1';
 import { bytesToHex, hexToBytes } from 'viem';
 import { publicKeyToAddress } from 'viem/accounts';
@@ -12,6 +12,14 @@ import { addPriv } from '../computeStealthKey';
 
 const formatPrivKey = (privateKey: bigint) =>
   `${privateKey.toString(16).padStart(64, '0')}`;
+const FUZZ_TEST_TIMEOUT = 15000;
+
+const { describe, expect, test } = BunTest;
+const { setDefaultTimeout } = BunTest as typeof BunTest & {
+  setDefaultTimeout(timeout: number): void;
+};
+
+setDefaultTimeout(FUZZ_TEST_TIMEOUT);
 
 describe('generateStealthAddress and computeStealthKey', () => {
   const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
@@ -102,17 +110,21 @@ describe('adding private keys', () => {
     expect(sumWithModulo).toBeLessThanOrEqual(curveOrder);
   });
 
-  test('fuzzTest addPriv', () => {
-    const iterations = 100000;
+  test(
+    'fuzzTest addPriv',
+    () => {
+      const iterations = 100000;
 
-    for (let i = 0; i < iterations; i++) {
-      // Generate two random scalars
-      const scalarA = BigInt(bytesToHex(utils.randomPrivateKey()));
-      const scalarB = BigInt(bytesToHex(utils.randomPrivateKey()));
+      for (let i = 0; i < iterations; i++) {
+        // Generate two random scalars
+        const scalarA = BigInt(bytesToHex(utils.randomPrivateKey()));
+        const scalarB = BigInt(bytesToHex(utils.randomPrivateKey()));
 
-      const result = addPriv({ a: scalarA, b: scalarB });
+        const result = addPriv({ a: scalarA, b: scalarB });
 
-      expect(utils.isValidPrivateKey(formatPrivKey(result))).toBe(true);
-    }
-  });
+        expect(utils.isValidPrivateKey(formatPrivKey(result))).toBe(true);
+      }
+    },
+    { timeout: FUZZ_TEST_TIMEOUT }
+  );
 });

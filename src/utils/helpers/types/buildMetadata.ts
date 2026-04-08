@@ -2,7 +2,7 @@ import type { Address, Hex } from 'viem';
 
 export type ViewTag = `0x${string}`;
 export type FunctionSelector = `0x${string}`;
-export type TokenAmount = string | number | bigint;
+export type TokenAmount = `${bigint}` | bigint;
 
 export interface ETHMetadataParams {
   viewTag: ViewTag;

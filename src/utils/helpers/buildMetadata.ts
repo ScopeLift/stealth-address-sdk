@@ -14,6 +14,11 @@ import type {
 // Constants from ERC-5564 specification
 const ETH_TOKEN_IDENTIFIER = '0xeeeeeeee' as const;
 const ETH_TOKEN_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const;
+const VIEW_TAG_REGEX = /^0x[0-9a-fA-F]{2}$/;
+const FUNCTION_SELECTOR_REGEX = /^0x[0-9a-fA-F]{8}$/;
+const ADDRESS_REGEX = /^0x[0-9a-fA-F]{40}$/;
+const UNSIGNED_INTEGER_REGEX = /^\d+$/;
+const MAX_UINT256 = (1n << 256n) - 1n;
 
 // Generate ERC-20 function selectors from viem
 export const ERC20_FUNCTION_SELECTORS = {
@@ -39,7 +44,28 @@ export const ERC721_FUNCTION_SELECTORS = {
  * Converts a token amount to a 32-byte hex string
  */
 function formatTokenAmount(amount: TokenAmount): Hex {
-  const bigintAmount = typeof amount === 'bigint' ? amount : BigInt(amount);
+  if (typeof amount === 'number') {
+    throw new Error(
+      'Numeric metadata values must be provided as bigint or integer string'
+    );
+  }
+
+  if (typeof amount === 'string' && !UNSIGNED_INTEGER_REGEX.test(amount)) {
+    throw new Error(
+      'Metadata values must be unsigned integers provided as bigint or integer string'
+    );
+  }
+
+  const bigintAmount = BigInt(amount);
+
+  if (bigintAmount < 0n) {
+    throw new Error('Metadata values must be unsigned integers');
+  }
+
+  if (bigintAmount > MAX_UINT256) {
+    throw new Error('Metadata values must fit within 32 bytes');
+  }
+
   return pad(toHex(bigintAmount), { size: 32 });
 }
 
@@ -47,8 +73,10 @@ function formatTokenAmount(amount: TokenAmount): Hex {
  * Validates that the view tag is exactly 1 byte (2 hex characters + 0x prefix)
  */
 function validateViewTag(viewTag: ViewTag): void {
-  if (!viewTag.startsWith('0x') || viewTag.length !== 4) {
-    throw new Error('View tag must be exactly 1 byte (0x + 2 hex characters)');
+  if (!VIEW_TAG_REGEX.test(viewTag)) {
+    throw new Error(
+      'View tag must be exactly 1 byte of hex (0x + 2 hex characters)'
+    );
   }
 }
 
@@ -56,9 +84,20 @@ function validateViewTag(viewTag: ViewTag): void {
  * Validates that the function selector is exactly 4 bytes (8 hex characters + 0x prefix)
  */
 function validateFunctionSelector(selector: FunctionSelector): void {
-  if (!selector.startsWith('0x') || selector.length !== 10) {
+  if (!FUNCTION_SELECTOR_REGEX.test(selector)) {
     throw new Error(
-      'Function selector must be exactly 4 bytes (0x + 8 hex characters)'
+      'Function selector must be exactly 4 bytes of hex (0x + 8 hex characters)'
+    );
+  }
+}
+
+/**
+ * Validates that the contract address is exactly 20 bytes of hex
+ */
+function validateContractAddress(address: Address): void {
+  if (!ADDRESS_REGEX.test(address)) {
+    throw new Error(
+      'Contract address must be exactly 20 bytes of hex (0x + 40 hex characters)'
     );
   }
 }
@@ -68,7 +107,7 @@ function validateFunctionSelector(selector: FunctionSelector): void {
  *
  * @param params - Parameters for ETH metadata
  * @param params.viewTag - 1-byte view tag for announcement filtering (e.g., "0x99")
- * @param params.amount - Amount of ETH to transfer in wei (string, number, or bigint)
+ * @param params.amount - Amount of ETH to transfer in wei (decimal integer string or bigint)
  * @returns 57-byte metadata hex string compliant with ERC-5564
  *
  * @example
@@ -141,6 +180,7 @@ export function buildMetadataForERC20({
 }: ERC20MetadataParams): Hex {
   validateViewTag(viewTag);
   validateFunctionSelector(functionSelector);
+  validateContractAddress(tokenAddress);
 
   const formattedAmount = formatTokenAmount(amount);
 
@@ -169,7 +209,7 @@ export function buildMetadataForERC20({
  * const metadata = buildMetadataForERC721({
  *   viewTag: "0x99",
  *   tokenAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
- *   tokenId: 12345,
+ *   tokenId: 12345n,
  *   functionSelector: ERC721_FUNCTION_SELECTORS.SAFE_TRANSFER_FROM // optional
  * });
  * ```
@@ -188,6 +228,7 @@ export function buildMetadataForERC721({
 }: ERC721MetadataParams): Hex {
   validateViewTag(viewTag);
   validateFunctionSelector(functionSelector);
+  validateContractAddress(tokenAddress);
 
   const formattedTokenId = formatTokenAmount(tokenId);
 
@@ -219,7 +260,7 @@ export function buildMetadataForERC721({
  *   viewTag: "0x99",
  *   functionSelector: toFunctionSelector('mint(address,uint256)'),
  *   contractAddress: "0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD",
- *   data: 12345 // Custom payload
+ *   data: 12345n // Custom payload
  * });
  * ```
  *
@@ -237,6 +278,7 @@ export function buildMetadataCustom({
 }: CustomMetadataParams): Hex {
   validateViewTag(viewTag);
   validateFunctionSelector(functionSelector);
+  validateContractAddress(contractAddress);
 
   const formattedData = formatTokenAmount(data);
 

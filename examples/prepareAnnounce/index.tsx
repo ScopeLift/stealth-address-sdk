@@ -17,9 +17,11 @@ import {
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.
  * It utilizes Viem's walletClient for wallet interaction and the stealth-address-sdk for stealth address operations.
  *
- * This example shows ERC-5564 compliant metadata building:
+ * This example shows ERC-5564 compliant metadata building for announcement events:
  * - ETH transfer metadata with amount
  * - ERC-20 token metadata with token address and amount
+ *
+ * It only emits the announcement event. It does not send ETH or transfer tokens.
  *
  * @returns The component renders buttons to connect the wallet and announce different types of stealth addresses.
  *
@@ -57,8 +59,8 @@ const Example = () => {
     setAccount(address);
   };
 
-  // Example: ETH transfer announcement with amount metadata
-  const announceETH = async () => {
+  // Example: announce ETH transfer metadata without performing the transfer itself
+  const announceETHMetadata = async () => {
     if (!account) return;
 
     // Generate stealth address details
@@ -91,8 +93,8 @@ const Example = () => {
     });
   };
 
-  // Example: ERC-20 token announcement with token metadata
-  const announceERC20 = async () => {
+  // Example: announce ERC-20 transfer metadata without performing the transfer itself
+  const announceERC20Metadata = async () => {
     if (!account) return;
 
     // Generate stealth address details
@@ -131,6 +133,9 @@ const Example = () => {
     return (
       <>
         <div>Connected: {account}</div>
+        <p>
+          This example emits announcement metadata only. No assets are moved.
+        </p>
         <div
           style={{
             display: 'flex',
@@ -139,11 +144,11 @@ const Example = () => {
             maxWidth: '300px'
           }}
         >
-          <button onClick={announceETH} type="button">
-            Announce ETH Transfer (0.1 ETH)
+          <button onClick={announceETHMetadata} type="button">
+            Announce ETH Metadata (0.1 ETH)
           </button>
-          <button onClick={announceERC20} type="button">
-            Announce ERC-20 Transfer (100 tokens)
+          <button onClick={announceERC20Metadata} type="button">
+            Announce ERC-20 Metadata (100 tokens)
           </button>
         </div>
       </>
