@@ -173,6 +173,21 @@ async function resolveSnapshotBlock(client: GraphQLClient): Promise<string> {
   return formatNonNegativeInteger('snapshotBlock', snapshotBlock);
 }
 
+function assertAnnouncementsResponse(response: unknown): asserts response is {
+  announcements: SubgraphAnnouncementEntity[];
+} {
+  if (
+    !response ||
+    typeof response !== 'object' ||
+    !('announcements' in response) ||
+    !Array.isArray(response.announcements)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Subgraph did not return an announcements array'
+    );
+  }
+}
+
 async function requestAnnouncements({
   caller,
   client,
@@ -207,8 +222,9 @@ async function requestAnnouncements({
     whereClause
   });
   const response = await client.request<{
-    announcements: SubgraphAnnouncementEntity[];
+    announcements?: SubgraphAnnouncementEntity[];
   }>(finalQuery, variables);
+  assertAnnouncementsResponse(response);
   assertStrictlyDescendingAnnouncementIds(response.announcements, cursor);
 
   return response.announcements;
