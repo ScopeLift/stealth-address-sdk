@@ -24,6 +24,7 @@ const makeSubgraphEntity = (id: string): SubgraphAnnouncementEntity =>
     metadata: '0xmetadata',
     schemeId: '1',
     stealthAddress: '0xstealth',
+    timestamp: '1',
     transactionHash: `0x${id.padStart(64, '0')}`,
     blockHash: '0xblockhash',
     data: '0xdata',

@@ -288,13 +288,13 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         'topics',
         'transactionHash',
         'logIndex',
-      'schemeId',
-      'stealthAddress',
-      'caller',
-      'ephemeralPubKey',
-      'metadata',
-      'timestamp'
-    ];
+        'schemeId',
+        'stealthAddress',
+        'caller',
+        'ephemeralPubKey',
+        'metadata',
+        'timestamp'
+      ];
 
       for (const result of testResults) {
         if (result.announcements.length > 0) {
