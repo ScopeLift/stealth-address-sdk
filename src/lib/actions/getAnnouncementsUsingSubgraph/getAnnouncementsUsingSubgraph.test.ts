@@ -31,6 +31,9 @@ const CI_REQUIRED_REAL_SUBGRAPH_NETWORKS = [
   Network.OPTIMISM_SEPOLIA,
   Network.SEPOLIA
 ] as const;
+const CI_REQUIRED_REAL_SUBGRAPH_NETWORK_SET = new Set<Network>(
+  CI_REQUIRED_REAL_SUBGRAPH_NETWORKS
+);
 
 type NetworkInfo = {
   name: Network;
@@ -334,7 +337,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
   const getResultWithAnnouncements = (
     testResults: TestResult[],
     minimumCount = 1
-  ): TestResult | undefined => {
+  ): TestResult => {
     const result = testResults.find(
       candidate =>
         candidate.error === undefined &&
@@ -342,13 +345,6 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     );
 
     if (!result) {
-      if (isCi) {
-        console.warn(
-          `Skipping real subgraph assertion because no configured CI network returned at least ${minimumCount} announcements`
-        );
-        return undefined;
-      }
-
       throw new Error(
         `No network returned at least ${minimumCount} announcements for integration coverage`
       );
@@ -357,30 +353,42 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     return result;
   };
 
-  const getSuccessfulResults = (testResults: TestResult[]): TestResult[] =>
-    testResults.filter(result => result.error === undefined);
+  const getCoverageResults = (testResults: TestResult[]): TestResult[] =>
+    testResults.filter(
+      ({ network }) =>
+        !isCi || CI_REQUIRED_REAL_SUBGRAPH_NETWORK_SET.has(network.name)
+    );
+
+  const getHealthyCoverageResults = (
+    testResults: TestResult[]
+  ): TestResult[] => {
+    const coverageResults = getCoverageResults(testResults);
+    if (coverageResults.length === 0) {
+      throw new Error(
+        'No required subgraph networks were configured for integration coverage'
+      );
+    }
+
+    const failedCoverageResults = coverageResults.filter(
+      result => result.error
+    );
+    if (failedCoverageResults.length > 0) {
+      const failedNetworks = failedCoverageResults.map(
+        ({ network }) => network.name
+      );
+      throw new Error(
+        `Required real-subgraph networks failed: ${failedNetworks.join(', ')}`
+      );
+    }
+
+    return coverageResults;
+  };
 
   test(
-    'should successfully fetch from all subgraphs',
+    'should successfully fetch from every required subgraph',
     async () => {
       const testResults = await loadTestResults();
-      const successfulResults = getSuccessfulResults(testResults);
-
-      if (isCi && successfulResults.length === 0) {
-        console.warn(
-          'Skipping strict real-subgraph CI assertion because every configured network failed externally'
-        );
-        return;
-      }
-
-      if (isCi) {
-        expect(successfulResults.length).toBeGreaterThan(0);
-        return;
-      }
-
-      for (const result of testResults) {
-        expect(result.error).toBeUndefined();
-      }
+      expect(getHealthyCoverageResults(testResults).length).toBeGreaterThan(0);
     },
     { timeout: REAL_SUBGRAPH_TEST_TIMEOUT_MS }
   );
@@ -389,12 +397,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     'announcement structure is correct for all subgraphs',
     async () => {
       const testResults = await loadTestResults();
-      const successfulResults = getSuccessfulResults(testResults);
-
-      if (successfulResults.length === 0) {
-        return;
-      }
-
+      const coverageResults = getHealthyCoverageResults(testResults);
       const expectedProperties = [
         'blockNumber',
         'blockHash',
@@ -412,7 +415,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         'metadata'
       ];
 
-      for (const result of successfulResults) {
+      for (const result of coverageResults) {
         if (result.announcements.length > 0) {
           const announcement = result.announcements[0];
           for (const prop of expectedProperties) {
@@ -428,13 +431,9 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     'applies caller filter correctly for all subgraphs',
     async () => {
       const testResults = await loadTestResults();
-      const successfulResults = getSuccessfulResults(testResults);
+      const coverageResults = getHealthyCoverageResults(testResults);
 
-      if (successfulResults.length === 0) {
-        return;
-      }
-
-      for (const result of successfulResults) {
+      for (const result of coverageResults) {
         if (result.announcements.length === 0) {
           console.warn(
             `No announcements found to test caller filter for ${result.network.name}`
@@ -463,15 +462,10 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     'handles pagination correctly for all subgraphs',
     async () => {
       const testResults = await loadTestResults();
-      const successfulResults = getSuccessfulResults(testResults);
-
-      if (successfulResults.length === 0) {
-        return;
-      }
-
+      const coverageResults = getHealthyCoverageResults(testResults);
       const largePageSize = MAX_LEGACY_SUBGRAPH_PAGE_SIZE;
       const paginationResults = await Promise.all(
-        successfulResults.map(async ({ network }) => {
+        coverageResults.map(async ({ network }) => {
           try {
             const announcements = await withRealSubgraphRetry(() =>
               getAnnouncementsUsingSubgraph({
@@ -487,8 +481,8 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         })
       );
 
-      for (let i = 0; i < successfulResults.length; i++) {
-        const initialResult = successfulResults[i];
+      for (let i = 0; i < coverageResults.length; i++) {
+        const initialResult = coverageResults[i];
         const paginatedResult = paginationResults[i];
 
         expect(initialResult.error).toBeUndefined();
@@ -521,13 +515,9 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     'fetches an unfiltered page from all subgraphs',
     async () => {
       const testResults = await loadTestResults();
-      const successfulResults = getSuccessfulResults(testResults);
+      const coverageResults = getHealthyCoverageResults(testResults);
 
-      if (successfulResults.length === 0) {
-        return;
-      }
-
-      for (const { network } of successfulResults) {
+      for (const { network } of coverageResults) {
         const page = await withRealSubgraphRetry(() =>
           getAnnouncementsPageUsingSubgraph({
             subgraphUrl: network.url,
@@ -549,9 +539,6 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     async () => {
       const testResults = await loadTestResults();
       const result = getResultWithAnnouncements(testResults, 2);
-      if (!result) {
-        return;
-      }
       const toBlock = result.announcements[0].blockNumber;
       if (toBlock === null) {
         throw new Error(
@@ -623,9 +610,6 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
     async () => {
       const testResults = await loadTestResults();
       const result = getResultWithAnnouncements(testResults, 1);
-      if (!result) {
-        return;
-      }
       const sample = result.announcements[0];
       const filteredPage = await withRealSubgraphRetry(() =>
         getAnnouncementsPageUsingSubgraph({
