@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { type Address, createWalletClient, custom } from 'viem';
+import { type Address, createWalletClient, custom, parseUnits } from 'viem';
 import { sepolia } from 'viem/chains';
 import 'viem/window';
 
 import {
   ERC5564_CONTRACT_ADDRESS,
   VALID_SCHEME_ID,
+  buildMetadataForERC20,
+  buildMetadataForETH,
   createStealthClient,
   generateStealthAddress
 } from '@scopelift/stealth-address-sdk';
@@ -15,7 +17,13 @@ import {
  * This React component demonstrates the process of connecting to a wallet and announcing a stealth address.
  * It utilizes Viem's walletClient for wallet interaction and the stealth-address-sdk for stealth address operations.
  *
- * @returns The component renders a button to connect the wallet and announce the stealth address.
+ * This example shows ERC-5564 compliant metadata building for announcement events:
+ * - ETH transfer metadata with amount
+ * - ERC-20 token metadata with token address and amount
+ *
+ * It only emits the announcement event. It does not send ETH or transfer tokens.
+ *
+ * @returns The component renders buttons to connect the wallet and announce different types of stealth addresses.
  *
  * @example
  * To run this example, ensure you have set up your environment variables VITE_RPC_URL and VITE_STEALTH_META_ADDRESS_URI.
@@ -51,17 +59,24 @@ const Example = () => {
     setAccount(address);
   };
 
-  const announce = async () => {
+  // Example: announce ETH transfer metadata without performing the transfer itself
+  const announceETHMetadata = async () => {
     if (!account) return;
 
     // Generate stealth address details
     const { stealthAddress, ephemeralPublicKey, viewTag } =
       generateStealthAddress({
         stealthMetaAddressURI,
-        schemeId: VALID_SCHEME_ID.SCHEME_ID_1 // Example scheme ID
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1
       });
 
-    // Prepare the announce payload
+    // Build metadata for ETH transfer with amount
+    const ethAmount = parseUnits('0.1', 18); // 0.1 ETH
+    const metadata = buildMetadataForETH({
+      viewTag,
+      amount: ethAmount
+    });
+
     const preparedPayload = await stealthClient.prepareAnnounce({
       account,
       ERC5564Address: ERC5564_CONTRACT_ADDRESS,
@@ -69,7 +84,43 @@ const Example = () => {
         schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
         stealthAddress,
         ephemeralPublicKey,
-        metadata: viewTag
+        metadata
+      }
+    });
+
+    await walletClient.sendTransaction({
+      ...preparedPayload
+    });
+  };
+
+  // Example: announce ERC-20 transfer metadata without performing the transfer itself
+  const announceERC20Metadata = async () => {
+    if (!account) return;
+
+    // Generate stealth address details
+    const { stealthAddress, ephemeralPublicKey, viewTag } =
+      generateStealthAddress({
+        stealthMetaAddressURI,
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1
+      });
+
+    // Build metadata for ERC-20 token transfer
+    const tokenAmount = parseUnits('100', 18); // 100 tokens
+    const tokenAddress = '0xA0b86a33E6441E6837FD5E163Aa01879cBbD5bbD'; // Example token address
+    const metadata = buildMetadataForERC20({
+      viewTag,
+      tokenAddress,
+      amount: tokenAmount
+    });
+
+    const preparedPayload = await stealthClient.prepareAnnounce({
+      account,
+      ERC5564Address: ERC5564_CONTRACT_ADDRESS,
+      args: {
+        schemeId: VALID_SCHEME_ID.SCHEME_ID_1,
+        stealthAddress,
+        ephemeralPublicKey,
+        metadata
       }
     });
 
@@ -82,9 +133,24 @@ const Example = () => {
     return (
       <>
         <div>Connected: {account}</div>
-        <button onClick={announce} type="button">
-          Announce Stealth Address
-        </button>
+        <p>
+          This example emits announcement metadata only. No assets are moved.
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            maxWidth: '300px'
+          }}
+        >
+          <button onClick={announceETHMetadata} type="button">
+            Announce ETH Metadata (0.1 ETH)
+          </button>
+          <button onClick={announceERC20Metadata} type="button">
+            Announce ERC-20 Metadata (100 tokens)
+          </button>
+        </div>
       </>
     );
   return (

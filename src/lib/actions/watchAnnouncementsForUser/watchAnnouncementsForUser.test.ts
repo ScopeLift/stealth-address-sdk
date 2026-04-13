@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import * as BunTest from 'bun:test';
 import type { Address } from 'viem';
 import {
   type AnnouncementLog,
@@ -14,6 +14,14 @@ import type { StealthActions } from '../../stealthClient/types';
 
 const NUM_ANNOUNCEMENTS = 3;
 const WATCH_POLLING_INTERVAL = 1000;
+const WATCH_TEST_TIMEOUT = 15000;
+
+const { afterAll, beforeAll, describe, expect, test } = BunTest;
+const { setDefaultTimeout } = BunTest as typeof BunTest & {
+  setDefaultTimeout(timeout: number): void;
+};
+
+setDefaultTimeout(WATCH_TEST_TIMEOUT);
 
 type WriteAnnounceArgs = {
   schemeId: bigint;
@@ -56,10 +64,6 @@ const announce = async ({
   return hash;
 };
 
-// Delay to wait for the announcements to be watched in accordance with the polling interval
-const delay = async () =>
-  await new Promise(resolve => setTimeout(resolve, WATCH_POLLING_INTERVAL * 2));
-
 describe('watchAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
@@ -74,6 +78,35 @@ describe('watchAnnouncementsForUser', () => {
   // Track the new announcements to see if they are being watched
   const newAnnouncements: AnnouncementLog[] = [];
   let unwatch: () => void;
+
+  const waitForAnnouncementCount = async (
+    expectedCount: number,
+    timeout = WATCH_TEST_TIMEOUT
+  ) => {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      if (newAnnouncements.length === expectedCount) return;
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    throw new Error(
+      `Timed out waiting for ${expectedCount} announcements. Received ${newAnnouncements.length}.`
+    );
+  };
+
+  const waitForAnnouncementStability = async (
+    expectedCount: number,
+    duration = WATCH_POLLING_INTERVAL * 2
+  ) => {
+    const initialCount = newAnnouncements.length;
+
+    await new Promise(resolve => setTimeout(resolve, duration));
+
+    expect(initialCount).toEqual(expectedCount);
+    expect(newAnnouncements.length).toEqual(expectedCount);
+  };
 
   beforeAll(async () => {
     // Set up the testing environment
@@ -122,56 +155,60 @@ describe('watchAnnouncementsForUser', () => {
       });
     }
 
-    // Small wait to let the announcements be watched
-    await delay();
+    await waitForAnnouncementCount(NUM_ANNOUNCEMENTS);
   });
 
   afterAll(() => {
     unwatch();
   });
 
-  test('should watch announcements for a user', () => {
-    // Check if the announcements were watched
-    // There should be NUM_ACCOUNCEMENTS announcements because there were NUM_ANNOUNCEMENTS calls to the announce function
-    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
-  });
+  test(
+    'should watch announcements for a user',
+    () => {
+      // Check if the announcements were watched
+      // There should be NUM_ACCOUNCEMENTS announcements because there were NUM_ANNOUNCEMENTS calls to the announce function
+      expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
+    },
+    { timeout: WATCH_TEST_TIMEOUT }
+  );
 
-  test('should correctly not update announcements for a user if announcement does not apply to user', async () => {
-    // Announce again, but arbitrarily (just as an example/for testing) change the ephemeral public key,
-    // so that the announcement does not apply to the user, and is not watched
-    const { stealthAddress, ephemeralPublicKey, viewTag } =
-      generateStealthAddress({
-        stealthMetaAddressURI,
-        schemeId
+  test(
+    'should correctly not update announcements for a user if announcement does not apply to user',
+    async () => {
+      // Announce again, but arbitrarily (just as an example/for testing) change the ephemeral public key,
+      // so that the announcement does not apply to the user, and is not watched
+      const { stealthAddress, ephemeralPublicKey, viewTag } =
+        generateStealthAddress({
+          stealthMetaAddressURI,
+          schemeId
+        });
+
+      const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
+        const lastChar = hexStr.slice(-1);
+        const base = '0123456789abcdef';
+        const index = base.indexOf(lastChar.toLowerCase());
+        const newLastChar = index === 15 ? '0' : base[index + 1]; // Roll over from 'f' to '0'
+        return `0x${hexStr.slice(2, -1) + newLastChar}` as `0x${string}`;
+      };
+
+      // Replace the last character of ephemeralPublicKey with a different character for testing
+      const newEphemeralPublicKey =
+        incrementLastCharOfHexString(ephemeralPublicKey);
+
+      // Write to the announcement contract with an inaccurate ephemeral public key
+      await announce({
+        walletClient,
+        ERC5564Address,
+        args: {
+          schemeId: BigInt(schemeId),
+          stealthAddress,
+          ephemeralPublicKey: newEphemeralPublicKey,
+          viewTag
+        }
       });
 
-    const incrementLastCharOfHexString = (hexStr: `0x${string}`) => {
-      const lastChar = hexStr.slice(-1);
-      const base = '0123456789abcdef';
-      const index = base.indexOf(lastChar.toLowerCase());
-      const newLastChar = index === 15 ? '0' : base[index + 1]; // Roll over from 'f' to '0'
-      return `0x${hexStr.slice(2, -1) + newLastChar}` as `0x${string}`;
-    };
-
-    // Replace the last character of ephemeralPublicKey with a different character for testing
-    const newEphemeralPublicKey =
-      incrementLastCharOfHexString(ephemeralPublicKey);
-
-    // Write to the announcement contract with an inaccurate ephemeral public key
-    await announce({
-      walletClient,
-      ERC5564Address,
-      args: {
-        schemeId: BigInt(schemeId),
-        stealthAddress,
-        ephemeralPublicKey: newEphemeralPublicKey,
-        viewTag
-      }
-    });
-
-    await delay();
-
-    // Expect no change in the number of announcements watched
-    expect(newAnnouncements.length).toEqual(NUM_ANNOUNCEMENTS);
-  });
+      await waitForAnnouncementStability(NUM_ANNOUNCEMENTS);
+    },
+    { timeout: WATCH_TEST_TIMEOUT }
+  );
 });
