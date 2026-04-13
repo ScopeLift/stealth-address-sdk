@@ -23,7 +23,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Publishing
 - Follow [RELEASING.md](RELEASING.md) for the current release procedure
 - `bun run publish` - Build and publish to npm
-- `bun run publish:beta` - Build and publish a prerelease to the `beta` dist-tag
 
 ## Architecture Overview
 

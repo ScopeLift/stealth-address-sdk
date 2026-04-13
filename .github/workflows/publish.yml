@@ -41,9 +41,4 @@ jobs:
         run: npm pack --dry-run
 
       - name: Publish to npm
-        run: |
-          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then
-            npm publish --provenance --access public --tag beta
-          else
-            npm publish --provenance --access public
-          fi
+        run: npm publish --provenance --access public
