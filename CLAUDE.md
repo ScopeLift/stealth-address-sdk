@@ -14,13 +14,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun run test-fork FILE=src/path/to/test.ts` - Run specific test against fork
 
 ### Building and Linting
-- `bun run build` - Apply Biome linting fixes and compile TypeScript
+- `bun run build` - Run Biome checks and compile TypeScript
 - `bun run check` - Run Biome linting checks without fixing
+- `bun run fix` - Apply Biome formatting and linting fixes
 - `biome check --apply .` - Apply Biome formatting and linting fixes
 - `bun tsc` - Run TypeScript compiler
 
 ### Publishing
+- Follow [RELEASING.md](RELEASING.md) for the current release procedure
 - `bun run publish` - Build and publish to npm
+- `bun run publish:beta` - Build and publish a prerelease to the `beta` dist-tag
 
 ## Architecture Overview
 
