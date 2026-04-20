@@ -5,6 +5,10 @@
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScopeLift/stealth-address-sdk.git"
+  },
   "files": [
     "dist/config",
     "dist/index.d.ts",
