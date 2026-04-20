@@ -479,6 +479,17 @@ describe('fetchAnnouncementsPage helpers', () => {
     );
   });
 
+  test('should reject malformed responses that omit announcements', async () => {
+    mockRequest.mockReturnValueOnce(Promise.resolve({}));
+
+    expect(
+      fetchAnnouncementsBatch({
+        client: mockClient,
+        pageSize: 2
+      })
+    ).rejects.toThrow('Subgraph did not return an announcements array');
+  });
+
   test('paged and legacy helpers should traverse the same filtered dataset across page sizes', async () => {
     const callerA = '0x1234567890123456789012345678901234567890' as const;
     const callerB = '0xA16081F360e3847006dB660bae1c6d1b2e17eC2A' as const;

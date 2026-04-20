@@ -2,22 +2,45 @@ import type { EthAddress } from '../../../utils/crypto/types';
 import type { GetAnnouncementsReturnType } from '../getAnnouncements/types';
 
 export type SubgraphAnnouncementEntity = {
-  blockNumber: string;
-  caller: string;
-  ephemeralPubKey: string;
+  // Core required fields
   id: string;
-  metadata: string;
-  schemeId: string;
-  stealthAddress: string;
-  transactionHash: string;
-  timestamp: string;
+  blockNumber?: string;
+  caller?: string;
+  ephemeralPubKey?: string;
+  metadata?: string;
+  schemeId?: string;
+  stealthAddress?: string;
+  transactionHash?: string;
+  timestamp?: string;
 
-  // Additional log information
-  blockHash: string;
-  data: string;
+  // Additional log information (may be missing in some subgraph implementations)
+  blockHash?: string;
+  data?: string;
+  logIndex?: string;
+  removed?: boolean;
+  topics?: string[];
+  transactionIndex?: string;
+};
+
+export type SubgraphHex = `0x${string}`;
+export type SubgraphTopics = [SubgraphHex, ...SubgraphHex[]] | [];
+
+// Internal normalized shape used after raw subgraph data has been validated.
+export type NormalizedSubgraphAnnouncementEntity = {
+  id: string;
+  blockNumber: string;
+  caller: SubgraphHex;
+  ephemeralPubKey: SubgraphHex;
+  metadata: SubgraphHex;
+  schemeId: string;
+  stealthAddress: SubgraphHex;
+  transactionHash: SubgraphHex;
+  timestamp?: string;
+  blockHash: SubgraphHex;
+  data: SubgraphHex;
   logIndex: string;
   removed: boolean;
-  topics: string[];
+  topics: SubgraphTopics;
   transactionIndex: string;
 };
 

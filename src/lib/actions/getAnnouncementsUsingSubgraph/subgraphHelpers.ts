@@ -2,9 +2,15 @@ import type { GraphQLClient } from 'graphql-request';
 import { getAddress } from 'viem';
 import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
+import {
+  GetAnnouncementsUsingSubgraphError,
+  type NormalizedSubgraphAnnouncementEntity,
+  type SubgraphAnnouncementEntity,
+  type SubgraphHex
+} from './types';
 import type {
   GetAnnouncementsPageUsingSubgraphUnsafeParams,
-  SubgraphAnnouncementEntity
+  SubgraphTopics
 } from './types';
 
 // Cursor pagination is defined by the subgraph entity `id`, ordered descending.
@@ -50,6 +56,18 @@ const GET_SUBGRAPH_META_QUERY = `
 
 export const MAX_SUBGRAPH_PAGE_SIZE = 999;
 export const MAX_LEGACY_SUBGRAPH_PAGE_SIZE = 1000;
+const EMPTY_HEX_DATA = '0x';
+const ZERO_BLOCK_HASH =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+type RequiredSubgraphAnnouncementFields =
+  | 'blockNumber'
+  | 'caller'
+  | 'ephemeralPubKey'
+  | 'metadata'
+  | 'schemeId'
+  | 'stealthAddress'
+  | 'transactionHash';
 
 type BuildAnnouncementsWhereClauseParams = Pick<
   GetAnnouncementsPageUsingSubgraphUnsafeParams,
@@ -130,6 +148,26 @@ function assertStrictlyDescendingAnnouncementIds(
   }
 }
 
+function toHex(fieldName: string, value: string): SubgraphHex {
+  if (!value.startsWith('0x')) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      `Invalid announcement entity: ${fieldName} must be a valid hex string starting with '0x'`
+    );
+  }
+
+  return value as SubgraphHex;
+}
+
+function normalizeTopics(topics?: string[]): SubgraphTopics {
+  if (!topics || topics.length === 0) {
+    return [];
+  }
+
+  return topics.map((topic, index) =>
+    toHex(`topics[${index}]`, topic)
+  ) as SubgraphTopics;
+}
+
 export function buildAnnouncementsWhereClause({
   caller,
   cursor,
@@ -173,6 +211,21 @@ async function resolveSnapshotBlock(client: GraphQLClient): Promise<string> {
   return formatNonNegativeInteger('snapshotBlock', snapshotBlock);
 }
 
+function assertAnnouncementsResponse(response: unknown): asserts response is {
+  announcements: SubgraphAnnouncementEntity[];
+} {
+  if (
+    !response ||
+    typeof response !== 'object' ||
+    !('announcements' in response) ||
+    !Array.isArray(response.announcements)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Subgraph did not return an announcements array'
+    );
+  }
+}
+
 async function requestAnnouncements({
   caller,
   client,
@@ -207,8 +260,9 @@ async function requestAnnouncements({
     whereClause
   });
   const response = await client.request<{
-    announcements: SubgraphAnnouncementEntity[];
+    announcements?: SubgraphAnnouncementEntity[];
   }>(finalQuery, variables);
+  assertAnnouncementsResponse(response);
   assertStrictlyDescendingAnnouncementIds(response.announcements, cursor);
 
   return response.announcements;
@@ -328,35 +382,172 @@ export async function fetchAnnouncementsBatch({
 }
 
 /**
+ * Validates a SubgraphAnnouncementEntity to ensure it has all required fields.
+ *
+ * @param entity - The entity to validate
+ * @throws {GetAnnouncementsUsingSubgraphError} If required fields are missing or invalid
+ */
+function validateSubgraphAnnouncementEntity(
+  entity: SubgraphAnnouncementEntity
+): void {
+  if (!entity.id) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: missing id field'
+    );
+  }
+
+  const requiredFields = [
+    'blockNumber',
+    'caller',
+    'ephemeralPubKey',
+    'metadata',
+    'schemeId',
+    'stealthAddress',
+    'transactionHash'
+  ];
+
+  for (const field of requiredFields) {
+    if (!entity[field as keyof SubgraphAnnouncementEntity]) {
+      throw new GetAnnouncementsUsingSubgraphError(
+        `Invalid announcement entity: missing required field '${field}'`
+      );
+    }
+  }
+
+  // Validate numeric fields
+  if (
+    entity.blockNumber &&
+    (Number.isNaN(Number(entity.blockNumber)) || Number(entity.blockNumber) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: blockNumber must be a non-negative number'
+    );
+  }
+
+  if (
+    entity.logIndex &&
+    (Number.isNaN(Number(entity.logIndex)) || Number(entity.logIndex) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: logIndex must be a non-negative number'
+    );
+  }
+
+  if (
+    entity.transactionIndex &&
+    (Number.isNaN(Number(entity.transactionIndex)) ||
+      Number(entity.transactionIndex) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: transactionIndex must be a non-negative number'
+    );
+  }
+
+  if (entity.schemeId && Number.isNaN(Number(entity.schemeId))) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: schemeId must be a valid number'
+    );
+  }
+
+  if (
+    entity.timestamp &&
+    (Number.isNaN(Number(entity.timestamp)) || Number(entity.timestamp) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: timestamp must be a non-negative number'
+    );
+  }
+}
+
+function requireField(
+  entity: SubgraphAnnouncementEntity,
+  field: RequiredSubgraphAnnouncementFields
+): string {
+  const value = entity[field];
+
+  if (!value) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      `Invalid announcement entity: missing required field '${field}'`
+    );
+  }
+
+  return value;
+}
+
+function normalizeSubgraphAnnouncementEntity(
+  entity: SubgraphAnnouncementEntity
+): NormalizedSubgraphAnnouncementEntity {
+  validateSubgraphAnnouncementEntity(entity);
+
+  return {
+    id: entity.id,
+    blockNumber: requireField(entity, 'blockNumber'),
+    caller: toHex('caller', requireField(entity, 'caller')),
+    ephemeralPubKey: toHex(
+      'ephemeralPubKey',
+      requireField(entity, 'ephemeralPubKey')
+    ),
+    metadata: toHex('metadata', requireField(entity, 'metadata')),
+    schemeId: requireField(entity, 'schemeId'),
+    stealthAddress: toHex(
+      'stealthAddress',
+      requireField(entity, 'stealthAddress')
+    ),
+    transactionHash: toHex(
+      'transactionHash',
+      requireField(entity, 'transactionHash')
+    ),
+    timestamp: entity.timestamp,
+    blockHash: toHex('blockHash', entity.blockHash ?? ZERO_BLOCK_HASH),
+    data: toHex('data', entity.data ?? EMPTY_HEX_DATA),
+    logIndex: entity.logIndex ?? '0',
+    removed: entity.removed ?? false,
+    topics: normalizeTopics(entity.topics),
+    transactionIndex: entity.transactionIndex ?? '0'
+  };
+}
+
+function buildAnnouncementLog(
+  entity: NormalizedSubgraphAnnouncementEntity
+): AnnouncementLog {
+  return {
+    address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
+    blockHash: entity.blockHash,
+    logIndex: Number(entity.logIndex),
+    removed: entity.removed,
+    transactionIndex: Number(entity.transactionIndex),
+    topics: entity.topics,
+    data: entity.data,
+    blockNumber: BigInt(entity.blockNumber),
+    transactionHash: entity.transactionHash,
+    schemeId: BigInt(entity.schemeId),
+    stealthAddress: entity.stealthAddress,
+    caller: entity.caller,
+    ephemeralPubKey: entity.ephemeralPubKey,
+    metadata: entity.metadata,
+    ...(entity.timestamp
+      ? {
+          timestamp: BigInt(entity.timestamp)
+        }
+      : {})
+  };
+}
+
+/**
  * Converts a SubgraphAnnouncementEntity to an AnnouncementLog for interoperability
  * between `getAnnouncements` and `getAnnouncementsUsingSubgraph`.
  *
  * This function transforms the data structure returned by the subgraph into the
  * standardized AnnouncementLog format used throughout the SDK. It ensures consistency
  * in data representation regardless of whether announcements are fetched directly via logs
- * or via a subgraph.
+ * or via a subgraph. Includes comprehensive validation of the entity data.
  *
  * @param {SubgraphAnnouncementEntity} entity - The announcement entity from the subgraph.
  * @returns {AnnouncementLog} The converted announcement log in the standard format.
+ * @throws {Error} If the entity is missing required fields or has invalid data.
  */
 export function convertSubgraphEntityToAnnouncementLog(
   entity: SubgraphAnnouncementEntity
 ): AnnouncementLog {
-  return {
-    address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
-    blockHash: entity.blockHash as `0x${string}`,
-    blockNumber: BigInt(entity.blockNumber),
-    logIndex: Number.parseInt(entity.logIndex, 10),
-    removed: entity.removed,
-    transactionHash: entity.transactionHash as `0x${string}`,
-    transactionIndex: Number.parseInt(entity.transactionIndex, 10),
-    topics: entity.topics as [`0x${string}`, ...`0x${string}`[]] | [],
-    data: entity.data as `0x${string}`,
-    schemeId: BigInt(entity.schemeId),
-    stealthAddress: entity.stealthAddress as `0x${string}`,
-    caller: entity.caller as `0x${string}`,
-    ephemeralPubKey: entity.ephemeralPubKey as `0x${string}`,
-    metadata: entity.metadata as `0x${string}`,
-    timestamp: BigInt(entity.timestamp)
-  };
+  return buildAnnouncementLog(normalizeSubgraphAnnouncementEntity(entity));
 }
