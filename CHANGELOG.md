@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.4] - 2026-04-20
+
+### Added
+
+- `timestamp` support on subgraph-backed announcement results
+- `getLatestSubgraphIndexedBlock` helper for reading a subgraph's latest indexed block
+
+### Changed
+
+- Route npm publishing through the tag-triggered GitHub Actions workflow only
+
+### Fixed
+
+- Remove package publish helpers that could recurse through npm lifecycle hooks
+
 ## [1.0.0-beta.3] - 2026-04-13
 
 ### Added
