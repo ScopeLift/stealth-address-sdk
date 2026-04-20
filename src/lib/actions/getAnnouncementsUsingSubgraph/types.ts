@@ -22,6 +22,28 @@ export type SubgraphAnnouncementEntity = {
   transactionIndex?: string;
 };
 
+export type SubgraphHex = `0x${string}`;
+export type SubgraphTopics = [SubgraphHex, ...SubgraphHex[]] | [];
+
+// Internal normalized shape used after raw subgraph data has been validated.
+export type NormalizedSubgraphAnnouncementEntity = {
+  id: string;
+  blockNumber: string;
+  caller: SubgraphHex;
+  ephemeralPubKey: SubgraphHex;
+  metadata: SubgraphHex;
+  schemeId: string;
+  stealthAddress: SubgraphHex;
+  transactionHash: SubgraphHex;
+  timestamp?: string;
+  blockHash: SubgraphHex;
+  data: SubgraphHex;
+  logIndex: string;
+  removed: boolean;
+  topics: SubgraphTopics;
+  transactionIndex: string;
+};
+
 export type GetAnnouncementsUsingSubgraphParams = {
   /** The URL of the subgraph to fetch announcements from */
   subgraphUrl: string;

@@ -4,9 +4,14 @@ import { ERC5564_CONTRACT_ADDRESS } from '../../../config';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
   GetAnnouncementsUsingSubgraphError,
-  type SubgraphAnnouncementEntity
+  type NormalizedSubgraphAnnouncementEntity,
+  type SubgraphAnnouncementEntity,
+  type SubgraphHex
 } from './types';
-import type { GetAnnouncementsPageUsingSubgraphUnsafeParams } from './types';
+import type {
+  GetAnnouncementsPageUsingSubgraphUnsafeParams,
+  SubgraphTopics
+} from './types';
 
 // Cursor pagination is defined by the subgraph entity `id`, ordered descending.
 // The page API carries the last returned `id` forward as an exclusive `id_lt`
@@ -51,6 +56,18 @@ const GET_SUBGRAPH_META_QUERY = `
 
 export const MAX_SUBGRAPH_PAGE_SIZE = 999;
 export const MAX_LEGACY_SUBGRAPH_PAGE_SIZE = 1000;
+const EMPTY_HEX_DATA = '0x';
+const ZERO_BLOCK_HASH =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+type RequiredSubgraphAnnouncementFields =
+  | 'blockNumber'
+  | 'caller'
+  | 'ephemeralPubKey'
+  | 'metadata'
+  | 'schemeId'
+  | 'stealthAddress'
+  | 'transactionHash';
 
 type BuildAnnouncementsWhereClauseParams = Pick<
   GetAnnouncementsPageUsingSubgraphUnsafeParams,
@@ -129,6 +146,26 @@ function assertStrictlyDescendingAnnouncementIds(
 
     previousId = announcement.id;
   }
+}
+
+function toHex(fieldName: string, value: string): SubgraphHex {
+  if (!value.startsWith('0x')) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      `Invalid announcement entity: ${fieldName} must be a valid hex string starting with '0x'`
+    );
+  }
+
+  return value as SubgraphHex;
+}
+
+function normalizeTopics(topics?: string[]): SubgraphTopics {
+  if (!topics || topics.length === 0) {
+    return [];
+  }
+
+  return topics.map((topic, index) =>
+    toHex(`topics[${index}]`, topic)
+  ) as SubgraphTopics;
 }
 
 export function buildAnnouncementsWhereClause({
@@ -420,26 +457,80 @@ function validateSubgraphAnnouncementEntity(
       'Invalid announcement entity: timestamp must be a non-negative number'
     );
   }
+}
 
-  // Validate hex strings (basic validation - just check they start with 0x)
-  const hexFields = [
-    'caller',
-    'ephemeralPubKey',
-    'stealthAddress',
-    'transactionHash',
-    'blockHash',
-    'data',
-    'metadata'
-  ];
+function requireField(
+  entity: SubgraphAnnouncementEntity,
+  field: RequiredSubgraphAnnouncementFields
+): string {
+  const value = entity[field];
 
-  for (const field of hexFields) {
-    const value = entity[field as keyof SubgraphAnnouncementEntity];
-    if (value && typeof value === 'string' && !value.startsWith('0x')) {
-      throw new GetAnnouncementsUsingSubgraphError(
-        `Invalid announcement entity: ${field} must be a valid hex string starting with '0x'`
-      );
-    }
+  if (!value) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      `Invalid announcement entity: missing required field '${field}'`
+    );
   }
+
+  return value;
+}
+
+function normalizeSubgraphAnnouncementEntity(
+  entity: SubgraphAnnouncementEntity
+): NormalizedSubgraphAnnouncementEntity {
+  validateSubgraphAnnouncementEntity(entity);
+
+  return {
+    id: entity.id,
+    blockNumber: requireField(entity, 'blockNumber'),
+    caller: toHex('caller', requireField(entity, 'caller')),
+    ephemeralPubKey: toHex(
+      'ephemeralPubKey',
+      requireField(entity, 'ephemeralPubKey')
+    ),
+    metadata: toHex('metadata', requireField(entity, 'metadata')),
+    schemeId: requireField(entity, 'schemeId'),
+    stealthAddress: toHex(
+      'stealthAddress',
+      requireField(entity, 'stealthAddress')
+    ),
+    transactionHash: toHex(
+      'transactionHash',
+      requireField(entity, 'transactionHash')
+    ),
+    timestamp: entity.timestamp,
+    blockHash: toHex('blockHash', entity.blockHash ?? ZERO_BLOCK_HASH),
+    data: toHex('data', entity.data ?? EMPTY_HEX_DATA),
+    logIndex: entity.logIndex ?? '0',
+    removed: entity.removed ?? false,
+    topics: normalizeTopics(entity.topics),
+    transactionIndex: entity.transactionIndex ?? '0'
+  };
+}
+
+function buildAnnouncementLog(
+  entity: NormalizedSubgraphAnnouncementEntity
+): AnnouncementLog {
+  return {
+    address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
+    blockHash: entity.blockHash,
+    logIndex: Number(entity.logIndex),
+    removed: entity.removed,
+    transactionIndex: Number(entity.transactionIndex),
+    topics: entity.topics,
+    data: entity.data,
+    blockNumber: BigInt(entity.blockNumber),
+    transactionHash: entity.transactionHash,
+    schemeId: BigInt(entity.schemeId),
+    stealthAddress: entity.stealthAddress,
+    caller: entity.caller,
+    ephemeralPubKey: entity.ephemeralPubKey,
+    metadata: entity.metadata,
+    ...(entity.timestamp
+      ? {
+          timestamp: BigInt(entity.timestamp)
+        }
+      : {})
+  };
 }
 
 /**
@@ -458,47 +549,5 @@ function validateSubgraphAnnouncementEntity(
 export function convertSubgraphEntityToAnnouncementLog(
   entity: SubgraphAnnouncementEntity
 ): AnnouncementLog {
-  // Validate the entity before conversion
-  validateSubgraphAnnouncementEntity(entity);
-
-  // After validation, we can safely assert that required fields exist
-  const validatedEntity = entity as Required<
-    Pick<
-      SubgraphAnnouncementEntity,
-      | 'blockNumber'
-      | 'caller'
-      | 'ephemeralPubKey'
-      | 'metadata'
-      | 'schemeId'
-      | 'stealthAddress'
-      | 'transactionHash'
-    >
-  > &
-    SubgraphAnnouncementEntity;
-
-  return {
-    address: ERC5564_CONTRACT_ADDRESS, // Contract address is the same for all chains
-    // Optional fields with fallbacks (correct)
-    blockHash: (entity.blockHash ||
-      '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`,
-    logIndex: Number(entity.logIndex || 0),
-    removed: entity.removed || false,
-    transactionIndex: Number(entity.transactionIndex || 0),
-    topics: (entity.topics || []) as [`0x${string}`, ...`0x${string}`[]] | [],
-    data: (entity.data || '0x') as `0x${string}`,
-
-    // Required fields (validation ensures they exist, so no fallbacks needed)
-    blockNumber: BigInt(validatedEntity.blockNumber),
-    transactionHash: validatedEntity.transactionHash as `0x${string}`,
-    schemeId: BigInt(validatedEntity.schemeId),
-    stealthAddress: validatedEntity.stealthAddress as `0x${string}`,
-    caller: validatedEntity.caller as `0x${string}`,
-    ephemeralPubKey: validatedEntity.ephemeralPubKey as `0x${string}`,
-    metadata: validatedEntity.metadata as `0x${string}`,
-    ...(entity.timestamp
-      ? {
-          timestamp: BigInt(entity.timestamp)
-        }
-      : {})
-  };
+  return buildAnnouncementLog(normalizeSubgraphAnnouncementEntity(entity));
 }
