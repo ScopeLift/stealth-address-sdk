@@ -17,6 +17,7 @@
 
 - Publishing is handled by GitHub Actions via `.github/workflows/publish.yml`.
 - npm publishing uses trusted publishing with GitHub OIDC; no long-lived npm token or PAT is required.
+- Do not define an npm `publish` lifecycle script that calls `npm publish`; use a non-lifecycle script name such as `publish:manual` for manual local publishing helpers.
 - The publish job runs in the `npm-release` GitHub environment.
 - `package.json` must include a `repository.url` that exactly matches `https://github.com/ScopeLift/stealth-address-sdk`.
 - The npm package's trusted publisher settings must exactly match `ScopeLift/stealth-address-sdk`, workflow `publish.yml`, and environment `npm-release`.
