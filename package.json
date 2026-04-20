@@ -32,8 +32,7 @@
     "build": "bun run check && bun tsc",
     "watch": "bun test --watch src",
     "check": "biome check .",
-    "fix": "biome check --apply .",
-    "publish": "bun run build && npm publish --access public"
+    "fix": "biome check --apply ."
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
