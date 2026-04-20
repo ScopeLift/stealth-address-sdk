@@ -1,18 +1,35 @@
 {
   "name": "@scopelift/stealth-address-sdk",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
   "type": "module",
+  "files": [
+    "dist/config",
+    "dist/index.d.ts",
+    "dist/index.js",
+    "dist/lib/abi",
+    "dist/lib/actions",
+    "dist/lib/helpers/*.d.ts",
+    "dist/lib/helpers/*.js",
+    "dist/lib/index.d.ts",
+    "dist/lib/index.js",
+    "dist/lib/stealthClient",
+    "dist/utils",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "anvil-fork": "make anvil-fork",
     "test-fork": "make test-fork",
     "test": "bun test",
-    "build": "biome check --apply . && bun tsc",
+    "build": "bun run check && bun tsc",
     "watch": "bun test --watch src",
     "check": "biome check .",
-    "publish": "bun run build && npm publish"
+    "fix": "biome check --apply .",
+    "publish": "bun run build && npm publish --access public"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",

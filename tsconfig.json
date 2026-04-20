@@ -24,5 +24,12 @@
     "noUnusedLocals": true,
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "examples"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "examples",
+    "src/**/*.test.ts",
+    "src/**/test/**/*",
+    "src/test/**/*"
+  ],
 }

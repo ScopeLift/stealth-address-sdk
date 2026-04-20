@@ -80,3 +80,14 @@ jobs:
         run: |
           bun install
           bun run check
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Verify publish tarball
+        run: |
+          bun install
+          bun run build
+          npm pack --dry-run
