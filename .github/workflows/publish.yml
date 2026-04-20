@@ -31,6 +31,21 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
+      - name: Validate release tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "Publish workflow must run from a tag ref; got $GITHUB_REF_TYPE:$GITHUB_REF_NAME"
+            exit 1
+          fi
+
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
+            exit 1
+          fi
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
