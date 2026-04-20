@@ -324,7 +324,8 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
         'stealthAddress',
         'caller',
         'ephemeralPubKey',
-        'metadata'
+        'metadata',
+        'timestamp'
       ];
 
       for (const result of coverageResults) {
@@ -333,6 +334,7 @@ describeRealSubgraph('getAnnouncementsUsingSubgraph with real subgraph', () => {
           for (const prop of expectedProperties) {
             expect(announcement).toHaveProperty(prop);
           }
+          expect(typeof announcement.timestamp).toBe('bigint');
         }
       }
     },

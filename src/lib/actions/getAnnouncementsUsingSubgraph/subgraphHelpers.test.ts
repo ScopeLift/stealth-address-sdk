@@ -24,6 +24,7 @@ const makeSubgraphEntity = (id: string): SubgraphAnnouncementEntity =>
     metadata: '0xmetadata',
     schemeId: '1',
     stealthAddress: '0xstealth',
+    timestamp: '1',
     transactionHash: `0x${id.padStart(64, '0')}`,
     blockHash: '0xblockhash',
     data: '0xdata',
@@ -559,7 +560,8 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
       stealthAddress: '0xstealth',
       caller: '0xcaller',
       ephemeralPubKey: '0xephemeral',
-      metadata: '0xmetadata'
+      metadata: '0xmetadata',
+      timestamp: '1234567890'
     };
 
     const result = convertSubgraphEntityToAnnouncementLog(subgraphEntity);
@@ -578,7 +580,8 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
       stealthAddress: '0xstealth',
       caller: '0xcaller',
       ephemeralPubKey: '0xephemeral',
-      metadata: '0xmetadata'
+      metadata: '0xmetadata',
+      timestamp: BigInt(1234567890)
     });
   });
 
@@ -597,7 +600,8 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
       stealthAddress: '0xstealth',
       caller: '0xcaller',
       ephemeralPubKey: '0xephemeral',
-      metadata: '0xmetadata'
+      metadata: '0xmetadata',
+      timestamp: '1234567890'
     };
 
     const result = convertSubgraphEntityToAnnouncementLog(subgraphEntity);
@@ -620,7 +624,8 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
       stealthAddress: '0xstealth',
       caller: '0xcaller',
       ephemeralPubKey: '0xephemeral',
-      metadata: '0xmetadata'
+      metadata: '0xmetadata',
+      timestamp: '1609459200' // Jan 1, 2021 timestamp
     };
 
     const result = convertSubgraphEntityToAnnouncementLog(subgraphEntity);
@@ -629,5 +634,6 @@ describe('convertSubgraphEntityToAnnouncementLog', () => {
     expect(result.logIndex).toEqual(255);
     expect(result.transactionIndex).toEqual(65535);
     expect(result.schemeId).toEqual(BigInt('9876543210987654321'));
+    expect(result.timestamp).toEqual(BigInt('1609459200'));
   });
 });
