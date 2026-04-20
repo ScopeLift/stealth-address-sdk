@@ -20,7 +20,7 @@
 - The publish job runs in the `npm-release` GitHub environment.
 - `package.json` must include a `repository.url` that exactly matches `https://github.com/ScopeLift/stealth-address-sdk`.
 - The npm package's trusted publisher settings must exactly match `ScopeLift/stealth-address-sdk`, workflow `publish.yml`, and environment `npm-release`.
-- Release tags publish to npm with the default `latest` dist-tag.
+- Release tags publish to npm with an explicit `latest` dist-tag, which npm requires for prerelease versions.
 - The publish job fails unless the tag version matches `package.json` and the tag points at the latest `main` commit.
 
 ## Commands
