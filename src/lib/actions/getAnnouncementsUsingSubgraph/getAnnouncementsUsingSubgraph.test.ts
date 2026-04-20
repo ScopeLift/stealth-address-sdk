@@ -152,7 +152,9 @@ describe('getAnnouncementsUsingSubgraph input validation', () => {
       getAnnouncementsUsingSubgraph({
         subgraphUrl: 'ftp://example.com/subgraph'
       })
-    ).rejects.toThrow(GetAnnouncementsUsingSubgraphError);
+    ).rejects.toMatchObject({
+      message: 'subgraphUrl must be a valid HTTP/HTTPS URL'
+    });
   });
 
   test('should throw error for invalid pageSize', async () => {

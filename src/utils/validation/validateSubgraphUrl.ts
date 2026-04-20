@@ -25,12 +25,15 @@ export function validateSubgraphUrl(
     throw new ErrorClass('subgraphUrl cannot be empty or whitespace');
   }
 
+  let parsedUrl: URL;
+
   try {
-    const parsedUrl = new URL(url);
-    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-      throw new ErrorClass('subgraphUrl must be a valid HTTP/HTTPS URL');
-    }
+    parsedUrl = new URL(url);
   } catch {
     throw new ErrorClass('subgraphUrl must be a valid URL format');
+  }
+
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    throw new ErrorClass('subgraphUrl must be a valid HTTP/HTTPS URL');
   }
 }

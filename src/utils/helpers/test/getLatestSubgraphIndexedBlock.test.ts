@@ -67,7 +67,9 @@ describe('getLatestSubgraphIndexedBlock', () => {
         getLatestSubgraphIndexedBlock({
           subgraphUrl: 'ftp://example.com/subgraph'
         })
-      ).rejects.toThrow(GetLatestSubgraphIndexedBlockError);
+      ).rejects.toMatchObject({
+        message: 'subgraphUrl must be a valid HTTP/HTTPS URL'
+      });
     });
 
     test('should accept valid HTTP and HTTPS URLs', async () => {
