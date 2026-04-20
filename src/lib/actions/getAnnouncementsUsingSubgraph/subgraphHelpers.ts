@@ -31,6 +31,7 @@ export const GET_ANNOUNCEMENTS_SUBGRAPH_QUERY = `
       removed
       schemeId
       stealthAddress
+      timestamp
       topics
       transactionHash
       transactionIndex
@@ -411,6 +412,15 @@ function validateSubgraphAnnouncementEntity(
     );
   }
 
+  if (
+    entity.timestamp &&
+    (Number.isNaN(Number(entity.timestamp)) || Number(entity.timestamp) < 0)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'Invalid announcement entity: timestamp must be a non-negative number'
+    );
+  }
+
   // Validate hex strings (basic validation - just check they start with 0x)
   const hexFields = [
     'caller',
@@ -484,6 +494,11 @@ export function convertSubgraphEntityToAnnouncementLog(
     stealthAddress: validatedEntity.stealthAddress as `0x${string}`,
     caller: validatedEntity.caller as `0x${string}`,
     ephemeralPubKey: validatedEntity.ephemeralPubKey as `0x${string}`,
-    metadata: validatedEntity.metadata as `0x${string}`
+    metadata: validatedEntity.metadata as `0x${string}`,
+    ...(entity.timestamp
+      ? {
+          timestamp: BigInt(entity.timestamp)
+        }
+      : {})
   };
 }

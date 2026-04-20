@@ -14,6 +14,7 @@ export interface AnnouncementLog extends Log {
   metadata: `0x${string}`;
   schemeId: bigint;
   stealthAddress: EthAddress;
+  timestamp?: bigint;
 }
 
 export type GetAnnouncementsParams = {

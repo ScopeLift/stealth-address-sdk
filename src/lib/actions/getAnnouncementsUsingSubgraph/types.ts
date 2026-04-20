@@ -11,6 +11,7 @@ export type SubgraphAnnouncementEntity = {
   schemeId?: string;
   stealthAddress?: string;
   transactionHash?: string;
+  timestamp?: string;
 
   // Additional log information (may be missing in some subgraph implementations)
   blockHash?: string;
