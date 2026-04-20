@@ -1,4 +1,5 @@
 import { GraphQLClient } from 'graphql-request';
+import { validateSubgraphUrl } from '../../../utils/validation/validateSubgraphUrl';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
   convertSubgraphEntityToAnnouncementLog,
@@ -9,6 +10,38 @@ import {
   type GetAnnouncementsUsingSubgraphParams,
   type GetAnnouncementsUsingSubgraphReturnType
 } from './types';
+
+/**
+ * Validates input parameters for getAnnouncementsUsingSubgraph function.
+ *
+ * @param subgraphUrl - The subgraph URL to validate
+ * @param pageSize - The page size to validate
+ * @throws {GetAnnouncementsUsingSubgraphError} If any parameter is invalid
+ */
+function validateGetAnnouncementsParams(
+  subgraphUrl: string,
+  pageSize: number
+): void {
+  // Validate subgraphUrl using shared utility
+  validateSubgraphUrl(subgraphUrl, GetAnnouncementsUsingSubgraphError);
+
+  // Validate pageSize
+  if (
+    typeof pageSize !== 'number' ||
+    pageSize <= 0 ||
+    !Number.isInteger(pageSize)
+  ) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'pageSize must be a positive integer'
+    );
+  }
+
+  if (pageSize > 10000) {
+    throw new GetAnnouncementsUsingSubgraphError(
+      'pageSize cannot exceed 10000 to avoid subgraph limits'
+    );
+  }
+}
 
 /**
  * Fetches announcement data from a specified subgraph URL.
@@ -38,6 +71,8 @@ async function getAnnouncementsUsingSubgraph({
   filter = '',
   pageSize = 1000
 }: GetAnnouncementsUsingSubgraphParams): Promise<GetAnnouncementsUsingSubgraphReturnType> {
+  // Validate input parameters
+  validateGetAnnouncementsParams(subgraphUrl, pageSize);
   const client = new GraphQLClient(subgraphUrl);
   const allAnnouncements: AnnouncementLog[] = [];
 
@@ -68,3 +103,4 @@ async function getAnnouncementsUsingSubgraph({
 }
 
 export default getAnnouncementsUsingSubgraph;
+export { GetAnnouncementsUsingSubgraphError };
