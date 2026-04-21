@@ -1,6 +1,12 @@
+import type { PublicClient } from 'viem';
 import type { EthAddress } from '../../..';
 import type { ClientParams } from '../../stealthClient/types';
 import type { AnnouncementLog } from '../getAnnouncements/types';
+
+export type AnnouncementTransactionLookupClient = Pick<
+  PublicClient,
+  'getTransaction'
+>;
 
 export type GetAnnouncementsForUserParams = {
   announcements: AnnouncementLog[];
@@ -13,13 +19,23 @@ export type GetAnnouncementsForUserParams = {
 
 export type GetAnnouncementsForUserReturnType = AnnouncementLog[];
 
-export type ProcessAnnouncementParams = Omit<
-  GetAnnouncementsForUserParams,
-  'announcements' | 'excludeList' | 'includeList'
-> & {
+export type NormalizedAnnouncementAddressFilters = {
   excludeList: Set<EthAddress>;
   includeList: Set<EthAddress>;
 };
+
+export type FilterAnnouncementsForUserBatchParams = {
+  announcements: AnnouncementLog[];
+  publicClient?: AnnouncementTransactionLookupClient;
+  spendingPublicKey: `0x${string}`;
+  viewingPrivateKey: `0x${string}`;
+} & NormalizedAnnouncementAddressFilters;
+
+export type ProcessAnnouncementParams = {
+  publicClient?: AnnouncementTransactionLookupClient;
+  spendingPublicKey: `0x${string}`;
+  viewingPrivateKey: `0x${string}`;
+} & NormalizedAnnouncementAddressFilters;
 
 export type ProcessAnnouncementReturnType = AnnouncementLog | null;
 
