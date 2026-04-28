@@ -7,9 +7,11 @@ import getStealthMetaAddress from './getStealthMetaAddress/getStealthMetaAddress
 import prepareAnnounce from './prepareAnnounce/prepareAnnounce';
 import prepareRegisterKeys from './prepareRegisterKeys/prepareRegisterKeys';
 import prepareRegisterKeysOnBehalf from './prepareRegisterKeysOnBehalf/prepareRegisterKeysOnBehalf';
+import scanAnnouncementsForUserUsingSubgraph from './scanAnnouncementsForUserUsingSubgraph/scanAnnouncementsForUserUsingSubgraph';
 import watchAnnouncementsForUser from './watchAnnouncementsForUser/watchAnnouncementsForUser';
 export { default as getAnnouncements } from './getAnnouncements/getAnnouncements';
 export { default as getAnnouncementsForUser } from './getAnnouncementsForUser/getAnnouncementsForUser';
+export { default as scanAnnouncementsForUserUsingSubgraph } from './scanAnnouncementsForUserUsingSubgraph/scanAnnouncementsForUserUsingSubgraph';
 export { default as getAnnouncementsPageUsingSubgraph } from './getAnnouncementsUsingSubgraph/getAnnouncementsPageUsingSubgraph';
 export { default as getAnnouncementsUsingSubgraph } from './getAnnouncementsUsingSubgraph/getAnnouncementsUsingSubgraph';
 export { default as getStealthMetaAddress } from './getStealthMetaAddress/getStealthMetaAddress';
@@ -33,13 +35,25 @@ export type {
   GetAnnouncementsForUserReturnType
 } from './getAnnouncementsForUser/types';
 export type {
+  ScanAnnouncementsForUserUsingSubgraphBatch,
+  ScanAnnouncementsForUserUsingSubgraphInitialParams,
+  ScanAnnouncementsForUserUsingSubgraphNextParams,
+  ScanAnnouncementsForUserUsingSubgraphParams,
+  ScanAnnouncementsForUserUsingSubgraphReturnType
+} from './scanAnnouncementsForUserUsingSubgraph/types';
+export type {
   GetAnnouncementsPageUsingSubgraphParams,
   GetAnnouncementsPageUsingSubgraphReturnType,
   GetAnnouncementsUsingSubgraphParams,
   GetAnnouncementsUsingSubgraphReturnType
 } from './getAnnouncementsUsingSubgraph/types';
 export type {
+  WatchAnnouncementsForUserBatchMeta,
+  WatchAnnouncementsForUserErrorHandler,
+  WatchAnnouncementsForUserHeartbeatHandler,
+  WatchAnnouncementsForUserHandler,
   WatchAnnouncementsForUserParams,
+  WatchAnnouncementsForUserPollMeta,
   WatchAnnouncementsForUserReturnType
 } from './watchAnnouncementsForUser/types';
 export type {
@@ -58,6 +72,7 @@ export type {
 export const actions: StealthActions = {
   getAnnouncements,
   getAnnouncementsForUser,
+  scanAnnouncementsForUserUsingSubgraph,
   getAnnouncementsPageUsingSubgraph,
   getAnnouncementsUsingSubgraph,
   getStealthMetaAddress,
