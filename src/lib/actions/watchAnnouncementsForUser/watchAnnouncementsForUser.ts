@@ -430,14 +430,6 @@ async function watchAnnouncementsForUser<T = void>({
       });
     }
   });
-  const stopHeartbeat = startWatchHeartbeat({
-    fromBlock,
-    onError,
-    onHeartbeat,
-    pollingInterval: pollOptions?.pollingInterval,
-    publicClient
-  });
-
   // Poll with getContractEvents directly so logs cannot slip through while an RPC filter is still being created.
   const unwatchContractEvent = await startPollingAnnouncementEvents({
     args,
@@ -452,6 +444,14 @@ async function watchAnnouncementsForUser<T = void>({
     spendingPublicKey,
     viewingPrivateKey,
     watchedAnnouncementsQueue
+  });
+
+  const stopHeartbeat = startWatchHeartbeat({
+    fromBlock,
+    onError,
+    onHeartbeat,
+    pollingInterval: pollOptions?.pollingInterval,
+    publicClient
   });
 
   return () => {
