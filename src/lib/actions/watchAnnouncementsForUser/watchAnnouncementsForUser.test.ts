@@ -110,6 +110,9 @@ const announce = async ({
   };
 };
 
+const getNextBlockNumber = async (walletClient: SuperWalletClient) =>
+  (await walletClient.getBlockNumber({ cacheTime: 0 })) + 1n;
+
 describe('watchAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
@@ -131,7 +134,7 @@ describe('watchAnnouncementsForUser', () => {
 
   test('awaits async handlers and still delivers relevant announcements', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
       args: {
@@ -186,7 +189,7 @@ describe('watchAnnouncementsForUser', () => {
   test('reports rejected handlers once and keeps watching later announcements', async () => {
     const handledAnnouncements: AnnouncementLog[] = [];
     const handlerErrors: string[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let handlerCalls = 0;
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
@@ -272,7 +275,7 @@ describe('watchAnnouncementsForUser', () => {
     const loggedErrors: Error[] = [];
     const handledAnnouncements: AnnouncementLog[] = [];
     let handlerCalls = 0;
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     console.error = ((value: unknown) => {
       if (value instanceof Error) {
@@ -360,7 +363,7 @@ describe('watchAnnouncementsForUser', () => {
     const originalConsoleError = console.error;
     const loggedErrors: Error[] = [];
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let handlerCalls = 0;
 
     console.error = ((value: unknown) => {
@@ -452,7 +455,7 @@ describe('watchAnnouncementsForUser', () => {
   test('recovers when fallback console logging throws', async () => {
     const originalConsoleError = console.error;
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let consoleErrorCalls = 0;
     let handlerCalls = 0;
 
@@ -613,7 +616,7 @@ describe('watchAnnouncementsForUser', () => {
       rawLogCount: number;
       relevantLogCount: number;
     }> = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
@@ -697,7 +700,7 @@ describe('watchAnnouncementsForUser', () => {
     let activeHandlers = 0;
     let handlerCalls = 0;
     let overlapDetected = false;
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
@@ -791,7 +794,7 @@ describe('watchAnnouncementsForUser', () => {
     const firstHandlerStarted = createDeferred();
     const firstBatchFinished = createDeferred();
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let sawLaterBatch = false;
     let sawFirstBatch = false;
 
@@ -879,7 +882,7 @@ describe('watchAnnouncementsForUser', () => {
 
   test('does not emit announcements that do not apply to the user', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
       args: {
