@@ -57,6 +57,7 @@ async function reportWatchError({
 }
 
 const DEFAULT_WATCH_HEARTBEAT_INTERVAL_MS = 4_000;
+const DEFAULT_WATCH_POLLING_INTERVAL_MS = 4_000;
 
 type WatchedAnnouncementsQueue = {
   enqueue: (task: () => Promise<void>) => void;
@@ -94,6 +95,20 @@ type WatchedAnnouncementEventLog = Omit<
     AnnouncementLog,
     'caller' | 'ephemeralPubKey' | 'metadata' | 'schemeId' | 'stealthAddress'
   >;
+};
+
+const getInitialPreviousBlockNumber = async ({
+  fromBlock,
+  publicClient
+}: {
+  fromBlock?: WatchAnnouncementsForUserParams['fromBlock'];
+  publicClient: ReturnType<typeof handleViemPublicClient>;
+}): Promise<bigint> => {
+  if (typeof fromBlock === 'bigint') {
+    return fromBlock - 1n;
+  }
+
+  return publicClient.getBlockNumber({ cacheTime: 0 });
 };
 
 const getObservedBlockFromLogs = (
@@ -245,6 +260,136 @@ export function startWatchHeartbeat<T = void>({
   };
 }
 
+export async function startPollingAnnouncementEvents<T = void>({
+  args,
+  ERC5564Address,
+  excludeList,
+  fromBlock,
+  handleLogsForUser,
+  includeList,
+  onError,
+  pollOptions,
+  publicClient,
+  spendingPublicKey,
+  viewingPrivateKey,
+  watchedAnnouncementsQueue
+}: {
+  args: WatchAnnouncementsForUserParams<T>['args'];
+  ERC5564Address: WatchAnnouncementsForUserParams<T>['ERC5564Address'];
+  excludeList?: WatchAnnouncementsForUserParams<T>['excludeList'];
+  fromBlock?: WatchAnnouncementsForUserParams<T>['fromBlock'];
+  handleLogsForUser: WatchAnnouncementsForUserParams<T>['handleLogsForUser'];
+  includeList?: WatchAnnouncementsForUserParams<T>['includeList'];
+  onError?: WatchAnnouncementsForUserParams<T>['onError'];
+  pollOptions?: WatchAnnouncementsForUserParams<T>['pollOptions'];
+  publicClient: ReturnType<typeof handleViemPublicClient>;
+  spendingPublicKey: WatchAnnouncementsForUserParams<T>['spendingPublicKey'];
+  viewingPrivateKey: WatchAnnouncementsForUserParams<T>['viewingPrivateKey'];
+  watchedAnnouncementsQueue: WatchedAnnouncementsQueue;
+}): Promise<WatchAnnouncementsForUserReturnType> {
+  let active = true;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let previousBlockNumber = await getInitialPreviousBlockNumber({
+    fromBlock,
+    publicClient
+  });
+  const pollingInterval =
+    pollOptions?.pollingInterval ??
+    publicClient.pollingInterval ??
+    DEFAULT_WATCH_POLLING_INTERVAL_MS;
+  const enqueueLogs = (logs: WatchedAnnouncementEventLog[]) => {
+    if (logs.length === 0) {
+      return;
+    }
+
+    const batches =
+      pollOptions?.batch === false ? logs.map(log => [log]) : [logs];
+
+    for (const batch of batches) {
+      watchedAnnouncementsQueue.enqueue(async () => {
+        await processWatchedAnnouncementsBatch({
+          logs: batch,
+          spendingPublicKey,
+          viewingPrivateKey,
+          publicClient,
+          excludeList,
+          includeList,
+          fromBlock,
+          handleLogsForUser,
+          onError
+        });
+      });
+    }
+  };
+
+  const pollAnnouncements = async () => {
+    try {
+      const blockNumber = await publicClient.getBlockNumber({ cacheTime: 0 });
+      if (!active) {
+        return;
+      }
+
+      const nextFromBlock = previousBlockNumber + 1n;
+
+      if (nextFromBlock > blockNumber) {
+        return;
+      }
+
+      const logs = (await publicClient.getContractEvents({
+        address: ERC5564Address,
+        abi: ERC5564AnnouncerAbi,
+        eventName: 'Announcement',
+        args,
+        fromBlock: nextFromBlock,
+        toBlock: blockNumber,
+        strict: true
+      })) as WatchedAnnouncementEventLog[];
+
+      if (!active) {
+        return;
+      }
+
+      previousBlockNumber = blockNumber;
+      enqueueLogs(logs);
+    } catch (error) {
+      await reportWatchError({
+        error,
+        fallbackMessage:
+          'watchAnnouncementsForUser failed while polling announcement events',
+        onError
+      });
+    }
+  };
+
+  const scheduleNextPoll = () => {
+    timeoutId = setTimeout(() => {
+      void runPollLoop();
+    }, pollingInterval);
+  };
+
+  const runPollLoop = async () => {
+    if (!active) {
+      return;
+    }
+
+    await pollAnnouncements();
+
+    if (active) {
+      scheduleNextPoll();
+    }
+  };
+
+  void runPollLoop();
+
+  return () => {
+    active = false;
+
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  };
+}
+
 /**
  * Watches for announcement events relevant to the user.
  *
@@ -285,37 +430,28 @@ async function watchAnnouncementsForUser<T = void>({
       });
     }
   });
+  // Poll with getContractEvents directly so logs cannot slip through while an RPC filter is still being created.
+  const unwatchContractEvent = await startPollingAnnouncementEvents({
+    args,
+    ERC5564Address,
+    excludeList,
+    fromBlock,
+    handleLogsForUser,
+    includeList,
+    onError,
+    pollOptions,
+    publicClient,
+    spendingPublicKey,
+    viewingPrivateKey,
+    watchedAnnouncementsQueue
+  });
+
   const stopHeartbeat = startWatchHeartbeat({
     fromBlock,
     onError,
     onHeartbeat,
     pollingInterval: pollOptions?.pollingInterval,
     publicClient
-  });
-
-  const unwatchContractEvent = publicClient.watchContractEvent({
-    address: ERC5564Address,
-    abi: ERC5564AnnouncerAbi,
-    eventName: 'Announcement',
-    args,
-    ...(fromBlock === 'latest' ? {} : { fromBlock }),
-    onLogs: logs => {
-      watchedAnnouncementsQueue.enqueue(async () => {
-        await processWatchedAnnouncementsBatch({
-          logs,
-          spendingPublicKey,
-          viewingPrivateKey,
-          publicClient,
-          excludeList,
-          includeList,
-          fromBlock,
-          handleLogsForUser,
-          onError
-        });
-      });
-    },
-    strict: true,
-    ...pollOptions
   });
 
   return () => {

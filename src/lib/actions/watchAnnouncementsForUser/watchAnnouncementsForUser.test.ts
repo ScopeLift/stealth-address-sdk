@@ -1,5 +1,5 @@
 import * as BunTest from 'bun:test';
-import { type Address, getAddress } from 'viem';
+import { type Address, type PublicClient, getAddress } from 'viem';
 import {
   type AnnouncementLog,
   ERC5564AnnouncerAbi,
@@ -12,7 +12,7 @@ import setupTestStealthKeys from '../../helpers/test/setupTestStealthKeys';
 import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
-import {
+import watchAnnouncementsForUser, {
   createWatchedAnnouncementsQueue,
   processWatchedAnnouncementsBatch,
   startWatchHeartbeat
@@ -110,6 +110,54 @@ const announce = async ({
   };
 };
 
+const getNextBlockNumber = async (walletClient: SuperWalletClient) =>
+  (await walletClient.getBlockNumber({ cacheTime: 0 })) + 1n;
+
+describe('watchAnnouncementsForUser setup failures', () => {
+  test('does not start heartbeat when polling setup fails', async () => {
+    const setupError = new Error('initial block number failed');
+    const reportedErrors: string[] = [];
+    let getBlockNumberCalls = 0;
+    const schemeId = VALID_SCHEME_ID.SCHEME_ID_1;
+    const schemeIdBigInt = BigInt(schemeId);
+    const { spendingPublicKey, viewingPrivateKey } =
+      setupTestStealthKeys(schemeId);
+
+    await expect(
+      watchAnnouncementsForUser({
+        ERC5564Address: ERC5564_CONTRACT_ADDRESS as Address,
+        args: {
+          schemeId: schemeIdBigInt,
+          caller: '0x00000000000000000000000000000000000000AA'
+        },
+        clientParams: {
+          publicClient: {
+            getBlockNumber: async () => {
+              getBlockNumberCalls += 1;
+              throw setupError;
+            }
+          } as unknown as PublicClient
+        },
+        handleLogsForUser: () => {},
+        onError: error => {
+          reportedErrors.push(error.message);
+        },
+        onHeartbeat: () => {},
+        pollOptions: {
+          pollingInterval: 10
+        },
+        spendingPublicKey,
+        viewingPrivateKey
+      })
+    ).rejects.toThrow('initial block number failed');
+
+    await sleep(35);
+
+    expect(getBlockNumberCalls).toEqual(1);
+    expect(reportedErrors).toHaveLength(0);
+  });
+});
+
 describe('watchAnnouncementsForUser', () => {
   let stealthClient: StealthActions;
   let walletClient: SuperWalletClient;
@@ -131,7 +179,7 @@ describe('watchAnnouncementsForUser', () => {
 
   test('awaits async handlers and still delivers relevant announcements', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
       args: {
@@ -186,7 +234,7 @@ describe('watchAnnouncementsForUser', () => {
   test('reports rejected handlers once and keeps watching later announcements', async () => {
     const handledAnnouncements: AnnouncementLog[] = [];
     const handlerErrors: string[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let handlerCalls = 0;
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
@@ -272,7 +320,7 @@ describe('watchAnnouncementsForUser', () => {
     const loggedErrors: Error[] = [];
     const handledAnnouncements: AnnouncementLog[] = [];
     let handlerCalls = 0;
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     console.error = ((value: unknown) => {
       if (value instanceof Error) {
@@ -360,7 +408,7 @@ describe('watchAnnouncementsForUser', () => {
     const originalConsoleError = console.error;
     const loggedErrors: Error[] = [];
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let handlerCalls = 0;
 
     console.error = ((value: unknown) => {
@@ -452,7 +500,7 @@ describe('watchAnnouncementsForUser', () => {
   test('recovers when fallback console logging throws', async () => {
     const originalConsoleError = console.error;
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let consoleErrorCalls = 0;
     let handlerCalls = 0;
 
@@ -613,7 +661,7 @@ describe('watchAnnouncementsForUser', () => {
       rawLogCount: number;
       relevantLogCount: number;
     }> = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
@@ -697,7 +745,7 @@ describe('watchAnnouncementsForUser', () => {
     let activeHandlers = 0;
     let handlerCalls = 0;
     let overlapDetected = false;
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
 
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
@@ -791,7 +839,7 @@ describe('watchAnnouncementsForUser', () => {
     const firstHandlerStarted = createDeferred();
     const firstBatchFinished = createDeferred();
     const handledAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     let sawLaterBatch = false;
     let sawFirstBatch = false;
 
@@ -879,7 +927,7 @@ describe('watchAnnouncementsForUser', () => {
 
   test('does not emit announcements that do not apply to the user', async () => {
     const watchedAnnouncements: AnnouncementLog[] = [];
-    const fromBlock = (await walletClient.getBlockNumber()) + 1n;
+    const fromBlock = await getNextBlockNumber(walletClient);
     const unwatch = await stealthClient.watchAnnouncementsForUser({
       ERC5564Address,
       args: {
