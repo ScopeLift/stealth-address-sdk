@@ -11,6 +11,7 @@ import setupTestWallet from '../../helpers/test/setupTestWallet';
 import type { SuperWalletClient } from '../../helpers/types';
 import type { StealthActions } from '../../stealthClient/types';
 import {
+  filterAnnouncementsForUserBatch,
   getTransactionFrom,
   processAnnouncement
 } from './getAnnouncementsForUser';
@@ -196,6 +197,33 @@ describe('getAnnouncementsForUser', () => {
 
     // Verify the function handles large data sets correctly
     expect(results).toHaveLength(PROCESS_LARGE_NUMBER_OF_ANNOUNCEMENTS_NUM);
+  });
+
+  test('deduplicates transaction lookups for repeated announcement hashes in one batch', async () => {
+    if (!account) throw new Error('No account found');
+
+    let transactionLookupCount = 0;
+    const duplicateAnnouncements = Array.from({ length: 5 }, () => ({
+      ...announcements[0]
+    }));
+    const publicClient = {
+      getTransaction: async () => {
+        transactionLookupCount += 1;
+        return { from: account.address };
+      }
+    };
+
+    const results = await filterAnnouncementsForUserBatch({
+      announcements: duplicateAnnouncements,
+      spendingPublicKey,
+      viewingPrivateKey,
+      includeList: new Set([account.address]),
+      excludeList: new Set([]),
+      publicClient
+    });
+
+    expect(results).toHaveLength(duplicateAnnouncements.length);
+    expect(transactionLookupCount).toBe(1);
   });
 
   test('throws TransactionHashRequiredError when transactionHash is null', async () => {
