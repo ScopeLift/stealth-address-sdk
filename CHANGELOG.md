@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.5] - 2026-04-29
+
+### Added
+
+- `scanAnnouncementsForUserUsingSubgraph` for streaming subgraph-backed announcement scans
+- Watcher heartbeat and batch metadata for live polling observability
+- Examples for streamed scans and composing historical scans with live watching
+
+### Changed
+
+- Use explicit `getContractEvents` polling for watched announcements so startup logs are not missed
+- Align package repository metadata with trusted publishing requirements
+
+### Fixed
+
+- Honor `fromBlock` boundaries reliably in `watchAnnouncementsForUser`
+- Stop heartbeat polling from starting when watcher setup fails
+
 ## [1.0.0-beta.4] - 2026-04-20
 
 ### Added
