@@ -24,6 +24,11 @@ export type NormalizedAnnouncementAddressFilters = {
   includeList: Set<EthAddress>;
 };
 
+export type AnnouncementTransactionFromCache = Map<
+  `0x${string}`,
+  Promise<EthAddress>
+>;
+
 export type FilterAnnouncementsForUserBatchParams = {
   announcements: AnnouncementLog[];
   publicClient?: AnnouncementTransactionLookupClient;
@@ -33,6 +38,7 @@ export type FilterAnnouncementsForUserBatchParams = {
 
 export type ProcessAnnouncementParams = {
   publicClient?: AnnouncementTransactionLookupClient;
+  transactionFromCache?: AnnouncementTransactionFromCache;
   spendingPublicKey: `0x${string}`;
   viewingPrivateKey: `0x${string}`;
 } & NormalizedAnnouncementAddressFilters;

@@ -7,6 +7,7 @@ import {
 import { handleViemPublicClient } from '../../stealthClient/createStealthClient';
 import type { AnnouncementLog } from '../getAnnouncements/types';
 import {
+  type AnnouncementTransactionFromCache,
   type AnnouncementTransactionLookupClient,
   type FilterAnnouncementsForUserBatchParams,
   FromValueNotFoundError,
@@ -50,12 +51,21 @@ export async function filterAnnouncementsForUserBatch({
   spendingPublicKey,
   viewingPrivateKey
 }: FilterAnnouncementsForUserBatchParams): Promise<GetAnnouncementsForUserReturnType> {
+  const transactionFromCache: AnnouncementTransactionFromCache | undefined =
+    announcementFiltersRequireTransactionLookup({
+      excludeList,
+      includeList
+    })
+      ? new Map()
+      : undefined;
+
   const processedAnnouncements = await Promise.allSettled(
     announcements.map(announcement =>
       processAnnouncement(announcement, {
         excludeList,
         includeList,
         publicClient,
+        transactionFromCache,
         spendingPublicKey,
         viewingPrivateKey
       })
@@ -131,6 +141,7 @@ export async function processAnnouncement(
     excludeList,
     includeList,
     publicClient,
+    transactionFromCache,
     spendingPublicKey,
     viewingPrivateKey
   }: ProcessAnnouncementParams
@@ -162,7 +173,8 @@ export async function processAnnouncement(
     hash,
     excludeList,
     includeList,
-    publicClient
+    publicClient,
+    transactionFromCache
   });
 
   if (!shouldInclude) return null;
@@ -186,12 +198,14 @@ async function shouldIncludeAnnouncement({
   hash,
   excludeList,
   includeList,
-  publicClient
+  publicClient,
+  transactionFromCache
 }: {
   hash: `0x${string}`;
   excludeList: Set<EthAddress>;
   includeList: Set<EthAddress>;
   publicClient?: AnnouncementTransactionLookupClient;
+  transactionFromCache?: AnnouncementTransactionFromCache;
 }): Promise<boolean> {
   if (excludeList.size === 0 && includeList.size === 0) return true; // No filters applied, include announcement
   if (!publicClient) {
@@ -200,7 +214,11 @@ async function shouldIncludeAnnouncement({
     );
   }
 
-  const from = await getTransactionFrom({ hash, publicClient });
+  const from = await getCachedTransactionFrom({
+    hash,
+    publicClient,
+    transactionFromCache
+  });
 
   if (excludeList.has(from)) return false; // Exclude if `from` is in excludeList
 
@@ -232,6 +250,29 @@ export async function getTransactionFrom({
   } catch (error) {
     throw new FromValueNotFoundError();
   }
+}
+
+async function getCachedTransactionFrom({
+  hash,
+  publicClient,
+  transactionFromCache
+}: {
+  publicClient: AnnouncementTransactionLookupClient;
+  hash: `0x${string}`;
+  transactionFromCache?: AnnouncementTransactionFromCache;
+}): Promise<EthAddress> {
+  if (!transactionFromCache) {
+    return getTransactionFrom({ hash, publicClient });
+  }
+
+  const cachedFrom = transactionFromCache.get(hash);
+  if (cachedFrom) {
+    return cachedFrom;
+  }
+
+  const from = getTransactionFrom({ hash, publicClient });
+  transactionFromCache.set(hash, from);
+  return from;
 }
 
 export default getAnnouncementsForUser;
